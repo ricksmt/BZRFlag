@@ -3,8 +3,8 @@
 We try to follow what BZFlag does.  The best resource is the man page for bzw.
 """
 
-from pyparsing import alphas, nums, Word, Keyword
-from pyparsing import Each, ZeroOrMore, Combine, Optional, Dict
+from pyparsing import alphas, nums, Word, Keyword, LineEnd
+from pyparsing import Each, ZeroOrMore, Combine, Optional, Dict, SkipTo, Group
 
 def numeric(toks):
     n = toks[0]
@@ -23,18 +23,22 @@ floatnum = Combine(
 floatnum.setParseAction(numeric)
 
 point2d = floatnum + floatnum
+point2d.setName('point2d')
 point3d = floatnum + floatnum + floatnum
+point3d.setName('point3d')
 
 # hey!!!: pos is mandatory, but the others are optional!!!
 obstacle_items = [
-        Keyword('pos') | Keyword('position') + point3d,
-        Optional(Keyword('size') + point3d),
-        Optional(Keyword('rot') | Keyword('rotation') + point3d)]
+        Group((Keyword('pos') | Keyword('position')) + point3d),
+        Optional(Group(Keyword('size') + point3d)),
+        Optional(Group((Keyword('rot') | Keyword('rotation')) + floatnum))]
 
-box = Dict(Each(*obstacle_items))
+box = Group(Keyword('box') + Dict(Each(obstacle_items)) + Keyword('end'))
+box.setName('box').setDebug()
 
-base_items = [Keyword('color') + integer] + obstacle_items
-base = Dict(Each(*base_items))
+base_items = [Group(Keyword('color') + integer)] + obstacle_items
+base = Group(Keyword('base') + Dict(Each(base_items)) + Keyword('end'))
+base.setName('base').setDebug()
 
 comment = '#' + SkipTo(LineEnd())
 
@@ -45,6 +49,12 @@ bzw = ZeroOrMore(box | base).ignore(comment)
 
 class World(object):
     def __init__(self, bzw_string):
+        tree = bzw.parseString(bzw_string)
+        print tree
 
+
+if __name__ == '__main__':
+    f = open('maps/four_ls.bzw')
+    w = World(f.read())
 
 # vim: et sw=4 sts=4
