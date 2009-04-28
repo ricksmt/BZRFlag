@@ -25,7 +25,7 @@ def run():
 
     screen = graphics.make_screen()
     bg = graphics.load_background(screen.get_size())
-    graphics.draw_bases(world, bg)
+    graphics.draw_obstacles(world, bg)
 
     import pygame
     screen.blit(bg, (0, 0))
