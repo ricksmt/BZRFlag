@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 
-import os
-
-DEFAULT_SIZE = 600, 600
-
-IMG_DIR = '/usr/share/bzflag'
-GROUND = 'std_ground.png'
-BGSCALE = 0.1
-
 
 def parse_args():
     import optparse
@@ -28,27 +20,12 @@ def run():
     else:
         world = World()
 
+    import graphics
+
+    screen = graphics.make_screen()
+    bg = graphics.load_background(screen.get_size())
 
     import pygame
-
-    pygame.init()
-    screen = pygame.display.set_mode(DEFAULT_SIZE)
-    screen.fill((255, 0, 0))
-    pygame.display.flip()
-
-    ground = pygame.image.load(os.path.join(IMG_DIR, GROUND)).convert()
-    w, h = ground.get_size()
-    w = int(w * BGSCALE)
-    h = int(h * BGSCALE)
-    print w, h
-
-    scaled_ground = pygame.transform.smoothscale(ground, (w, h))
-    bg = pygame.surface.Surface(screen.get_size())
-    for i in xrange(screen.get_width() // w + 1):
-        for j in xrange(screen.get_height() // h + 1):
-            bg.blit(scaled_ground, (i * w, j * h))
-
-
     screen.blit(bg, (0, 0))
     pygame.display.flip()
     # Note that display.update(dirty_rects) can speed things up a lot.
