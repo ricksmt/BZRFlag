@@ -16,7 +16,8 @@ def run():
     if opts.world:
         f = open(opts.world)
         parser = World.parser()
-        world = parser.parseString(f.read())
+        results = parser.parseString(f.read())
+        world = results[0]
     else:
         world = World()
 
@@ -24,6 +25,7 @@ def run():
 
     screen = graphics.make_screen()
     bg = graphics.load_background(screen.get_size())
+    graphics.draw_bases(world, bg)
 
     import pygame
     screen.blit(bg, (0, 0))

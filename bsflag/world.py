@@ -3,6 +3,8 @@
 We try to follow what BZFlag does.  The best resource is the man page for bzw.
 """
 
+WIDTH = HEIGHT = 800
+
 from pyparsing import alphas, nums, Word, Keyword, LineEnd, \
         Each, ZeroOrMore, Combine, Optional, Dict, SkipTo, Group
 
@@ -74,7 +76,13 @@ class Base(object):
         return base
 
 
-class World(list):
+class World(object):
+    def __init__(self, items):
+        self.size = (WIDTH, HEIGHT)
+        self.width = WIDTH
+        self.height = HEIGHT
+        self.items = list(items)
+
     @classmethod
     def parser(cls):
         """Parse a BZW file.
