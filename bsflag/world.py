@@ -77,11 +77,14 @@ class Base(object):
 
 
 class World(object):
-    def __init__(self, items):
+    def __init__(self, items=None):
         self.size = (WIDTH, HEIGHT)
         self.width = WIDTH
         self.height = HEIGHT
-        self.items = list(items)
+        if items:
+            self.items = list(items)
+        else:
+            self.items = []
 
     @classmethod
     def parser(cls):
