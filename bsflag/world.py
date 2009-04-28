@@ -3,6 +3,8 @@
 We try to follow what BZFlag does.  The best resource is the man page for bzw.
 """
 
+from pyparsing import alphas, nums, Word, Keyword, LineEnd, \
+        Each, ZeroOrMore, Combine, Optional, Dict, SkipTo, Group
 
 def numeric(toks):
     n = toks[0]
@@ -10,6 +12,27 @@ def numeric(toks):
         return int(n)
     except ValueError:
         return float(n)
+
+integer = Word(nums).setParseAction(numeric)
+
+floatnum = Combine(
+        Optional('-') + ('0' | Word('123456789',nums)) +
+        Optional('.' + Word(nums)) +
+        Optional(Word('eE',exact=1) + Word(nums+'+-',nums)))
+floatnum.setParseAction(numeric)
+
+end = Keyword('end').suppress()
+
+point2d = floatnum + floatnum
+point2d.setName('point2d')
+point3d = floatnum + floatnum + floatnum
+point3d.setName('point3d')
+
+# Obstacle
+position = Group((Keyword('pos') | Keyword('position')) + point3d)
+size = Group(Keyword('size') + point3d)
+rotation = Group((Keyword('rot') | Keyword('rotation')) + floatnum)
+obstacle_items = [position, Optional(size), Optional(rotation)]
 
 
 class Box(object):
@@ -20,6 +43,13 @@ class Box(object):
         self.size = size
         if not self.pos:
             raise ValueError('Position is required')
+
+    @classmethod
+    def parser(cls):
+        box_contents = Each(obstacle_items)
+        box = Dict(Keyword('box').suppress() + box_contents + end)
+        box.setParseAction(lambda toks: cls(**toks))
+        return box
 
 
 class Base(object):
@@ -34,49 +64,26 @@ class Base(object):
         if not self.pos:
             raise ValueError('Position is required')
 
-
-class World(list):
     @classmethod
     def parser(cls):
-        from pyparsing import alphas, nums, Word, Keyword, LineEnd, \
-                Each, ZeroOrMore, Combine, Optional, Dict, SkipTo, Group
-        integer = Word(nums).setParseAction(numeric)
-
-        floatnum = Combine(
-                Optional('-') + ('0' | Word('123456789',nums)) +
-                Optional('.' + Word(nums)) +
-                Optional(Word('eE',exact=1) + Word(nums+'+-',nums)))
-        floatnum.setParseAction(numeric)
-
-        end = Keyword('end').suppress()
-        comment = '#' + SkipTo(LineEnd())
-
-        point2d = floatnum + floatnum
-        point2d.setName('point2d')
-        point3d = floatnum + floatnum + floatnum
-        point3d.setName('point3d')
-
-        # Obstacle
-        position = Group((Keyword('pos') | Keyword('position')) + point3d)
-        size = Group(Keyword('size') + point3d)
-        rotation = Group((Keyword('rot') | Keyword('rotation')) + floatnum)
-        obstacle_items = [position, Optional(size), Optional(rotation)]
-
-        # Box
-        box_contents = Each(obstacle_items)
-        box = Dict(Keyword('box').suppress() + box_contents + end)
-        box.setParseAction(lambda toks: Box(**toks))
-
         # Base
         color = Group(Keyword('color') + integer)
         base_contents = Each([color] + obstacle_items)
         base = Dict(Keyword('base').suppress() + base_contents + end)
-        base.setParseAction(lambda toks: Base(**toks))
+        base.setParseAction(lambda toks: cls(**toks))
+        return base
 
 
-        # For now, we're only supporting a subset of bzw's allobjects.
-        bzw = ZeroOrMore(box | base).ignore(comment)
-        bzw.setParseAction(lambda toks: World(toks))
+class World(list):
+    @classmethod
+    def parser(cls):
+        """Parse a BZW file.
+
+        For now, we're only supporting a subset of BZW's allobjects.
+        """
+        comment = '#' + SkipTo(LineEnd())
+        bzw = ZeroOrMore(box.parser() | base.parser()).ignore(comment)
+        bzw.setParseAction(lambda toks: cls(toks))
         return bzw
 
 
