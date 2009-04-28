@@ -12,11 +12,30 @@ def numeric(toks):
         return float(n)
 
 
-class World(object):
-    def __init__(self, bzw_string):
-        tree = bzw.parseString(bzw_string)
-        print tree
+class Box(object):
+    def __init__(self, pos=None, position=None, rot=None, rotation=None,
+            size=None):
+        self.pos = pos or position
+        self.rot = rot or position
+        self.size = size
+        if not self.pos:
+            raise ValueError('Position is required')
 
+
+class Base(object):
+    def __init__(self, color=None, pos=None, position=None, rot=None,
+            rotation=None, size=None):
+        self.color = color
+        self.pos = pos or position
+        self.rot = rot or position
+        self.size = size
+        if self.color is None:
+            raise ValueError('Color is required')
+        if not self.pos:
+            raise ValueError('Position is required')
+
+
+class World(list):
     @classmethod
     def parser(cls):
         from pyparsing import alphas, nums, Word, Keyword, LineEnd, \
@@ -29,28 +48,35 @@ class World(object):
                 Optional(Word('eE',exact=1) + Word(nums+'+-',nums)))
         floatnum.setParseAction(numeric)
 
+        end = Keyword('end').suppress()
+        comment = '#' + SkipTo(LineEnd())
+
         point2d = floatnum + floatnum
         point2d.setName('point2d')
         point3d = floatnum + floatnum + floatnum
         point3d.setName('point3d')
 
-        # hey!!!: pos is mandatory, but the others are optional!!!
+        # Obstacle
         position = Group((Keyword('pos') | Keyword('position')) + point3d)
         size = Group(Keyword('size') + point3d)
         rotation = Group((Keyword('rot') | Keyword('rotation')) + floatnum)
         obstacle_items = [position, Optional(size), Optional(rotation)]
 
-        box_contents = Dict(Each(obstacle_items))
-        box = Group(Keyword('box') + box_contents + Keyword('end'))
+        # Box
+        box_contents = Each(obstacle_items)
+        box = Dict(Keyword('box').suppress() + box_contents + end)
+        box.setParseAction(lambda toks: Box(**toks))
 
+        # Base
         color = Group(Keyword('color') + integer)
-        base_contents = Dict(Each([color] + obstacle_items))
-        base = Group(Keyword('base') + base_contents + Keyword('end'))
+        base_contents = Each([color] + obstacle_items)
+        base = Dict(Keyword('base').suppress() + base_contents + end)
+        base.setParseAction(lambda toks: Base(**toks))
 
-        comment = '#' + SkipTo(LineEnd())
 
         # For now, we're only supporting a subset of bzw's allobjects.
         bzw = ZeroOrMore(box | base).ignore(comment)
+        bzw.setParseAction(lambda toks: World(toks))
         return bzw
 
 
