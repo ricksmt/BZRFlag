@@ -82,7 +82,7 @@ class World(list):
         For now, we're only supporting a subset of BZW's allobjects.
         """
         comment = '#' + SkipTo(LineEnd())
-        bzw = ZeroOrMore(box.parser() | base.parser()).ignore(comment)
+        bzw = ZeroOrMore(Box.parser() | Base.parser()).ignore(comment)
         bzw.setParseAction(lambda toks: cls(toks))
         return bzw
 
