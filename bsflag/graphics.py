@@ -58,17 +58,6 @@ def load_wall(scale=TILESCALE):
     return scaled_image(wall, scale)
 
 
-def tile(tile, size):
-    """Creates a surface of the given size tiled with the given surface."""
-    tile_width, tile_height = tile.get_size()
-    width, height = size
-    surface = pygame.surface.Surface(size, pygame.SRCALPHA)
-    for i in xrange(width // tile_width + 1):
-        for j in xrange(height // tile_height + 1):
-            surface.blit(tile, (i * tile_width, j * tile_height))
-    return surface
-
-
 def draw_obstacles(world, surface):
     """Draws obstacles defined in the given world onto the given surface.
 
@@ -77,25 +66,67 @@ def draw_obstacles(world, surface):
     screen_size = surface.get_size()
     wall_surface = load_wall()
     for item in world.items:
-        # Note that bzflag sizes are more like a radius (half of width).
-        flat_size = (2 * item.size[0]), (2 * item.size[1])
-        x, y = vec_world_to_screen(flat_size, world.size, screen_size)
-        w, h = x, -y
         if isinstance(item, Base):
-            raw_image = load_base(item.color)
-            image = pygame.transform.smoothscale(raw_image, (w, h))
+            image = load_base(item.color)
+            s = ScaledSprite(item, image, world.size, screen_size)
         elif isinstance(item, Box):
-            image = tile(wall_surface, (w, h))
+            s = TiledSprite(item, wall_surface, world.size, screen_size)
         else:
             print 'Warning: unknown obstacle.'
             continue
 
-        flat_pos = item.pos[0:2]
-        pos = pos_world_to_screen(flat_pos, world.size, screen_size)
-        if item.rot:
-            image = pygame.transform.rotate(image, item.rot)
+        surface.blit(s.image, s.rect)
 
-        blit_center(surface, image, pos)
+
+def obstacle_rect(obstacle, world_size, screen_size):
+    """Returns a Rectangle for the given BZFlag obstacle.
+
+    The rectangle will be unrotated.
+    """
+    flat_size = obstacle.size[0:2]
+    x, y = vec_world_to_screen(flat_size, world_size, screen_size)
+    # Note that bzflag sizes are more like a radius (half of width).
+    size = (2*x, -2*y)
+
+    flat_pos = obstacle.pos[0:2]
+    pos = pos_world_to_screen(flat_pos, world_size, screen_size)
+
+    rect = pygame.Rect((0, 0), size)
+    rect.center = pos
+    return rect
+
+
+class ScaledSprite(pygame.sprite.Sprite):
+    def __init__(self, obstacle, image, world_size, screen_size):
+        super(ScaledSprite, self).__init__()
+
+        rect = obstacle_rect(obstacle, world_size, screen_size)
+
+        image = pygame.transform.smoothscale(image, rect.size)
+        if obstacle.rot:
+            image = pygame.transform.rotate(image, obstacle.rot)
+            rect.size = image.get_size()
+
+        self.image = image
+        self.rect = rect
+        self.obstacle = obstacle
+
+
+class TiledSprite(pygame.sprite.Sprite):
+    """Creates a tiled image for the given obstacle and tile image."""
+    def __init__(self, obstacle, tile_image, world_size, screen_size):
+        super(TiledSprite, self).__init__()
+
+        rect = obstacle_rect(obstacle, world_size, screen_size)
+
+        image = tile(tile_image, rect.size)
+        if obstacle.rot:
+            image = pygame.transform.rotate(image, obstacle.rot)
+            rect.size = image.get_size()
+
+        self.image = image
+        self.rect = rect
+        self.obstacle = obstacle
 
 
 def blit_center(surface, image, center):
@@ -106,6 +137,17 @@ def blit_center(surface, image, center):
     rect = pygame.Rect((0, 0), image.get_size())
     rect.center = center
     surface.blit(image, rect)
+
+
+def tile(tile, size):
+    """Creates a surface of the given size tiled with the given surface."""
+    tile_width, tile_height = tile.get_size()
+    width, height = size
+    surface = pygame.surface.Surface(size, pygame.SRCALPHA)
+    for i in xrange(width // tile_width + 1):
+        for j in xrange(height // tile_height + 1):
+            surface.blit(tile, (i * tile_width, j * tile_height))
+    return surface
 
 
 def pos_world_to_screen(pos, world_size, screen_size):
@@ -126,7 +168,7 @@ def pos_world_to_screen(pos, world_size, screen_size):
 
 def vec_world_to_screen(vector, world_size, screen_size):
     """Converts a vector from world space to screen pixel space.
-    
+
     >>> vec_world_to_screen((200, 200), (800, 800), (400, 400))
     (100, -100)
     >>>
