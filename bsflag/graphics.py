@@ -64,13 +64,13 @@ def draw_obstacles(world, surface):
     Obstacles includes both bases and boxes.
     """
     screen_size = surface.get_size()
-    wall_surface = load_wall()
+    wall = load_wall()
     for item in world.items:
         if isinstance(item, Base):
             image = load_base(item.color)
-            s = ScaledSprite(item, image, world.size, screen_size)
+            s = ObstacleSprite(item, image, world.size, screen_size)
         elif isinstance(item, Box):
-            s = TiledSprite(item, wall_surface, world.size, screen_size)
+            s = TiledObstacleSprite(item, wall, world.size, screen_size)
         else:
             print 'Warning: unknown obstacle.'
             continue
@@ -96,13 +96,13 @@ def obstacle_rect(obstacle, world_size, screen_size):
     return rect
 
 
-class ScaledSprite(pygame.sprite.Sprite):
+class ObstacleSprite(pygame.sprite.Sprite):
     def __init__(self, obstacle, image, world_size, screen_size):
-        super(ScaledSprite, self).__init__()
+        super(ObstacleSprite, self).__init__()
 
         rect = obstacle_rect(obstacle, world_size, screen_size)
+        image = self.make_image(image, rect)
 
-        image = pygame.transform.smoothscale(image, rect.size)
         if obstacle.rot:
             image = pygame.transform.rotate(image, obstacle.rot)
             rect.size = image.get_size()
@@ -111,22 +111,17 @@ class ScaledSprite(pygame.sprite.Sprite):
         self.rect = rect
         self.obstacle = obstacle
 
+    @staticmethod
+    def make_image(image, rect):
+        """Overrideable function for creating the image."""
+        return pygame.transform.smoothscale(image, rect.size)
 
-class TiledSprite(pygame.sprite.Sprite):
-    """Creates a tiled image for the given obstacle and tile image."""
-    def __init__(self, obstacle, tile_image, world_size, screen_size):
-        super(TiledSprite, self).__init__()
 
-        rect = obstacle_rect(obstacle, world_size, screen_size)
-
-        image = tile(tile_image, rect.size)
-        if obstacle.rot:
-            image = pygame.transform.rotate(image, obstacle.rot)
-            rect.size = image.get_size()
-
-        self.image = image
-        self.rect = rect
-        self.obstacle = obstacle
+class TiledObstacleSprite(ObstacleSprite):
+    """An ObstacleSprite with a tiled image."""
+    @staticmethod
+    def make_image(image, rect):
+        return tile(image, rect.size)
 
 
 def blit_center(surface, image, center):
