@@ -91,10 +91,21 @@ def draw_obstacles(world, surface):
             continue
 
         flat_pos = item.pos[0:2]
-        center_pos = pos_world_to_screen(flat_pos, world.size, screen_size)
-        pos = pos_corner_from_center(center_pos, (w, h))
+        pos = pos_world_to_screen(flat_pos, world.size, screen_size)
+        if item.rot:
+            image = pygame.transform.rotate(image, item.rot)
 
-        surface.blit(image, pos)
+        blit(surface, image, pos)
+
+
+def blit(surface, image, center):
+    """Blits the image onto the surface using the center position.
+
+    The normal blit command uses the top-left corner instead.
+    """
+    size = image.get_size()
+    pos = pos_corner_from_center(center, size)
+    surface.blit(image, pos)
 
 
 def pos_corner_from_center(center, size):

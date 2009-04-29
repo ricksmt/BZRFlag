@@ -41,7 +41,7 @@ class Box(object):
     def __init__(self, pos=None, position=None, rot=None, rotation=None,
             size=None):
         self.pos = pos or position
-        self.rot = rot or position
+        self.rot = rot or rotation
         self.size = size
         if not self.pos:
             raise ValueError('Position is required')
@@ -59,7 +59,7 @@ class Base(object):
             rotation=None, size=None):
         self.color = color
         self.pos = pos or position
-        self.rot = rot or position
+        self.rot = rot or rotation
         self.size = size
         if self.color is None:
             raise ValueError('Color is required')
