@@ -124,16 +124,6 @@ class TiledObstacleSprite(ObstacleSprite):
         return tile(image, rect.size)
 
 
-def blit_center(surface, image, center):
-    """Blits the image onto the surface using the center position.
-
-    The normal blit command uses the top-left corner instead.
-    """
-    rect = pygame.Rect((0, 0), image.get_size())
-    rect.center = center
-    surface.blit(image, rect)
-
-
 def tile(tile, size):
     """Creates a surface of the given size tiled with the given surface."""
     tile_width, tile_height = tile.get_size()
