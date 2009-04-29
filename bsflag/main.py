@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import constants
+
 
 def parse_args():
     import optparse
@@ -24,14 +26,42 @@ def run():
     import graphics
 
     screen = graphics.make_screen()
-    bg = graphics.load_background(screen.get_size())
+    screen_size = screen.get_size()
+    bg = graphics.load_background(screen_size)
     graphics.draw_obstacles(world, bg)
 
     import pygame
     screen.blit(bg, (0, 0))
-    pygame.display.flip()
-    # Note that display.update(dirty_rects) can speed things up a lot.
+    pygame.display.update()
 
-    pygame.time.delay(20000)
+    group = pygame.sprite.RenderUpdates()
+
+    shot = Shot()
+    shot_image = graphics.load_shot(shot.color)
+    shot_sprite = graphics.BZSprite(shot, shot_image, world.size, screen_size,
+            graphics.SHOTSCALE)
+    group.add(shot_sprite)
+
+    while True:
+        shot.update()
+        shot_sprite.update()
+
+        group.clear(screen, bg)
+        changes = group.draw(screen)
+        pygame.display.update(changes)
+
+        pygame.time.delay(100)
+
+
+class Shot(object):
+    color = 1
+    size = (constants.ShotRadius,) * 2
+    pos = (-400, 0)
+    rot = None
+
+    def update(self):
+        x, y = self.pos
+        self.pos = (x + 5), y
+
 
 # vim: et sw=4 sts=4

@@ -8,7 +8,9 @@ IMG_DIR = '/usr/share/bzflag'
 GROUND = 'std_ground.png'
 WALL = 'wall.png'
 BASE_PATTERN = '%s_basetop.png'
+SHOT_PATTERN = '%s_bolt.png'
 TILESCALE = 0.1
+SHOTSCALE = 10
 
 COLOR_NAME = dict(enumerate(('rogue', 'red', 'green', 'blue', 'purple')))
 
@@ -45,8 +47,15 @@ def load_background(screen_size, scale=TILESCALE):
 
 
 def load_base(color):
-    """Returns a surface for the given color index."""
+    """Returns a surface for the base for the given color index."""
     filename = os.path.join(IMG_DIR, BASE_PATTERN % COLOR_NAME[color])
+    image = pygame.image.load(filename).convert_alpha()
+    return image
+
+
+def load_shot(color):
+    """Returns a surface for shots for the given color index."""
+    filename = os.path.join(IMG_DIR, SHOT_PATTERN % COLOR_NAME[color])
     image = pygame.image.load(filename).convert_alpha()
     return image
 
@@ -68,9 +77,9 @@ def draw_obstacles(world, surface):
     for item in world.items:
         if isinstance(item, Base):
             image = load_base(item.color)
-            s = ObstacleSprite(item, image, world.size, screen_size)
+            s = BZSprite(item, image, world.size, screen_size)
         elif isinstance(item, Box):
-            s = TiledObstacleSprite(item, wall, world.size, screen_size)
+            s = TiledBZSprite(item, wall, world.size, screen_size)
         else:
             print 'Warning: unknown obstacle.'
             continue
@@ -78,17 +87,20 @@ def draw_obstacles(world, surface):
         surface.blit(s.image, s.rect)
 
 
-def obstacle_rect(obstacle, world_size, screen_size):
-    """Returns a Rectangle for the given BZFlag obstacle.
+def bzrect(bzobject, world_size, screen_size, scale=None):
+    """Returns a Rectangle for the given BZFlag object.
 
     The rectangle will be unrotated.
     """
-    flat_size = obstacle.size
-    x, y = vec_world_to_screen(flat_size, world_size, screen_size)
+    w, h = bzobject.size
+    if scale:
+        w *= scale
+        h *= scale
+    x, y = vec_world_to_screen((w, h), world_size, screen_size)
     # Note that bzflag sizes are more like a radius (half of width).
     size = (2*x, -2*y)
 
-    flat_pos = obstacle.pos
+    flat_pos = bzobject.pos
     pos = pos_world_to_screen(flat_pos, world_size, screen_size)
 
     rect = pygame.Rect((0, 0), size)
@@ -96,29 +108,35 @@ def obstacle_rect(obstacle, world_size, screen_size):
     return rect
 
 
-class ObstacleSprite(pygame.sprite.Sprite):
-    def __init__(self, obstacle, image, world_size, screen_size):
-        super(ObstacleSprite, self).__init__()
+class BZSprite(pygame.sprite.Sprite):
+    def __init__(self, bzobject, image, world_size, screen_size, scale=None):
+        super(BZSprite, self).__init__()
 
-        rect = obstacle_rect(obstacle, world_size, screen_size)
+        rect = bzrect(bzobject, world_size, screen_size, scale)
         image = self.make_image(image, rect)
 
-        if obstacle.rot:
-            image = pygame.transform.rotate(image, obstacle.rot)
+        if bzobject.rot:
+            image = pygame.transform.rotate(image, bzobject.rot)
             rect.size = image.get_size()
 
         self.image = image
         self.rect = rect
-        self.obstacle = obstacle
+        self.bzobject = bzobject
+        self.world_size = world_size
+        self.screen_size = screen_size
 
     @staticmethod
     def make_image(image, rect):
         """Overrideable function for creating the image."""
         return pygame.transform.smoothscale(image, rect.size)
 
+    def update(self):
+        self.rect.center = pos_world_to_screen(self.bzobject.pos,
+                self.world_size, self.screen_size)
 
-class TiledObstacleSprite(ObstacleSprite):
-    """An ObstacleSprite with a tiled image."""
+
+class TiledBZSprite(BZSprite):
+    """An BZSprite with a tiled image."""
     @staticmethod
     def make_image(image, rect):
         return tile(image, rect.size)
