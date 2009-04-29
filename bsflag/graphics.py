@@ -83,12 +83,12 @@ def obstacle_rect(obstacle, world_size, screen_size):
 
     The rectangle will be unrotated.
     """
-    flat_size = obstacle.size[0:2]
+    flat_size = obstacle.size
     x, y = vec_world_to_screen(flat_size, world_size, screen_size)
     # Note that bzflag sizes are more like a radius (half of width).
     size = (2*x, -2*y)
 
-    flat_pos = obstacle.pos[0:2]
+    flat_pos = obstacle.pos
     pos = pos_world_to_screen(flat_pos, world_size, screen_size)
 
     rect = pygame.Rect((0, 0), size)

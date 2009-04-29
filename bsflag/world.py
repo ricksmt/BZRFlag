@@ -26,9 +26,8 @@ floatnum.setParseAction(numeric)
 end = Keyword('end').suppress()
 
 point2d = floatnum + floatnum
-point2d.setName('point2d')
-point3d = floatnum + floatnum + floatnum
-point3d.setName('point3d')
+# Note: Since we're just doing 2D, we ignore the z term of 3D points.
+point3d = floatnum + floatnum + floatnum.suppress()
 
 # Obstacle
 position = Group((Keyword('pos') | Keyword('position')) + point3d)
