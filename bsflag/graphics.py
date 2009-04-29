@@ -79,19 +79,20 @@ def draw_obstacles(world, surface):
     for item in world.items:
         # Note that bzflag sizes are more like a radius (half of width).
         flat_size = (2 * item.size[0]), (2 * item.size[1])
-        size = vec_world_to_screen(flat_size, world.size, screen_size)
+        x, y = vec_world_to_screen(flat_size, world.size, screen_size)
+        w, h = x, -y
         if isinstance(item, Base):
             raw_image = load_base(item.color)
-            image = pygame.transform.smoothscale(raw_image, size)
+            image = pygame.transform.smoothscale(raw_image, (w, h))
         elif isinstance(item, Box):
-            image = tile(wall_surface, size)
+            image = tile(wall_surface, (w, h))
         else:
             print 'Warning: unknown obstacle.'
             continue
 
         flat_pos = item.pos[0:2]
-        corner_pos = pos_corner_from_center(flat_pos, flat_size)
-        pos = pos_world_to_screen(corner_pos, world.size, screen_size)
+        center_pos = pos_world_to_screen(flat_pos, world.size, screen_size)
+        pos = pos_corner_from_center(center_pos, (w, h))
 
         surface.blit(image, pos)
 
@@ -114,12 +115,14 @@ def pos_world_to_screen(pos, world_size, screen_size):
 
     >>> pos_world_to_screen((0, 0), (800, 800), (400, 400))
     (200, 200)
+    >>> pos_world_to_screen((-400, -400), (800, 800), (400, 400))
+    (0, 400)
     >>>
     """
     x, y = pos
     world_width, world_height = world_size
     x += world_width / 2
-    y += world_height / 2
+    y -= world_height / 2
     return vec_world_to_screen((x, y), world_size, screen_size)
 
 
@@ -127,7 +130,7 @@ def vec_world_to_screen(vector, world_size, screen_size):
     """Converts a vector from world space to screen pixel space.
     
     >>> vec_world_to_screen((200, 200), (800, 800), (400, 400))
-    (100, 100)
+    (100, -100)
     >>>
     """
     screen_width, screen_height = screen_size
@@ -136,7 +139,7 @@ def vec_world_to_screen(vector, world_size, screen_size):
     hscale = screen_height / world_height
 
     x, y = vector
-    return int(x * wscale), int(y * hscale)
+    return int(x * wscale), -int(y * hscale)
 
 
 if __name__ == '__main__':
