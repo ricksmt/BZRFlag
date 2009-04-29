@@ -39,7 +39,7 @@ def load_background(screen_size, scale=TILESCALE):
     The surface is scaled down according to the given scale factor.
     """
     filename = os.path.join(IMG_DIR, GROUND)
-    ground = pygame.image.load(filename).convert()
+    ground = pygame.image.load(filename).convert_alpha()
     scaled_ground = scaled_image(ground, scale)
     return tile(scaled_ground, screen_size)
 
@@ -47,14 +47,14 @@ def load_background(screen_size, scale=TILESCALE):
 def load_base(color):
     """Returns a surface for the given color index."""
     filename = os.path.join(IMG_DIR, BASE_PATTERN % COLOR_NAME[color])
-    image = pygame.image.load(filename).convert()
+    image = pygame.image.load(filename).convert_alpha()
     return image
 
 
 def load_wall(scale=TILESCALE):
     """Returns a surface for walls."""
     filename = os.path.join(IMG_DIR, WALL)
-    wall = pygame.image.load(filename).convert()
+    wall = pygame.image.load(filename).convert_alpha()
     return scaled_image(wall, scale)
 
 
@@ -62,7 +62,7 @@ def tile(tile, size):
     """Creates a surface of the given size tiled with the given surface."""
     tile_width, tile_height = tile.get_size()
     width, height = size
-    surface = pygame.surface.Surface(size)
+    surface = pygame.surface.Surface(size, pygame.SRCALPHA)
     for i in xrange(width // tile_width + 1):
         for j in xrange(height // tile_height + 1):
             surface.blit(tile, (i * tile_width, j * tile_height))
