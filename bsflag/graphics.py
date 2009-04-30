@@ -3,7 +3,7 @@
 from __future__ import division
 import os
 
-DEFAULT_SIZE = 600, 600
+DEFAULT_SIZE = 700, 700
 
 IMG_DIR = '/usr/share/bzflag'
 DATA_DIR = os.path.abspath(os.path.join(
