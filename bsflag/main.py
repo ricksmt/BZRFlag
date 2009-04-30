@@ -40,11 +40,20 @@ def run():
     shot_image = graphics.load_shot(shot.color)
     shot_sprite = graphics.BZSprite(shot, shot_image, world.size, screen_size,
             graphics.SHOTSCALE)
+
+    tank = Tank()
+    tank_image = graphics.load_tank(tank.color)
+    tank_sprite = graphics.BZSprite(tank, tank_image, world.size, screen_size,
+            graphics.TANKSCALE)
+
     group.add(shot_sprite)
+    group.add(tank_sprite)
 
     while True:
         shot.update()
         shot_sprite.update()
+        tank.update()
+        tank_sprite.update()
 
         group.clear(screen, bg)
         changes = group.draw(screen)
@@ -57,6 +66,17 @@ class Shot(object):
     color = 1
     size = (constants.ShotRadius,) * 2
     pos = (-400, 0)
+    rot = None
+
+    def update(self):
+        x, y = self.pos
+        self.pos = (x + 5), y
+
+
+class Tank(object):
+    color = 1
+    size = (constants.TankRadius,) * 2
+    pos = (-400, 200)
     rot = None
 
     def update(self):

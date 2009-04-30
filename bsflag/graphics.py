@@ -1,20 +1,24 @@
 #!/usr/bin/env python
 
 from __future__ import division
+import os
 
 DEFAULT_SIZE = 600, 600
 
 IMG_DIR = '/usr/share/bzflag'
+DATA_DIR = os.path.abspath(os.path.join(
+        os.path.split(__file__)[0], '..', 'data'))
 GROUND = 'std_ground.png'
 WALL = 'wall.png'
 BASE_PATTERN = '%s_basetop.png'
 SHOT_PATTERN = '%s_bolt.png'
+TANK_PATTERN = '%s_tank.png'
 TILESCALE = 0.1
 SHOTSCALE = 10
+TANKSCALE = 2
 
 COLOR_NAME = dict(enumerate(('rogue', 'red', 'green', 'blue', 'purple')))
 
-import os
 import pygame
 from world import Base, Box
 
@@ -56,6 +60,13 @@ def load_base(color):
 def load_shot(color):
     """Returns a surface for shots for the given color index."""
     filename = os.path.join(IMG_DIR, SHOT_PATTERN % COLOR_NAME[color])
+    image = pygame.image.load(filename).convert_alpha()
+    return image
+
+
+def load_tank(color):
+    """Returns a surface for shots for the given color index."""
+    filename = os.path.join(DATA_DIR, TANK_PATTERN % COLOR_NAME[color])
     image = pygame.image.load(filename).convert_alpha()
     return image
 
