@@ -85,16 +85,12 @@ def draw_obstacles(world, surface):
     """
     screen_size = surface.get_size()
     wall = load_wall()
-    for item in world.items:
-        if isinstance(item, Base):
-            image = load_base(item.color)
-            s = BZSprite(item, image, world.size, screen_size)
-        elif isinstance(item, Box):
-            s = TiledBZSprite(item, wall, world.size, screen_size)
-        else:
-            print 'Warning: unknown obstacle.'
-            continue
-
+    for box in world.boxes:
+        s = TiledBZSprite(box, wall, world.size, screen_size)
+        surface.blit(s.image, s.rect)
+    for base in world.bases:
+        image = load_base(base.color)
+        s = BZSprite(base, image, world.size, screen_size)
         surface.blit(s.image, s.rect)
 
 

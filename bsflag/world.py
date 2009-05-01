@@ -80,10 +80,16 @@ class World(object):
         self.size = (WIDTH, HEIGHT)
         self.width = WIDTH
         self.height = HEIGHT
+        self.boxes = []
+        self.bases = []
         if items:
-            self.items = list(items)
-        else:
-            self.items = []
+            for item in items:
+                if isinstance(item, Box):
+                    self.boxes.append(item)
+                elif isinstance(item, Base):
+                    self.bases.append(item)
+                else:
+                    raise NotImplementedError('Unhandled world element.')
 
     @classmethod
     def parser(cls):
