@@ -10,6 +10,7 @@ BACKLOG = 5
 
 class Server(asyncore.dispatcher):
     def __init__(self, addr):
+        self.in_use = False
         sock = socket.socket()
         asyncore.dispatcher.__init__(self, sock)
         self.bind(addr)
@@ -17,7 +18,14 @@ class Server(asyncore.dispatcher):
 
     def handle_accept(self):
         sock, addr = self.accept()
-        Handler(sock)
+        if self.in_use:
+            sock.close()
+        else:
+            self.in_use = True
+            Handler(sock, self.handle_closed_handler)
+
+    def handle_closed_handler(self):
+        self.in_use = False
 
 
 class Handler(asynchat.async_chat):
@@ -25,12 +33,17 @@ class Handler(asynchat.async_chat):
 
     Each team has its own server.
     """
-    def __init__(self, *args):
-        asynchat.async_chat.__init__(self, *args)
+    def __init__(self, sock, closed_callback):
+        asynchat.async_chat.__init__(self, sock)
+        self.closed_callback = closed_callback
         self.set_terminator('\n')
         self.input_buffer = ''
         self.push('bzrobots 1\n')
         self.init_timestamp = time.time()
+
+    def handle_close(self):
+        self.closed_callback()
+        self.close()
 
     def collect_incoming_data(self, chunk):
         if self.input_buffer:
