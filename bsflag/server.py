@@ -3,16 +3,16 @@
 import asynchat
 import asyncore
 import socket
+import time
 
-ADDRESS = ('127.0.0.1', 4001)
 BACKLOG = 5
 
 
 class Server(asyncore.dispatcher):
-    def __init__(self):
+    def __init__(self, addr):
         sock = socket.socket()
         asyncore.dispatcher.__init__(self, sock)
-        self.bind(ADDRESS)
+        self.bind(addr)
         self.listen(BACKLOG)
 
     def handle_accept(self):
@@ -28,28 +28,52 @@ class Handler(asynchat.async_chat):
     def __init__(self, *args):
         asynchat.async_chat.__init__(self, *args)
         self.set_terminator('\n')
-        self.input_buffer = []
+        self.input_buffer = ''
         self.push('bzrobots 1\n')
+        self.init_timestamp = time.time()
 
     def collect_incoming_data(self, chunk):
-        self.input_buffer.append(chunk)
+        if self.input_buffer:
+            self.input_buffer += chunk
+        else:
+            self.input_buffer = chunk
 
     def found_terminator(self):
-        data = ''.join(self.input_buffer)
-        self.input_buffer = []
+        """Called when Asynchat finds an end-of-line.
 
-        lines = data.split('\n')
-        requests = lines[:-1]
-        remainder = lines[-1]
-        if remainder:
-            self.input_buffer.append(remainder)
+        Note that Asynchat ensures that our input buffer contains everything
+        up to but not including the newline character.
+        """
+        args = self.input_buffer.split()
+        self.input_buffer = ''
+        if args:
+            try:
+                command = getattr(self, 'bzrc_%s' % args[0])
+            except AttributeError:
+                self.push('fail Invalid command\n')
+                return
+            command(args)
 
-        for request in requests:
-            print 'request:', request
+    def invalid_args(self, args):
+        self.ack(*args)
+        self.push('fail Invalid parameter(s)\n')
 
+    def ack(self, *args):
+        timestamp = time.time() - self.init_timestamp
+        arg_string = ' '.join(str(arg) for arg in args)
+        self.push('ack %s %s\n' % (timestamp, arg_string))
 
-s = Server()
-asyncore.loop()
+    def bzrc_shoot(self, args):
+        """Requests the given tank to shoot."""
+        try:
+            command, tank = args
+            tank = int(tank)
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+
+        self.ack(command, tank)
+        print 'got a shot command!'
 
 
 # vim: et sw=4 sts=4

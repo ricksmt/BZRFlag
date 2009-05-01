@@ -3,19 +3,31 @@
 The BSFlag Main module contains the program's entry point and event loop.
 """
 
+import asyncore
+import os
+import socket
+import sys
+
 import constants
+import server
+
+# A higher loop timeout increases CPU usage but decreases the frame rate.
+LOOP_TIMEOUT = 0.01
 
 
-def parse_args():
+def options():
     import optparse
     p = optparse.OptionParser()
     p.add_option('--world', action='store', dest='world')
-    return p.parse_args()
+    p.add_option('--port', action='store', type='int', dest='port', default=0)
+    opts, args = p.parse_args()
+    if args:
+        p.parse_error('No positional arguments are allowed.')
+    return opts
 
 
 def run():
-    opts, args = parse_args()
-    print 'Loading.'
+    opts = options()
 
     from world import World
     if opts.world:
@@ -26,8 +38,21 @@ def run():
     else:
         world = World()
 
-    import graphics
 
+    # TODO: create one server per color.
+    addr = ('0.0.0.0', opts.port)
+    try:
+        bzrc = server.Server(addr)
+    except socket.error, e:
+        print >>sys.stderr, 'Socket error:', os.strerror(e.errno)
+        sys.exit(1)
+
+    host, port = bzrc.socket.getsockname()
+    print 'Listening on port %s.' % port
+
+
+    # TODO: Move most or all of the graphics stuff to another function.
+    import graphics
     screen = graphics.make_screen()
     screen_size = screen.get_size()
     bg = graphics.load_background(screen_size)
@@ -53,6 +78,8 @@ def run():
     group.add(tank_sprite)
 
     while True:
+        asyncore.loop(LOOP_TIMEOUT, count=1)
+
         shot.update()
         shot_sprite.update()
         tank.update()
