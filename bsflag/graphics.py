@@ -5,7 +5,6 @@ import os
 
 DEFAULT_SIZE = 700, 700
 
-IMG_DIR = '/usr/share/bzflag'
 DATA_DIR = os.path.abspath(os.path.join(
         os.path.split(__file__)[0], '..', 'data'))
 GROUND = 'std_ground.png'
@@ -44,7 +43,7 @@ def load_background(screen_size, scale=TILESCALE):
 
     The surface is scaled down according to the given scale factor.
     """
-    filename = os.path.join(IMG_DIR, GROUND)
+    filename = os.path.join(DATA_DIR, GROUND)
     ground = pygame.image.load(filename).convert_alpha()
     scaled_ground = scaled_image(ground, scale)
     return tile(scaled_ground, screen_size)
@@ -52,14 +51,14 @@ def load_background(screen_size, scale=TILESCALE):
 
 def load_base(color):
     """Returns a surface for the base for the given color index."""
-    filename = os.path.join(IMG_DIR, BASE_PATTERN % COLOR_NAME[color])
+    filename = os.path.join(DATA_DIR, BASE_PATTERN % COLOR_NAME[color])
     image = pygame.image.load(filename).convert_alpha()
     return image
 
 
 def load_shot(color):
     """Returns a surface for shots for the given color index."""
-    filename = os.path.join(IMG_DIR, SHOT_PATTERN % COLOR_NAME[color])
+    filename = os.path.join(DATA_DIR, SHOT_PATTERN % COLOR_NAME[color])
     image = pygame.image.load(filename).convert_alpha()
     return image
 
@@ -73,7 +72,7 @@ def load_tank(color):
 
 def load_wall(scale=TILESCALE):
     """Returns a surface for walls."""
-    filename = os.path.join(IMG_DIR, WALL)
+    filename = os.path.join(DATA_DIR, WALL)
     wall = pygame.image.load(filename).convert_alpha()
     return scaled_image(wall, scale)
 
