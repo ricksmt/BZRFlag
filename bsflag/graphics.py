@@ -1,4 +1,11 @@
-#!/usr/bin/env python
+"""BSFlag Graphics Module
+
+The graphics module encapsulates all of the little pieces needed to get things
+to show up on the screen.  It uses pygame, a Python library built on top of
+SDL (a cross-platform 2D graphics platform).  Anyway, BSFlag graphics includes
+sprites and functions for transforming BZFlag coordinates to screen
+coordinates.  Keep it simple.
+"""
 
 from __future__ import division
 import os

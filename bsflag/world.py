@@ -1,6 +1,11 @@
-"""World Model
+"""BSFlag World Model
 
-We try to follow what BZFlag does.  The best resource is the man page for bzw.
+The BSFlag World module implements a parser for reading in bzw files and
+creating Python objects for all of the static components of a BZFlag world
+(such as bases and obstacles).  It doesn't implement everything because BSFlag
+only worries about a subset of BZFlag features anyway.  However, everything
+that is supported is implemented correctly.  See the bzw man page for more
+information about the file format (but note that their BNF is incomplete).
 """
 
 WIDTH = HEIGHT = 800

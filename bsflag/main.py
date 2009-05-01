@@ -1,4 +1,7 @@
-#!/usr/bin/env python
+"""BSFlag Main
+
+The BSFlag Main module contains the program's entry point and event loop.
+"""
 
 import constants
 
