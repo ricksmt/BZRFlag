@@ -53,25 +53,23 @@ def run():
 
     # TODO: Move most or all of the graphics stuff to another function.
     import graphics
-    screen = graphics.make_screen()
-    screen_size = screen.get_size()
-    bg = graphics.load_background(screen_size)
-    graphics.draw_obstacles(world, bg)
+    display = graphics.Display(world)
+    bg = display.background()
 
     import pygame
-    screen.blit(bg, (0, 0))
+    display.screen.blit(bg, (0, 0))
     pygame.display.update()
 
     group = pygame.sprite.RenderUpdates()
 
     shot = Shot()
-    shot_image = graphics.load_shot(shot.color)
-    shot_sprite = graphics.BZSprite(shot, shot_image, world.size, screen_size,
+    shot_image = display.images.shot(shot.color)
+    shot_sprite = graphics.BZSprite(shot, shot_image, display,
             graphics.SHOTSCALE)
 
     tank = Tank()
-    tank_image = graphics.load_tank(tank.color)
-    tank_sprite = graphics.BZSprite(tank, tank_image, world.size, screen_size,
+    tank_image = display.images.tank(tank.color)
+    tank_sprite = graphics.BZSprite(tank, tank_image, display,
             graphics.TANKSCALE)
 
     group.add(shot_sprite)
@@ -85,8 +83,8 @@ def run():
         tank.update()
         tank_sprite.update()
 
-        group.clear(screen, bg)
-        changes = group.draw(screen)
+        group.clear(display.screen, bg)
+        changes = group.draw(display.screen)
         pygame.display.update(changes)
 
         pygame.time.delay(100)

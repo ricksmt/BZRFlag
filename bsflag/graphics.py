@@ -29,11 +29,15 @@ import pygame
 from world import Base, Box
 
 
-def make_screen():
-    """Creates and returns the pygame screen surface."""
-    pygame.init()
-    screen = pygame.display.set_mode(DEFAULT_SIZE)
-    return screen
+def load_image(filename):
+    """Loads the image with the given filename from the DATA_DIR.
+
+    Note that convert_alpha is applied to the loaded image to preserve
+    transparency.
+    """
+    path = os.path.join(DATA_DIR, filename)
+    image = pygame.image.load(path).convert_alpha()
+    return image
 
 
 def scaled_image(image, scale):
@@ -43,116 +47,6 @@ def scaled_image(image, scale):
     h = int(h * scale)
 
     return pygame.transform.smoothscale(image, (w, h))
-
-
-def load_background(screen_size, scale=TILESCALE):
-    """Creates a surface of the given size tiled with the background img.
-
-    The surface is scaled down according to the given scale factor.
-    """
-    filename = os.path.join(DATA_DIR, GROUND)
-    ground = pygame.image.load(filename).convert_alpha()
-    scaled_ground = scaled_image(ground, scale)
-    return tile(scaled_ground, screen_size)
-
-
-def load_base(color):
-    """Returns a surface for the base for the given color index."""
-    filename = os.path.join(DATA_DIR, BASE_PATTERN % COLOR_NAME[color])
-    image = pygame.image.load(filename).convert_alpha()
-    return image
-
-
-def load_shot(color):
-    """Returns a surface for shots for the given color index."""
-    filename = os.path.join(DATA_DIR, SHOT_PATTERN % COLOR_NAME[color])
-    image = pygame.image.load(filename).convert_alpha()
-    return image
-
-
-def load_tank(color):
-    """Returns a surface for shots for the given color index."""
-    filename = os.path.join(DATA_DIR, TANK_PATTERN % COLOR_NAME[color])
-    image = pygame.image.load(filename).convert_alpha()
-    return image
-
-
-def load_wall(scale=TILESCALE):
-    """Returns a surface for walls."""
-    filename = os.path.join(DATA_DIR, WALL)
-    wall = pygame.image.load(filename).convert_alpha()
-    return scaled_image(wall, scale)
-
-
-def draw_obstacles(world, surface):
-    """Draws obstacles defined in the given world onto the given surface.
-
-    Obstacles includes both bases and boxes.
-    """
-    screen_size = surface.get_size()
-    wall = load_wall()
-    for box in world.boxes:
-        s = TiledBZSprite(box, wall, world.size, screen_size)
-        surface.blit(s.image, s.rect)
-    for base in world.bases:
-        image = load_base(base.color)
-        s = BZSprite(base, image, world.size, screen_size)
-        surface.blit(s.image, s.rect)
-
-
-def bzrect(bzobject, world_size, screen_size, scale=None):
-    """Returns a Rectangle for the given BZFlag object.
-
-    The rectangle will be unrotated.
-    """
-    w, h = bzobject.size
-    if scale:
-        w *= scale
-        h *= scale
-    x, y = vec_world_to_screen((w, h), world_size, screen_size)
-    # Note that bzflag sizes are more like a radius (half of width).
-    size = (2*x, -2*y)
-
-    flat_pos = bzobject.pos
-    pos = pos_world_to_screen(flat_pos, world_size, screen_size)
-
-    rect = pygame.Rect((0, 0), size)
-    rect.center = pos
-    return rect
-
-
-class BZSprite(pygame.sprite.Sprite):
-    def __init__(self, bzobject, image, world_size, screen_size, scale=None):
-        super(BZSprite, self).__init__()
-
-        rect = bzrect(bzobject, world_size, screen_size, scale)
-        image = self.make_image(image, rect)
-
-        if bzobject.rot:
-            image = pygame.transform.rotate(image, bzobject.rot)
-            rect.size = image.get_size()
-
-        self.image = image
-        self.rect = rect
-        self.bzobject = bzobject
-        self.world_size = world_size
-        self.screen_size = screen_size
-
-    @staticmethod
-    def make_image(image, rect):
-        """Overrideable function for creating the image."""
-        return pygame.transform.smoothscale(image, rect.size)
-
-    def update(self):
-        self.rect.center = pos_world_to_screen(self.bzobject.pos,
-                self.world_size, self.screen_size)
-
-
-class TiledBZSprite(BZSprite):
-    """An BZSprite with a tiled image."""
-    @staticmethod
-    def make_image(image, rect):
-        return tile(image, rect.size)
 
 
 def tile(tile, size):
@@ -166,36 +60,173 @@ def tile(tile, size):
     return surface
 
 
-def pos_world_to_screen(pos, world_size, screen_size):
-    """Converts a position from world space to screen pixel space.
+class ImageCache(object):
+    def __init__(self):
+        self._ground = None
+        self._wall = None
+        self._bases = {}
+        self._shots = {}
+        self._tanks = {}
 
-    >>> pos_world_to_screen((0, 0), (800, 800), (400, 400))
-    (200, 200)
-    >>> pos_world_to_screen((-400, -400), (800, 800), (400, 400))
-    (0, 400)
-    >>>
-    """
-    x, y = pos
-    world_width, world_height = world_size
-    x += world_width / 2
-    y -= world_height / 2
-    return vec_world_to_screen((x, y), world_size, screen_size)
+    def ground(self):
+        """Creates a surface of the ground image.
+
+        The surface is scaled down using the factor in TILESCALE.
+        """
+        if not self._ground:
+            ground = load_image(GROUND)
+            self._ground = scaled_image(ground, TILESCALE)
+        return self._ground
+
+    def wall(self):
+        """Returns a surface for walls.
+
+        The surface is scaled down using the factor in TILESCALE.
+        """
+        if not self._wall:
+            wall = load_image(WALL)
+            self._wall = scaled_image(wall, TILESCALE)
+        return self._wall
+
+    def base(self, color):
+        """Returns a surface for the base for the given color index."""
+        try:
+            image = self._bases[color]
+        except KeyError:
+            image = load_image(BASE_PATTERN % COLOR_NAME[color])
+            self._shots[color] = image
+        return image
+
+    def shot(self, color):
+        """Returns a surface for shots for the given color index."""
+        try:
+            image = self._shots[color]
+        except KeyError:
+            image = load_image(SHOT_PATTERN % COLOR_NAME[color])
+            self._shots[color] = image
+        return image
+
+    def tank(self, color):
+        """Returns a surface for shots for the given color index."""
+        try:
+            image = self._tanks[color]
+        except KeyError:
+            image = load_image(TANK_PATTERN % COLOR_NAME[color])
+            self._tanks[color] = image
+        return image
 
 
-def vec_world_to_screen(vector, world_size, screen_size):
-    """Converts a vector from world space to screen pixel space.
+class Display(object):
+    """Manages all graphics."""
+    def __init__(self, world, screen_size=DEFAULT_SIZE):
+        self.world = world
+        self.screen_size = screen_size
+        self.images = ImageCache()
+        self._background = None
 
-    >>> vec_world_to_screen((200, 200), (800, 800), (400, 400))
-    (100, -100)
-    >>>
-    """
-    screen_width, screen_height = screen_size
-    world_width, world_height = world_size
-    wscale = screen_width / world_width
-    hscale = screen_height / world_height
+        # Initialize pygame and create the screen surface.
+        pygame.init()
+        self.screen = pygame.display.set_mode(DEFAULT_SIZE)
 
-    x, y = vector
-    return int(x * wscale), -int(y * hscale)
+    def background(self):
+        """Creates a surface of the background with all obstacles.
+
+        Obstacles includes both bases and boxes.
+        """
+        if not self._background:
+            bg = tile(self.images.ground(), self.screen_size)
+            for box in self.world.boxes:
+                s = TiledBZSprite(box, self.images.wall(), self)
+                bg.blit(s.image, s.rect)
+            for base in self.world.bases:
+                image = self.images.base(base.color)
+                s = BZSprite(base, image, self)
+                bg.blit(s.image, s.rect)
+            self._background = bg
+        return self._background
+
+    def bzrect(self, bzobject, scale=None):
+        """Returns a Rectangle for the given BZFlag object.
+
+        The rectangle will be unrotated.
+        """
+        w, h = bzobject.size
+        if scale:
+            w *= scale
+            h *= scale
+        x, y = self.vec_world_to_screen((w, h))
+        # Note that bzflag sizes are more like a radius (half of width).
+        size = (2*x, -2*y)
+
+        flat_pos = bzobject.pos
+        pos = self.pos_world_to_screen(flat_pos)
+
+        rect = pygame.Rect((0, 0), size)
+        rect.center = pos
+        return rect
+
+    def pos_world_to_screen(self, pos):
+        """Converts a position from world space to screen pixel space.
+
+        >>> pos_world_to_screen((0, 0), (800, 800), (400, 400))
+        (200, 200)
+        >>> pos_world_to_screen((-400, -400), (800, 800), (400, 400))
+        (0, 400)
+        >>>
+        """
+        x, y = pos
+        world_width, world_height = self.world.size
+        x += world_width / 2
+        y -= world_height / 2
+        return self.vec_world_to_screen((x, y))
+
+    def vec_world_to_screen(self, vector):
+        """Converts a vector from world space to screen pixel space.
+
+        >>> vec_world_to_screen((200, 200), (800, 800), (400, 400))
+        (100, -100)
+        >>>
+        """
+        screen_width, screen_height = self.screen_size
+        world_width, world_height = self.world.size
+        wscale = screen_width / world_width
+        hscale = screen_height / world_height
+
+        x, y = vector
+        return int(x * wscale), -int(y * hscale)
+
+
+class BZSprite(pygame.sprite.Sprite):
+    def __init__(self, bzobject, image, display, scale=None):
+        super(BZSprite, self).__init__()
+
+        rect = display.bzrect(bzobject, scale)
+        image = self.make_image(image, rect)
+
+        if bzobject.rot:
+            image = pygame.transform.rotate(image, bzobject.rot)
+            rect.size = image.get_size()
+
+        self.image = image
+        self.rect = rect
+        self.bzobject = bzobject
+        self.display = display
+
+    @staticmethod
+    def make_image(image, rect):
+        """Overrideable function for creating the image."""
+        return pygame.transform.smoothscale(image, rect.size)
+
+    def update(self):
+        self.rect.center = self.display.pos_world_to_screen(self.bzobject.pos)
+
+
+class TiledBZSprite(BZSprite):
+    """An BZSprite with a tiled image."""
+    @staticmethod
+    def make_image(image, rect):
+        return tile(image, rect.size)
+
 
 
 if __name__ == '__main__':
