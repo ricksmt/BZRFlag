@@ -145,6 +145,18 @@ class Display(object):
             self._background = bg
         return self._background
 
+    def tank_sprite(self, tank):
+        """Creates a sprite for the given tank."""
+        image = self.images.tank(tank.color)
+        sprite = BZSprite(tank, image, self, TANKSCALE)
+        return sprite
+
+    def shot_sprite(self, shot):
+        """Creates a sprite for the given shot."""
+        image = self.images.shot(shot.color)
+        sprite = BZSprite(shot, image, self, SHOTSCALE)
+        return sprite
+
     def bzrect(self, bzobject, scale=None):
         """Returns a Rectangle for the given BZFlag object.
 

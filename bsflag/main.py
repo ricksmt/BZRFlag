@@ -63,14 +63,10 @@ def run():
     group = pygame.sprite.RenderUpdates()
 
     shot = Shot()
-    shot_image = display.images.shot(shot.color)
-    shot_sprite = graphics.BZSprite(shot, shot_image, display,
-            graphics.SHOTSCALE)
+    shot_sprite = display.shot_sprite(shot)
 
     tank = Tank()
-    tank_image = display.images.tank(tank.color)
-    tank_sprite = graphics.BZSprite(tank, tank_image, display,
-            graphics.TANKSCALE)
+    tank_sprite = display.tank_sprite(tank)
 
     group.add(shot_sprite)
     group.add(tank_sprite)
@@ -86,8 +82,6 @@ def run():
         group.clear(display.screen, bg)
         changes = group.draw(display.screen)
         pygame.display.update(changes)
-
-        pygame.time.delay(100)
 
 
 class Shot(object):
