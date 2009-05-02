@@ -38,6 +38,8 @@ def run():
     else:
         world = World()
 
+    # TODO: create multiple teams
+
     # Create team 1.
     team = game.Team(1)
 
@@ -52,7 +54,6 @@ def run():
     print 'Listening on port %s.' % port
 
 
-    # TODO: Move most or all of the graphics stuff to another function.
     import graphics
     display = graphics.Display(world)
     display.setup()

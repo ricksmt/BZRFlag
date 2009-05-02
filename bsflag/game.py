@@ -1,3 +1,15 @@
+"""Game Logic
+
+The Game Logic module implements teams, tanks, shots, etc.
+"""
+
+# TODO: create a Game class that contains all of the teams, shots, etc.  The
+# Game class would encapsulate everything and would just expose an update
+# method to the run function (and either a create_sprites method or enough
+# information for such a function to be implemented in main).  Make the
+# objects aware of each other and implement collision detection.  Add flags
+# and scoring.
+
 import math
 import random
 
