@@ -121,12 +121,27 @@ class Display(object):
     def __init__(self, world, screen_size=DEFAULT_SIZE):
         self.world = world
         self.screen_size = screen_size
+        self.screen = None
+        self.sprites = None
         self.images = ImageCache()
         self._background = None
 
-        # Initialize pygame and create the screen surface.
+    def setup(self):
+        """Initializes pygame and creates the screen surface."""
         pygame.init()
-        self.screen = pygame.display.set_mode(DEFAULT_SIZE)
+        self.screen = pygame.display.set_mode(self.screen_size)
+        bg = self.background()
+        self.screen.blit(bg, (0, 0))
+        pygame.display.update()
+        self.sprites = pygame.sprite.RenderUpdates()
+
+    def update(self):
+        """Updates the state of all sprites and redraws the screen."""
+        self.sprites.update()
+        bg = self.background()
+        self.sprites.clear(self.screen, bg)
+        changes = self.sprites.draw(self.screen)
+        pygame.display.update(changes)
 
     def background(self):
         """Creates a surface of the background with all obstacles.
@@ -149,13 +164,13 @@ class Display(object):
         """Creates a sprite for the given tank."""
         image = self.images.tank(tank.color)
         sprite = BZSprite(tank, image, self, TANKSCALE)
-        return sprite
+        self.sprites.add(sprite)
 
     def shot_sprite(self, shot):
         """Creates a sprite for the given shot."""
         image = self.images.shot(shot.color)
         sprite = BZSprite(shot, image, self, SHOTSCALE)
-        return sprite
+        self.sprites.add(sprite)
 
     def bzrect(self, bzobject, scale=None):
         """Returns a Rectangle for the given BZFlag object.

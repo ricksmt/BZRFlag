@@ -54,34 +54,20 @@ def run():
     # TODO: Move most or all of the graphics stuff to another function.
     import graphics
     display = graphics.Display(world)
-    bg = display.background()
-
-    import pygame
-    display.screen.blit(bg, (0, 0))
-    pygame.display.update()
-
-    group = pygame.sprite.RenderUpdates()
+    display.setup()
 
     shot = Shot()
-    shot_sprite = display.shot_sprite(shot)
+    display.shot_sprite(shot)
 
     tank = Tank()
-    tank_sprite = display.tank_sprite(tank)
-
-    group.add(shot_sprite)
-    group.add(tank_sprite)
+    display.tank_sprite(tank)
 
     while True:
         asyncore.loop(LOOP_TIMEOUT, count=1)
 
         shot.update()
-        shot_sprite.update()
         tank.update()
-        tank_sprite.update()
-
-        group.clear(display.screen, bg)
-        changes = group.draw(display.screen)
-        pygame.display.update(changes)
+        display.update()
 
 
 class Shot(object):
