@@ -78,7 +78,7 @@ class Shot(object):
 
     def update(self):
         x, y = self.pos
-        self.pos = (x + 5), y
+        self.pos = (x + 1), y
 
 
 class Tank(object):
@@ -89,7 +89,7 @@ class Tank(object):
 
     def update(self):
         x, y = self.pos
-        self.pos = (x + 5), y
+        self.pos = (x + 1), y
 
 
 # vim: et sw=4 sts=4
