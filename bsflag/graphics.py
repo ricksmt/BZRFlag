@@ -257,7 +257,8 @@ class BZSprite(pygame.sprite.Sprite):
 
         Don't rotate a previously rotated object.  That causes data loss.
         """
-        self.image = pygame.transform.rotate(self.image, self.bzobject.rot)
+        rot = 360 * self.bzobject.rot / (2 * math.pi)
+        self.image = pygame.transform.rotate(self.image, rot)
         self.rect.size = self.image.get_size()
 
     def _scale_prerotated(self):

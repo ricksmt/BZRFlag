@@ -8,8 +8,11 @@ that is supported is implemented correctly.  See the bzw man page for more
 information about the file format (but note that their BNF is incomplete).
 """
 
+from __future__ import division
+
 WIDTH = HEIGHT = 800
 
+import math
 from pyparsing import alphas, nums, Word, Keyword, LineEnd, \
         Each, ZeroOrMore, Combine, Optional, Dict, SkipTo, Group
 
@@ -46,6 +49,8 @@ class Box(object):
             size=None):
         self.pos = pos or position
         self.rot = rot or rotation
+        if self.rot:
+            self.rot *= 2 * math.pi / 360
         self.size = size
         if not self.pos:
             raise ValueError('Position is required')
@@ -64,6 +69,8 @@ class Base(object):
         self.color = color
         self.pos = pos or position
         self.rot = rot or rotation
+        if self.rot:
+            self.rot *= 2 * math.pi / 360
         self.size = size
         if self.color is None:
             raise ValueError('Color is required')
