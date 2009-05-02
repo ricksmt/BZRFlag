@@ -8,6 +8,7 @@ coordinates.  Keep it simple.
 """
 
 from __future__ import division
+import math
 import os
 
 DEFAULT_SIZE = 700, 700
@@ -20,8 +21,8 @@ BASE_PATTERN = '%s_basetop.png'
 SHOT_PATTERN = '%s_bolt.png'
 TANK_PATTERN = '%s_tank.png'
 TILESCALE = 0.1
-SHOTSCALE = 4
-TANKSCALE = 1.4
+SHOTSCALE = 2
+TANKSCALE = 1.1
 
 COLOR_NAME = dict(enumerate(('rogue', 'red', 'green', 'blue', 'purple')))
 
@@ -40,13 +41,23 @@ def load_image(filename):
     return image
 
 
+def scaled_size(size, scale):
+    """Scales a size (width-height pair).
+
+    If the scale is None, scaled_size returns the original size unmodified.
+    """
+    if scale is not None:
+        w, h = size
+        w = int(round(w * scale))
+        h = int(round(h * scale))
+        size = w, h
+    return size
+
+
 def scaled_image(image, scale):
     """Scales the given image to the given size."""
-    w, h = image.get_size()
-    w = int(w * scale)
-    h = int(h * scale)
-
-    return pygame.transform.smoothscale(image, (w, h))
+    size = scaled_size(image.get_size(), scale)
+    return pygame.transform.smoothscale(image, size)
 
 
 def tile(tile, size):
@@ -172,26 +183,6 @@ class Display(object):
         sprite = BZSprite(shot, image, self, SHOTSCALE)
         self.sprites.add(sprite)
 
-    def bzrect(self, bzobject, scale=None):
-        """Returns a Rectangle for the given BZFlag object.
-
-        The rectangle will be unrotated.
-        """
-        w, h = bzobject.size
-        if scale:
-            w *= scale
-            h *= scale
-        x, y = self.vec_world_to_screen((w, h))
-        # Note that bzflag sizes are more like a radius (half of width).
-        size = (2*x, -2*y)
-
-        flat_pos = bzobject.pos
-        pos = self.pos_world_to_screen(flat_pos)
-
-        rect = pygame.Rect((0, 0), size)
-        rect.center = pos
-        return rect
-
     def pos_world_to_screen(self, pos):
         """Converts a position from world space to screen pixel space.
 
@@ -207,6 +198,18 @@ class Display(object):
         y -= world_height / 2
         return self.vec_world_to_screen((x, y))
 
+    def size_world_to_screen(self, size):
+        """Converts sizes from BZFlag world space to screen space.
+
+        Note that bzflag sizes are more like a radius (half of width), so we
+        double them to normalize.
+        """
+        w, h = size
+        w *= 2
+        h *= -2
+        screen_size = self.vec_world_to_screen((w, h))
+        return screen_size
+
     def vec_world_to_screen(self, vector):
         """Converts a vector from world space to screen pixel space.
 
@@ -220,40 +223,99 @@ class Display(object):
         hscale = screen_height / world_height
 
         x, y = vector
-        return int(x * wscale), -int(y * hscale)
+        return int(round(x * wscale)), -int(round(y * hscale))
 
 
 class BZSprite(pygame.sprite.Sprite):
+    """Determines how a single object in the game will be drawn.
+
+    The sprite manager uses the sprite's `image` and `rect` attributes to draw
+    it.
+    """
+
     def __init__(self, bzobject, image, display, scale=None):
         super(BZSprite, self).__init__()
 
-        rect = display.bzrect(bzobject, scale)
-        image = self.make_image(image, rect)
-
-        if bzobject.rot:
-            image = pygame.transform.rotate(image, bzobject.rot)
-            rect.size = image.get_size()
-
-        self.image = image
-        self.rect = rect
         self.bzobject = bzobject
         self.display = display
+        self.orig_image = image
+        self.image = None
+        self.scale = scale
 
-    @staticmethod
-    def make_image(image, rect):
-        """Overrideable function for creating the image."""
-        return pygame.transform.smoothscale(image, rect.size)
+        #self.rect = display.bzrect(bzobject, scale)
+        self.rect = pygame.Rect(0, 0, 0, 0)
+        self.prev_rot = None
 
-    def update(self):
+        self.update(True)
+
+    def object_size(self):
+        """Finds the screen size of the original unrotated bzobject."""
+        return self.display.size_world_to_screen(self.bzobject.size)
+
+    def _rotate(self):
+        """Rotates the image according to the bzobject.
+
+        Don't rotate a previously rotated object.  That causes data loss.
+        """
+        self.image = pygame.transform.rotate(self.image, self.bzobject.rot)
+        self.rect.size = self.image.get_size()
+
+    def _scale_prerotated(self):
+        """Scales the image to the bzobject's prerotated size."""
+        size = scaled_size(self.object_size(), self.scale)
+        self.image = pygame.transform.smoothscale(self.image, size)
+        self.rect.size = size
+
+    def _scale_rotated(self):
+        """Scales the image to the bzobject's rotated size."""
+        rot = self.bzobject.rot
+        w, h = self.object_size()
+        new_w = abs(w * math.cos(rot)) + abs(h * math.sin(rot))
+        new_h = abs(h * math.cos(rot)) + abs(w * math.sin(rot))
+        size = scaled_size((new_w, new_h), self.scale)
+
+        self.image = pygame.transform.smoothscale(self.image, size)
+        self.rect.size = size
+
+    def _translate(self):
+        """Translates the image to the bzobject's position."""
+
         self.rect.center = self.display.pos_world_to_screen(self.bzobject.pos)
+
+    def update(self, force=False):
+        """Overrideable function for creating the image.
+
+        If force is specified, the image should be redrawn even if the
+        bzobject doesn't appear to have changed.
+        """
+        rot = self.bzobject.rot
+
+        if force or (rot != self.prev_rot):
+            self.image = self.orig_image
+            if rot:
+                self._rotate()
+                self._scale_rotated()
+            else:
+                self._scale_prerotated()
+
+        self._translate()
 
 
 class TiledBZSprite(BZSprite):
-    """An BZSprite with a tiled image."""
-    @staticmethod
-    def make_image(image, rect):
-        return tile(image, rect.size)
+    """A BZSprite with a tiled image."""
 
+    def update(self, force=False):
+        rot = self.bzobject.rot
+
+        if force or (rot != self.prev_rot):
+            self.image = self.orig_image
+            size = scaled_size(self.object_size(), self.scale)
+            self.image = tile(self.image, size)
+            self.rect.size = size
+            if rot:
+                self._rotate()
+
+        self._translate()
 
 
 if __name__ == '__main__':
