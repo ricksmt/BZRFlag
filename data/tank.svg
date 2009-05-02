@@ -17,9 +17,9 @@
    inkscape:version="0.46+devel"
    sodipodi:docname="tank.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/aml/home/amcnabb/clone/bsflag/data/red_tank.png"
-   inkscape:export-xdpi="360"
-   inkscape:export-ydpi="360">
+   inkscape:export-filename="/home/amcnabb/clone/bsflag/data/red_tank.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
      id="defs2796">
     <inkscape:perspective
@@ -38,7 +38,7 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.5"
-     inkscape:cx="15.545455"
+     inkscape:cx="56.272727"
      inkscape:cy="32"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -47,10 +47,10 @@
      inkscape:snap-global="true"
      inkscape:showpageshadow="true"
      borderlayer="false"
-     inkscape:window-width="1094"
-     inkscape:window-height="974"
-     inkscape:window-x="87"
-     inkscape:window-y="79">
+     inkscape:window-width="998"
+     inkscape:window-height="598"
+     inkscape:window-x="24"
+     inkscape:window-y="0">
     <inkscape:grid
        type="xygrid"
        id="grid2806"
@@ -68,7 +68,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -79,7 +79,7 @@
     <rect
        style="fill:#000000;fill-opacity:1"
        id="rect2808"
-       width="8"
+       width="12"
        height="56"
        x="8"
        y="-56"
@@ -88,39 +88,39 @@
        transform="matrix(0,1,-1,0,0,0)" />
     <use
        xlink:href="#rect2808"
-       height="64"
-       width="64"
-       transform="translate(0,40)"
-       id="use2810"
-       y="0"
+       style="fill:#000000"
        x="0"
-       style="fill:#000000" />
+       y="0"
+       id="use2810"
+       transform="translate(0,36)"
+       width="64"
+       height="64" />
     <rect
        style="fill:#ff4d4d;fill-opacity:1"
        id="rect6336"
-       width="40"
+       width="32"
        height="40"
-       x="12"
+       x="16"
        y="-48"
-       rx="1.818182"
-       ry="2.0201993"
+       rx="0"
+       ry="0"
        transform="matrix(0,1,-1,0,0,0)" />
     <rect
        style="fill:#000000;fill-opacity:1"
        id="rect6338"
-       width="8.000001"
+       width="10"
        height="32"
-       x="28"
+       x="27"
        y="-64"
        transform="matrix(0,1,-1,0,0,0)" />
     <rect
        style="fill:#000000;fill-opacity:1"
        id="rect6340"
        width="24"
-       height="24"
+       height="20"
        x="20"
        y="-36"
-       ry="1.5272727"
+       ry="0"
        transform="matrix(0,1,-1,0,0,0)" />
   </g>
 </svg>

@@ -22,7 +22,7 @@ SHOT_PATTERN = '%s_bolt.png'
 TANK_PATTERN = '%s_tank.png'
 TILESCALE = 0.1
 SHOTSCALE = 2
-TANKSCALE = 1.1
+TANKSCALE = 1.2
 
 COLOR_NAME = dict(enumerate(('rogue', 'red', 'green', 'blue', 'purple')))
 
