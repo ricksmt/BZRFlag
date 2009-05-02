@@ -8,7 +8,7 @@ import os
 import socket
 import sys
 
-import constants
+import game
 import server
 
 # A higher loop timeout increases CPU usage but decreases the frame rate.
@@ -38,15 +38,16 @@ def run():
     else:
         world = World()
 
+    # Create team 1.
+    team = game.Team(1)
 
-    # TODO: create one server per color.
+    # Create the server for team 1.
     addr = ('0.0.0.0', opts.port)
     try:
-        bzrc = server.Server(addr)
+        bzrc = server.Server(addr, team)
     except socket.error, e:
         print >>sys.stderr, 'Socket error:', os.strerror(e.errno)
         sys.exit(1)
-
     host, port = bzrc.socket.getsockname()
     print 'Listening on port %s.' % port
 
@@ -56,40 +57,18 @@ def run():
     display = graphics.Display(world)
     display.setup()
 
-    shot = Shot()
+    shot = game.Shot()
     display.shot_sprite(shot)
 
-    tank = Tank()
-    display.tank_sprite(tank)
+    for tank in team:
+        display.tank_sprite(tank)
 
     while True:
         asyncore.loop(LOOP_TIMEOUT, count=1)
 
         shot.update()
-        tank.update()
+        team.update()
         display.update()
-
-
-class Shot(object):
-    color = 1
-    size = (constants.ShotRadius,) * 2
-    pos = (-400, 0)
-    rot = None
-
-    def update(self):
-        x, y = self.pos
-        self.pos = (x + 1), y
-
-
-class Tank(object):
-    color = 1
-    size = (constants.TankRadius,) * 2
-    pos = (-400, 200)
-    rot = None
-
-    def update(self):
-        x, y = self.pos
-        self.pos = (x + 1), y
 
 
 # vim: et sw=4 sts=4

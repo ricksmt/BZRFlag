@@ -9,7 +9,8 @@ BACKLOG = 5
 
 
 class Server(asyncore.dispatcher):
-    def __init__(self, addr):
+    def __init__(self, addr, team):
+        self.team = team
         self.in_use = False
         sock = socket.socket()
         asyncore.dispatcher.__init__(self, sock)
@@ -22,7 +23,7 @@ class Server(asyncore.dispatcher):
             sock.close()
         else:
             self.in_use = True
-            Handler(sock, self.handle_closed_handler)
+            Handler(sock, self.team, self.handle_closed_handler)
 
     def handle_closed_handler(self):
         self.in_use = False
@@ -33,8 +34,9 @@ class Handler(asynchat.async_chat):
 
     Each team has its own server.
     """
-    def __init__(self, sock, closed_callback):
+    def __init__(self, sock, team, closed_callback):
         asynchat.async_chat.__init__(self, sock)
+        self.team = team
         self.closed_callback = closed_callback
         self.set_terminator('\n')
         self.input_buffer = ''
@@ -77,16 +79,29 @@ class Handler(asynchat.async_chat):
         self.push('ack %s %s\n' % (timestamp, arg_string))
 
     def bzrc_shoot(self, args):
-        """Requests the given tank to shoot."""
+        """Requests the tank to shoot."""
         try:
-            command, tank = args
-            tank = int(tank)
+            command, tankid = args
+            tankid = int(tankid)
         except ValueError, TypeError:
             self.invalid_args(args)
             return
 
-        self.ack(command, tank)
-        print 'got a shot command!'
+        self.ack(command, tankid)
+        self.team.shoot(tankid)
+
+    def bzrc_angvel(self, args):
+        """Sets the angular velocity of the tank."""
+        try:
+            command, tankid, value = args
+            tankid = int(tankid)
+            value = float(value)
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+
+        self.ack(command, tankid, value)
+        self.team.angvel(tankid, value)
 
 
 # vim: et sw=4 sts=4
