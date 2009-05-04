@@ -42,9 +42,9 @@ class Handler(asynchat.async_chat):
         self.input_buffer = ''
         self.push('bzrobots 1\n')
         self.init_timestamp = time.time()
+        self.established = False
 
     def handle_close(self):
-        self.closed_callback()
         self.close()
 
     def collect_incoming_data(self, chunk):
@@ -62,12 +62,26 @@ class Handler(asynchat.async_chat):
         args = self.input_buffer.split()
         self.input_buffer = ''
         if args:
-            try:
-                command = getattr(self, 'bzrc_%s' % args[0])
-            except AttributeError:
-                self.push('fail Invalid command\n')
-                return
-            command(args)
+            if self.established:
+                try:
+                    command = getattr(self, 'bzrc_%s' % args[0])
+                except AttributeError:
+                    self.push('fail Invalid command\n')
+                    return
+                command(args)
+            elif args == ['bzagent', '1']:
+                self.established = True
+            else:
+                self.bad_handshake()
+
+    def bad_handshake(self):
+        """Called when the client gives an invalid handshake message."""
+        self.push('fail Unrecognized handshake\n')
+        self.close()
+
+    def close(self):
+        self.closed_callback()
+        asynchat.async_chat.close(self)
 
     def invalid_args(self, args):
         self.ack(*args)
@@ -102,6 +116,17 @@ class Handler(asynchat.async_chat):
 
         self.ack(command, tankid, value)
         self.team.angvel(tankid, value)
+
+    def bzrc_quit(self, args):
+        """Disconnects the session.
+
+        This is technically an extension to the BZRC protocol.  We should
+        really backport this to BZFlag.
+        """
+        if len(args) == 1:
+            self.close()
+        else:
+            self.invalid_args(args)
 
 
 # vim: et sw=4 sts=4
