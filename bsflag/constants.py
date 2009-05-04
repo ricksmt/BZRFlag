@@ -57,4 +57,4 @@ TeleportTime   = 1.0	               # seconds
 FlagAltitude   = 11.0	               # meters
 FlagRadius     = 2.5		       # meters
 
-### The End ###
+COLOR_NAME = dict(enumerate(('rogue', 'red', 'green', 'blue', 'purple')))

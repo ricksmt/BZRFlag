@@ -24,9 +24,9 @@ TILESCALE = 0.1
 SHOTSCALE = 2
 TANKSCALE = 1.2
 
-COLOR_NAME = dict(enumerate(('rogue', 'red', 'green', 'blue', 'purple')))
 
 import pygame
+import constants
 from world import Base, Box
 
 
@@ -104,7 +104,7 @@ class ImageCache(object):
         try:
             image = self._bases[color]
         except KeyError:
-            image = load_image(BASE_PATTERN % COLOR_NAME[color])
+            image = load_image(BASE_PATTERN % constants.COLOR_NAME[color])
             self._shots[color] = image
         return image
 
@@ -113,7 +113,7 @@ class ImageCache(object):
         try:
             image = self._shots[color]
         except KeyError:
-            image = load_image(SHOT_PATTERN % COLOR_NAME[color])
+            image = load_image(SHOT_PATTERN % constants.COLOR_NAME[color])
             self._shots[color] = image
         return image
 
@@ -122,7 +122,7 @@ class ImageCache(object):
         try:
             image = self._tanks[color]
         except KeyError:
-            image = load_image(TANK_PATTERN % COLOR_NAME[color])
+            image = load_image(TANK_PATTERN % constants.COLOR_NAME[color])
             self._tanks[color] = image
         return image
 
