@@ -19,7 +19,7 @@ import constants
 class Game(object):
     """Takes a list of colors."""
     def __init__(self, colors):
-        self.teams = [Team(color) for color in colors]
+        self.teams = [Team(color, self) for color in colors]
         self.timestamp = datetime.datetime.utcnow()
 
     def update(self):
@@ -35,10 +35,11 @@ class Game(object):
 
 
 class Team(object):
-    def __init__(self, color):
+    def __init__(self, color, game):
         self.color = color
-        self.tanks = [Tank(color) for i in xrange(4)]
-        self.shots = [Shot(color) for i in xrange(20)]
+        self.game = game
+        self.tanks = [Tank(color, game) for i in xrange(4)]
+        self.shots = [Shot(color, game) for i in xrange(20)]
 
     def color_name(self):
         return constants.COLOR_NAME[self.color]
@@ -64,27 +65,26 @@ class Team(object):
 class Shot(object):
     size = (constants.ShotRadius,) * 2
 
-    def __init__(self, color):
+    def __init__(self, color, game):
         self.color = color
+        self.game = game
         self.pos = (random.uniform(-400, 400), random.uniform(-400, 400))
         self.rot = random.uniform(0, 2*math.pi)
+        speed = constants.ShotSpeed
+        self.vel = (speed * math.cos(self.rot), speed * math.sin(self.rot))
 
     def update(self, dt):
-        # Update position.
-        speed = constants.ShotSpeed
-        # Temporary: make shots easier to see by slowing them down:
-        #speed /= 3
-        dx = speed * dt * math.cos(self.rot)
-        dy = speed * dt * math.sin(self.rot)
         x, y = self.pos
-        self.pos = (x + dx), (y + dy)
+        vx, vy = self.vel
+        self.pos = (x + vx * dt), (y + vy * dt)
 
 
 class Tank(object):
     size = (constants.TankRadius,) * 2
 
-    def __init__(self, color):
+    def __init__(self, color, game):
         self.color = color
+        self.game = game
         self.pos = (random.uniform(-400, 400), random.uniform(-400, 400))
         self.rot = random.uniform(0, 2*math.pi)
         self.angvel = 0

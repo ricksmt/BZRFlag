@@ -100,7 +100,6 @@ class Handler(asynchat.async_chat):
         except ValueError, TypeError:
             self.invalid_args(args)
             return
-
         self.ack(command, tankid)
         self.team.shoot(tankid)
 
@@ -113,9 +112,28 @@ class Handler(asynchat.async_chat):
         except ValueError, TypeError:
             self.invalid_args(args)
             return
-
         self.ack(command, tankid, value)
         self.team.angvel(tankid, value)
+
+    def bzrc_shots(self, args):
+        """Reports a list of shots.
+
+        The response is a list of shot lines:
+            shot [x] [y] [vx] [vy]
+        """
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command)
+        self.push('begin\n')
+        for team in self.team.game.teams:
+            for shot in team.shots:
+                x, y = shot.pos
+                vx, vy = shot.vel
+                self.push('shot %s %s %s %s\n' % (x, y, vx, vy))
+        self.push('end\n')
 
     def bzrc_quit(self, args):
         """Disconnects the session.
@@ -123,10 +141,12 @@ class Handler(asynchat.async_chat):
         This is technically an extension to the BZRC protocol.  We should
         really backport this to BZFlag.
         """
-        if len(args) == 1:
-            self.close()
-        else:
+        try:
+            command, = args
+        except ValueError, TypeError:
             self.invalid_args(args)
+            return
+        self.close()
 
 
 # vim: et sw=4 sts=4
