@@ -73,7 +73,7 @@ class Shot(object):
         # Update position.
         speed = constants.ShotSpeed
         # Temporary: make shots easier to see by slowing them down:
-        speed /= 3
+        #speed /= 3
         dx = speed * dt * math.cos(self.rot)
         dy = speed * dt * math.sin(self.rot)
         x, y = self.pos

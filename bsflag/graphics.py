@@ -292,6 +292,7 @@ class BZSprite(pygame.sprite.Sprite):
         rot = self.bzobject.rot
 
         if force or (rot != self.prev_rot):
+            self.prev_rot = rot
             self.image = self.orig_image
             if rot:
                 self._rotate()
@@ -309,6 +310,7 @@ class TiledBZSprite(BZSprite):
         rot = self.bzobject.rot
 
         if force or (rot != self.prev_rot):
+            self.prev_rot = rot
             self.image = self.orig_image
             size = scaled_size(self.object_size(), self.scale)
             self.image = tile(self.image, size)
