@@ -1,4 +1,8 @@
-"""BSFlag BZRC Server"""
+"""BSFlag BZRC Server
+
+The Server object listens on a port for incoming connections.  When a client
+connects, the Server dispatches its connection to a new Handler.
+"""
 
 import asynchat
 import asyncore
@@ -9,6 +13,12 @@ BACKLOG = 5
 
 
 class Server(asyncore.dispatcher):
+    """Server that listens on the BZRC port and dispatches connections.
+
+    Each team has its own server which dispatches sessions to the Handler.
+    Only one connection is allowed at a time.  Any subsequent connections will
+    be rejected until the active connection closes.
+    """
     def __init__(self, addr, team):
         self.team = team
         self.in_use = False
@@ -30,9 +40,12 @@ class Server(asyncore.dispatcher):
 
 
 class Handler(asynchat.async_chat):
-    """Server which implements the BZRC protocol.
+    """Handler which implements the BZRC protocol with one client.
 
-    Each team has its own server.
+    Methods whose names start with "bzrc_" are automagically interpreted as
+    bzrc commands.  To create the command "xyz", just create a method called
+    "bzrc_xyz", and the Handler will automatically call it when the client
+    sends an "xyz" request.  You don't have to add it to a table or anything.
     """
     def __init__(self, sock, team, closed_callback):
         asynchat.async_chat.__init__(self, sock)
