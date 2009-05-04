@@ -47,7 +47,7 @@ class Team(object):
         self.shots = [Shot(color, game) for i in xrange(20)]
 
     def color_name(self):
-        return constants.COLOR_NAME[self.color]
+        return constants.COLORNAME[self.color]
 
     def update(self, dt):
         for shot in self.shots:
@@ -68,14 +68,14 @@ class Team(object):
 
 
 class Shot(object):
-    size = (constants.ShotRadius,) * 2
+    size = (constants.SHOTRADIUS,) * 2
 
     def __init__(self, color, game):
         self.color = color
         self.game = game
         self.pos = (random.uniform(-400, 400), random.uniform(-400, 400))
         self.rot = random.uniform(0, 2*math.pi)
-        speed = constants.ShotSpeed
+        speed = constants.SHOTSPEED
         self.vel = (speed * math.cos(self.rot), speed * math.sin(self.rot))
 
     def update(self, dt):
@@ -85,7 +85,7 @@ class Shot(object):
 
 
 class Tank(object):
-    size = (constants.TankRadius,) * 2
+    size = (constants.TANKRADIUS,) * 2
 
     def __init__(self, color, game):
         self.color = color
@@ -96,7 +96,7 @@ class Tank(object):
 
     def update(self, dt):
         # Update rotation.
-        self.rot += self.angvel * constants.TankAngVel * dt
+        self.rot += self.angvel * constants.TANKANGVEL * dt
 
         # Update position.
         #x, y = self.pos
