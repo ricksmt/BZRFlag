@@ -33,6 +33,11 @@ class Game(object):
         for team in self.teams:
             team.update(dt)
 
+    def iter_shots(self):
+        for team in self.teams:
+            for shot in team.shots:
+                yield shot
+
 
 class Team(object):
     def __init__(self, color, game):

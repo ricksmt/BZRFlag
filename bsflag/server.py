@@ -128,11 +128,10 @@ class Handler(asynchat.async_chat):
             return
         self.ack(command)
         self.push('begin\n')
-        for team in self.team.game.teams:
-            for shot in team.shots:
-                x, y = shot.pos
-                vx, vy = shot.vel
-                self.push('shot %s %s %s %s\n' % (x, y, vx, vy))
+        for shot in self.team.game.iter_shots():
+            x, y = shot.pos
+            vx, vy = shot.vel
+            self.push('shot %s %s %s %s\n' % (x, y, vx, vy))
         self.push('end\n')
 
     def bzrc_quit(self, args):
