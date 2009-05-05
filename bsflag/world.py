@@ -59,7 +59,7 @@ class Box(object):
     def parser(cls):
         box_contents = Each(obstacle_items)
         box = Dict(Keyword('box').suppress() + box_contents + end)
-        box.setParseAction(lambda toks: cls(**toks))
+        box.setParseAction(lambda toks: cls(**dict(toks)))
         return box
 
 
@@ -83,7 +83,7 @@ class Base(object):
         color = Group(Keyword('color') + integer)
         base_contents = Each([color] + obstacle_items)
         base = Dict(Keyword('base').suppress() + base_contents + end)
-        base.setParseAction(lambda toks: cls(**toks))
+        base.setParseAction(lambda toks: cls(**dict(toks)))
         return base
 
 
