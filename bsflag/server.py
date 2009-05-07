@@ -82,7 +82,7 @@ class Handler(asynchat.async_chat):
                     self.push('fail Invalid command\n')
                     return
                 command(args)
-            elif args == ['bzagent', '1']:
+            elif args == ['agent', '1']:
                 self.established = True
             else:
                 self.bad_handshake()
