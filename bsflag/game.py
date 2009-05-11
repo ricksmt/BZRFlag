@@ -58,6 +58,14 @@ class Team(object):
     def shoot(self, tankid):
         pass
 
+    def speed(self, tankid, value):
+        # TODO: care about list bounds.
+        if value > 1:
+            value = 1
+        elif value < -1:
+            value = -1
+        self.tanks[tankid].speed = value
+
     def angvel(self, tankid, value):
         # TODO: care about list bounds.
         if value > 1:
@@ -92,6 +100,7 @@ class Tank(object):
         self.game = game
         self.pos = (random.uniform(-400, 400), random.uniform(-400, 400))
         self.rot = random.uniform(0, 2*math.pi)
+        self.speed = 0
         self.angvel = 0
 
     def update(self, dt):

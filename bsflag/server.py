@@ -116,6 +116,19 @@ class Handler(asynchat.async_chat):
         self.ack(command, tankid)
         self.team.shoot(tankid)
 
+    def bzrc_speed(self, args):
+        """Request the tank to accelerate as quickly as possible to the 
+        specified speed."""
+        try:
+            command, tankid, value = args
+            tankid = int(tankid)
+            value = float(value)
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command, tankid, value)
+        self.team.speed(tankid, value)
+
     def bzrc_angvel(self, args):
         """Sets the angular velocity of the tank."""
         try:
