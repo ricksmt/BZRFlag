@@ -133,6 +133,11 @@ class Handler(asynchat.async_chat):
         The speed is given as a multiple of maximum possible speed (1 is full
         speed). A negative parameter will cause the tank to go in reverse.
         Returns a boolean ("ok" or "fail" as described under shoot).
+
+        Mock objects needed?
+        >>> args = ['speed', '1', '1']
+        >>> Handler.bzrc_speed(Handler(), args)
+        fail
         """
         try:
             command, tankid, value = args
@@ -140,9 +145,11 @@ class Handler(asynchat.async_chat):
             value = float(value)
         except ValueError, TypeError:
             self.invalid_args(args)
+            self.push('fail')
             return
         self.ack(command, tankid, value)
         self.team.speed(tankid, value)
+        self.push('ok')
 
     def bzrc_angvel(self, args):
         """Sets the angular velocity of the tank.
@@ -326,5 +333,9 @@ class Handler(asynchat.async_chat):
             return
         self.close()
 
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
 
 # vim: et sw=4 sts=4

@@ -73,6 +73,7 @@ def run():
     while True:
         asyncore.loop(LOOP_TIMEOUT, count=1)
 
+        # TODO: clean this up
         shottemp = 0
         tanktemp = 0
 
