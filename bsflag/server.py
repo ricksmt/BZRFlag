@@ -9,6 +9,8 @@ import asyncore
 import socket
 import time
 
+import constants
+
 BACKLOG = 5
 
 
@@ -106,7 +108,14 @@ class Handler(asynchat.async_chat):
         self.push('ack %s %s\n' % (timestamp, arg_string))
 
     def bzrc_shoot(self, args):
-        """Requests the tank to shoot."""
+        """Request the tank indexed by the given parameter to fire a shot.
+
+        Returns either:
+            ok [comment]
+        or:
+            fail [comment]
+        where the comment is optional.
+        """
         try:
             command, tankid = args
             tankid = int(tankid)
@@ -118,7 +127,12 @@ class Handler(asynchat.async_chat):
 
     def bzrc_speed(self, args):
         """Request the tank to accelerate as quickly as possible to the 
-        specified speed."""
+        specified speed.
+
+        The speed is given as a multiple of maximum possible speed (1 is full
+        speed). A negative parameter will cause the tank to go in reverse.
+        Returns a boolean ("ok" or "fail" as described under shoot).
+        """
         try:
             command, tankid, value = args
             tankid = int(tankid)
@@ -130,7 +144,14 @@ class Handler(asynchat.async_chat):
         self.team.speed(tankid, value)
 
     def bzrc_angvel(self, args):
-        """Sets the angular velocity of the tank."""
+        """Sets the angular velocity of the tank.
+
+        The parameter is given as a multiple of maximum possible angular
+        velocity (1 is full speed), where positive values indicate counter-
+        clockwise motion, and negative values indicate clockwise motion. The
+        sign is consistent with the convention use in angles in the circle.
+        Returns a boolean ("ok" or "fail" as described under shoot).
+        """
         try:
             command, tankid, value = args
             tankid = int(tankid)
@@ -141,11 +162,102 @@ class Handler(asynchat.async_chat):
         self.ack(command, tankid, value)
         self.team.angvel(tankid, value)
 
+    def bzrc_accelx(self, args):
+        """Used specifically for freezeTag."""
+        pass
+
+    def bzrc_accely(self, args):
+        """Used specifically for freezeTag."""
+        pass
+
+    def bzrc_teams(self, args):
+        """Request a list of teams.
+
+        The response will be a list, whose elements are of the form:
+            team [color] [playercount]
+        Color is the identifying team color/team name. Playercount is the 
+        number of tanks on the team.
+        """
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command)
+        self.push('begin\n')
+        for team in self.team.game.iter_teams():
+            color = team.color_name()
+            # TODO: javariffic?
+            playercount = 0
+            for tank in self.team.iter_tanks():
+                playercount = playercount + 1
+            self.push('team %s %s\n' % (color, playercount))
+        self.push('end\n')
+
+    def bzrc_obstacles(self, args):
+        """Request a list of obstacles.
+
+        The response is a list, whose elements are of the form:
+            obstacle [x1] [y1] [x2] [y2] ...
+        where (x1, y1), (x2, y2), etc. are the corners of the obstacle in
+        counter-clockwise order.
+        """
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command)
+        self.push('begin\n')
+        for item in self.team.game.iter_boxes():
+            self.push('obstacle')
+            for corner in self.team.game.iter_corners(item):
+                self.push(' %s %s' % (corner[0], corner[1]))
+            self.push('\n')
+        self.push('end\n')
+
+    def bzrc_bases(self, args):
+        """Request a list of bases.
+
+        The response is a list, whose elements are of the form:
+            base [team color] [x1] [y1] [x2] [y2] ...
+        where (x1, y1), (x2, y2), etc. are the corners of the base in counter-
+        clockwise order and team color is the name of the owning team.
+        """
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command)
+        self.push('begin\n')
+        for item in self.team.game.iter_bases():
+            self.push('base %s' % constants.COLORNAME[item.color])
+            for corner in self.team.game.iter_corners(item):
+                self.push(' %s %s' % (corner[0], corner[1]))
+            self.push('\n')
+        self.push('end\n')
+
+    def bzrc_flags(self, args):
+        """Request a list of visible flags.
+
+        The response is a list of flag elements:
+            flag [team color] [possessing team color] [x] [y]
+        The team color is the color of the owning team, and the possessing 
+        team color is the color of the team holding the flag. If no tanks are
+        carrying the flag, the possessing team is "none". The coordinate 
+        (x, y) is the current position of the flag. Note that the list may be
+        incomplete if visibility is limited.
+        """
+        pass
+
     def bzrc_shots(self, args):
         """Reports a list of shots.
 
         The response is a list of shot lines:
             shot [x] [y] [vx] [vy]
+        where (c, y) is the current position of the shot and (vx, vy) is the
+        current velocity.
         """
         try:
             command, = args
@@ -159,6 +271,46 @@ class Handler(asynchat.async_chat):
             vx, vy = shot.vel
             self.push('shot %s %s %s %s\n' % (x, y, vx, vy))
         self.push('end\n')
+
+    def bzrc_mytanks(self, args):
+        """Request the status of the tanks controlled by this connection.
+
+        The response is a list of tanks:
+            mytank [index] [callsign] [status] [shots available] 
+                [time to reload] [flag] [x] [y] [angle] [vx] [vy] [angvel]
+        Index is the 0 based index identifying this tank. This index is used
+        for instructions. The callsign is the tank's unique identifier within
+        the game. The status is a string like "alive," "dead," etc. Shots
+        available is the number of shots remaining before a reload delay. Flag
+        is the color/name of the flag being held, or "-" if none is held. The
+        coordinate (x, y) is the current position. Angle is the direction the
+        tank is pointed, between negative pi and pi. The vector (vx, vy) is 
+        the current velocity of the tank, and angvel is the current angular
+        velocity of the tank (in radians per second).
+        """
+        pass
+
+    def bzrc_othertanks(self, args):
+        """ Request the status of other tanks in the game (those not 
+        controlled by this connection.
+
+        The response is a list of tanks:
+            othertank [callsign] [color] [flag] [x] [y] [angle]
+        where callsign, status, flag, x, y, and angle are as described under
+        mytanks and color is the name of the team color.
+        """
+        pass
+
+    def bzrc_constants(self, args):
+        """Request a list of constants.
+
+        These constants define the rules of the game and the behavior of the
+        world. The response is a list:
+            constant [name] [value]
+        Name is a string. Value may be a number or a string. Boolean values
+        are 0 or 1.
+        """
+        pass
 
     def bzrc_quit(self, args):
         """Disconnects the session.

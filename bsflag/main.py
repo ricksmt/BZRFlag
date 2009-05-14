@@ -39,7 +39,8 @@ def run():
         world = World()
 
     colors = (1, 2)
-    game = Game(colors)
+    # Is world an appropriate parameter?
+    game = Game(colors, world)
 
     # Create a server for each team.
     # TODO: allow the port to be specified on the command-line.
