@@ -88,7 +88,7 @@ def run():
         if tanktemp > tankcount:
             for team in game.teams:
                 for tank in team.tanks:
-                    display.tank_sprite(tank)quit
+                    display.tank_sprite(tank)
 
 
         game.update()
