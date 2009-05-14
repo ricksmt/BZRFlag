@@ -75,7 +75,7 @@ class Team(object):
         self.color = color
         self.game = game
         self.tanks = [Tank(color, game) for i in xrange(4)]
-        self.shots = [Shot(color, game) for i in xrange(20)]
+        self.shots = []
 
     def color_name(self):
         return constants.COLORNAME[self.color]
@@ -91,7 +91,9 @@ class Team(object):
             yield tank
 
     def shoot(self, tankid):
-        pass
+        tank = self.tanks[tankid]
+        shot = Shot(tank)
+        self.shots.insert(0, shot)
 
     def speed(self, tankid, value):
         # TODO: care about list bounds.
@@ -113,11 +115,11 @@ class Team(object):
 class Shot(object):
     size = (constants.SHOTRADIUS,) * 2
 
-    def __init__(self, color, game):
-        self.color = color
-        self.game = game
-        self.pos = (random.uniform(-400, 400), random.uniform(-400, 400))
-        self.rot = random.uniform(0, 2*math.pi)
+    def __init__(self, tank):
+        self.color = tank.color
+        self.game = tank.game
+        self.rot = tank.rot
+        self.pos = tank.pos
         speed = constants.SHOTSPEED
         self.vel = (speed * math.cos(self.rot), speed * math.sin(self.rot))
 

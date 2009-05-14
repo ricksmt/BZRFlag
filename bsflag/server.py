@@ -125,6 +125,7 @@ class Handler(asynchat.async_chat):
         self.ack(command, tankid)
         self.team.shoot(tankid)
 
+
     def bzrc_speed(self, args):
         """Request the tank to accelerate as quickly as possible to the 
         specified speed.

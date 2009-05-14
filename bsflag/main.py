@@ -59,14 +59,36 @@ def run():
     display = graphics.Display(world)
     display.setup()
 
+    shotcount = 0
+    tankcount = 0
+
     for team in game.teams:
+        shotcount = shotcount + len(team.shots)
         for shot in team.shots:
             display.shot_sprite(shot)
+        tankcount = tankcount + len(team.tanks)
         for tank in team.tanks:
             display.tank_sprite(tank)
 
     while True:
         asyncore.loop(LOOP_TIMEOUT, count=1)
+
+        shottemp = 0
+        tanktemp = 0
+
+        for team in game.teams:
+            shottemp = shottemp + len(team.shots)
+            tanktemp = tanktemp + len(team.tanks)
+
+        if shottemp > shotcount:
+            for team in game.teams:
+                for shot in team.shots:
+                    display.shot_sprite(shot)
+        if tanktemp > tankcount:
+            for team in game.teams:
+                for tank in team.tanks:
+                    display.tank_sprite(tank)quit
+
 
         game.update()
         display.update()
