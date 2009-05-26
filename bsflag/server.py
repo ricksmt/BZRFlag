@@ -145,11 +145,11 @@ class Handler(asynchat.async_chat):
             value = float(value)
         except ValueError, TypeError:
             self.invalid_args(args)
-            self.push('fail')
+            self.push('fail\n')
             return
         self.ack(command, tankid, value)
         self.team.speed(tankid, value)
-        self.push('ok')
+        self.push('ok\n')
 
     def bzrc_angvel(self, args):
         """Sets the angular velocity of the tank.
@@ -257,7 +257,21 @@ class Handler(asynchat.async_chat):
         (x, y) is the current position of the flag. Note that the list may be
         incomplete if visibility is limited.
         """
-        pass
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command)
+        self.push('begin\n')
+        for flag in self.team.game.iter_flags():
+            x, y = flag.pos
+            color = constants.COLORNAME[flag.color]
+            possess = "none"
+            if flag.tank is not None:
+                possess = constants.COLORNAME[flag.tank.color]
+            self.push('flag %s %s %s %s\n' % (color, possess, x, y))
+        self.push('end\n')
 
     def bzrc_shots(self, args):
         """Reports a list of shots.
@@ -296,7 +310,29 @@ class Handler(asynchat.async_chat):
         the current velocity of the tank, and angvel is the current angular
         velocity of the tank (in radians per second).
         """
-        pass
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command)
+        self.push('begin\n')
+        for i in xrange (len(self.team.tanks)):
+            tank = self.team.tanks[i]
+            index = i
+            callsign = tank.callsign
+            status = tank.status
+            shotsleft = tank.shotsleft
+            reloadtime = tank.reloadtime
+            flag = tank.flag
+            x, y = tank.pos
+            angle = tank.rot
+            vx, vy = tank.vel
+            angvel = tank.angvel
+            self.push('mytank %s %s %s ' % (index, callsign, status))
+            self.push('%s %s %s ' % (shotsleft, reloadtime, flag))
+            self.push('%s %s %s %s %s %s\n' % (x, y, angle, vx, vy, angvel))
+        self.push('end\n')
 
     def bzrc_othertanks(self, args):
         """ Request the status of other tanks in the game (those not 
@@ -307,7 +343,26 @@ class Handler(asynchat.async_chat):
         where callsign, status, flag, x, y, and angle are as described under
         mytanks and color is the name of the team color.
         """
-        pass
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command)
+        self.push('begin\n')
+        for team in self.team.game.teams:
+            if team.color == self.team.color:
+                continue
+            for tank in team.tanks:
+                callsign = tank.callsign
+                color = constants.COLORNAME[tank.color]
+                status = tank.status
+                flag = tank.flag
+                x, y = tank.pos
+                angle = tank.rot
+                self.push('othertank %s %s %s ' % (callsign, color, status))
+                self.push('%s %s %s %s\n' % (flag, x, y, angle))
+        self.push('end\n')
 
     def bzrc_constants(self, args):
         """Request a list of constants.
@@ -318,7 +373,29 @@ class Handler(asynchat.async_chat):
         Name is a string. Value may be a number or a string. Boolean values
         are 0 or 1.
         """
-        pass
+        # TODO: is it possible to simply iterate through all constants without
+        # specifically referencing each one?
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command)
+        self.push('begin\n')
+        self.push('constant COLORNAME %s\n' % (constants.COLORNAME))
+        self.push('constant WORLDSIZE %s\n' % (constants.WORLDSIZE))
+        self.push('constant TANKANGVEL %s\n' % (constants.TANKANGVEL))
+        self.push('constant TANKLENGTH %s\n' % (constants.TANKLENGTH))
+        self.push('constant TANKRADIUS %s\n' % (constants.TANKRADIUS))
+        self.push('constant TANKSPEED %s\n' % (constants.TANKSPEED))
+        self.push('constant LINEARACCEL %s\n' % (constants.LINEARACCEL))
+        self.push('constant ANGULARACCEL %s\n' % (constants.ANGULARACCEL))
+        self.push('constant TANKWIDTH %s\n' % (constants.TANKWIDTH))
+        self.push('constant SHOTRADIUS %s\n' % (constants.SHOTRADIUS))
+        self.push('constant SHOTRANGE %s\n' % (constants.SHOTRANGE))
+        self.push('constant FLAGRADIUS %s\n' % (constants.FLAGRADIUS))
+        self.push('constant EXPLODETIME %s\n' % (constants.EXPLODETIME))
+        self.push('end\n')
 
     def bzrc_quit(self, args):
         """Disconnects the session.

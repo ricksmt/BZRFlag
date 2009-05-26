@@ -18,7 +18,25 @@ LOOP_TIMEOUT = 0.01
 def options():
     import optparse
     p = optparse.OptionParser()
+    # TODO: many of these options need to be implemented
+    p.add_option('-c', action='store_true', dest='ctf')
+    p.add_option('-d', action='store_true', dest='debug')
+    p.add_option('--ms', action='store', type='int', dest='max_shots',
+        default=6)
+    p.add_option('--freezeTag', action='store_true', dest='freeze_tag')
     p.add_option('--world', action='store', dest='world')
+    p.add_option('--set_inertiaLinear', action='store', type='int',
+        dest='inertia_linear', default=1)
+    p.add_option('--set_inertiaAngular', action='store', type='int', 
+        dest='inertia_angular', default=1)
+    p.add_option('--set_tankAngVel', action='store', type='float',
+        dest='tank_angvel')
+    p.add_option('--set_rejoinTime', action='store', type='int',
+        dest='rejoin_time')
+    p.add_option('--set_explodeTime', action='store', type='int',
+        dest='explode_time')
+    p.add_option('--set_grabOwnFlag', action='store', type='int',
+        dest='grab_own_flag', default=0)
     p.add_option('--port', action='store', type='int', dest='port', default=0)
     opts, args = p.parse_args()
     if args:
@@ -69,6 +87,7 @@ def run():
         tankcount = tankcount + len(team.tanks)
         for tank in team.tanks:
             display.tank_sprite(tank)
+        display.flag_sprite(team.flag)
 
     while True:
         asyncore.loop(LOOP_TIMEOUT, count=1)

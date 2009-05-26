@@ -19,9 +19,11 @@ GROUND = 'std_ground.png'
 WALL = 'wall.png'
 BASE_PATTERN = '%s_basetop.png'
 SHOT_PATTERN = '%s_bolt.png'
+FLAG_PATTERN = '%s_flag.png'
 TANK_PATTERN = '%s_tank.png'
 TILESCALE = 0.1
 SHOTSCALE = 2
+FLAGSCALE = 3
 TANKSCALE = 1.2
 
 
@@ -77,6 +79,7 @@ class ImageCache(object):
         self._wall = None
         self._bases = {}
         self._shots = {}
+        self._flags = {}
         self._tanks = {}
 
     def ground(self):
@@ -117,8 +120,17 @@ class ImageCache(object):
             self._shots[color] = image
         return image
 
+    def flag(self, color):
+        """Returns a surface for flags for the given color index."""
+        try:
+            image = self._flags[color]
+        except KeyError:
+            image = load_image(FLAG_PATTERN % constants.COLORNAME[color])
+            self._flags[color] = image
+        return image
+
     def tank(self, color):
-        """Returns a surface for shots for the given color index."""
+        """Returns a surface for tanks for the given color index."""
         try:
             image = self._tanks[color]
         except KeyError:
@@ -171,16 +183,22 @@ class Display(object):
             self._background = bg
         return self._background
 
-    def tank_sprite(self, tank):
-        """Creates a sprite for the given tank."""
-        image = self.images.tank(tank.color)
-        sprite = BZSprite(tank, image, self, TANKSCALE)
-        self.sprites.add(sprite)
-
     def shot_sprite(self, shot):
         """Creates a sprite for the given shot."""
         image = self.images.shot(shot.color)
         sprite = BZSprite(shot, image, self, SHOTSCALE)
+        self.sprites.add(sprite)
+
+    def flag_sprite(self, flag):
+        """Creates a sprite for the given flag."""
+        image = self.images.flag(flag.color)
+        sprite = BZSprite(flag, image, self, FLAGSCALE)
+        self.sprites.add(sprite)
+
+    def tank_sprite(self, tank):
+        """Creates a sprite for the given tank."""
+        image = self.images.tank(tank.color)
+        sprite = BZSprite(tank, image, self, TANKSCALE)
         self.sprites.add(sprite)
 
     def pos_world_to_screen(self, pos):
