@@ -8,7 +8,7 @@ import os
 import socket
 import sys
 
-from game import Game
+from game import *
 import server
 
 # A higher loop timeout decreases CPU usage but also decreases the frame rate.
@@ -62,7 +62,7 @@ def run():
 
     # Create a server for each team.
     # TODO: allow the port to be specified on the command-line.
-    for team in game.teams:
+    for team in game.mapper.teams:
         addr = ('0.0.0.0', opts.port)
         try:
             bzrc = server.Server(addr, team)
@@ -77,14 +77,14 @@ def run():
     display = graphics.Display(world)
     display.setup()
 
-    shotcount = 0
-    tankcount = 0
+    #shotcount = 0
+    #tankcount = 0
 
-    for team in game.teams:
-        shotcount = shotcount + len(team.shots)
+    for team in game.mapper.teams:
+        #shotcount = shotcount + len(team.shots)
         for shot in team.shots:
             display.shot_sprite(shot)
-        tankcount = tankcount + len(team.tanks)
+        #tankcount = tankcount + len(team.tanks)
         for tank in team.tanks:
             display.tank_sprite(tank)
         display.flag_sprite(team.flag)
@@ -93,24 +93,38 @@ def run():
         asyncore.loop(LOOP_TIMEOUT, count=1)
 
         # TODO: clean this up
-        shottemp = 0
-        tanktemp = 0
+        # shottemp = 0
+        # tanktemp = 0
 
-        for team in game.teams:
-            shottemp = shottemp + len(team.shots)
-            tanktemp = tanktemp + len(team.tanks)
+        #for team in game.mapper.teams:
+        #    shottemp = shottemp + len(team.shots)
+        #    tanktemp = tanktemp + len(team.tanks)
 
-        if shottemp > shotcount:
-            for team in game.teams:
-                for shot in team.shots:
-                    display.shot_sprite(shot)
-        if tanktemp > tankcount:
-            for team in game.teams:
-                for tank in team.tanks:
-                    display.tank_sprite(tank)
+        #if shottemp > shotcount:
+        #    for team in game.mapper.teams:
+        #        for shot in team.shots:
+        #            display.shot_sprite(shot)
+        #if tanktemp > tankcount:
+        #    for team in game.mapper.teams:
+        #        for tank in team.tanks:
+        #            display.tank_sprite(tank)
 
 
         game.update()
+
+        while len(game.mapper.inbox) > 0:
+            obj = game.mapper.inbox.pop()
+            if isinstance(obj, Tank):
+                display.tank_sprite(obj)
+            elif isinstance(obj, Shot):
+                display.shot_sprite(obj)
+            elif isinstance(obj, Flag):
+                display.flag_sprite(obj)
+
+        while len(game.mapper.trash) > 0:
+            obj = game.mapper.trash.pop()
+            display.kill_sprite(obj)
+
         display.update()
 
 

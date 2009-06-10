@@ -193,11 +193,11 @@ class Handler(asynchat.async_chat):
             return
         self.ack(command)
         self.push('begin\n')
-        for team in self.team.game.iter_teams():
+        for team in self.team.mapper.teams:
             color = team.color_name()
             # TODO: javariffic?
             playercount = 0
-            for tank in self.team.iter_tanks():
+            for tank in team.tanks:
                 playercount = playercount + 1
             self.push('team %s %s\n' % (color, playercount))
         self.push('end\n')
@@ -217,10 +217,11 @@ class Handler(asynchat.async_chat):
             return
         self.ack(command)
         self.push('begin\n')
-        for item in self.team.game.iter_boxes():
+        for obstacle in self.team.mapper.obstacles:
             self.push('obstacle')
-            for corner in self.team.game.iter_corners(item):
-                self.push(' %s %s' % (corner[0], corner[1]))
+            for corner in obstacle.corners:
+                x, y = corner
+                self.push(' %s %s' % (x, y))
             self.push('\n')
         self.push('end\n')
 
@@ -239,10 +240,11 @@ class Handler(asynchat.async_chat):
             return
         self.ack(command)
         self.push('begin\n')
-        for item in self.team.game.iter_bases():
-            self.push('base %s' % constants.COLORNAME[item.color])
-            for corner in self.team.game.iter_corners(item):
-                self.push(' %s %s' % (corner[0], corner[1]))
+        for base in self.team.mapper.bases:
+            self.push('base %s' % constants.COLORNAME[base.color])
+            for corner in base.corners:
+                x, y = corner
+                self.push(' %s %s' % (x, y))
             self.push('\n')
         self.push('end\n')
 
@@ -264,7 +266,7 @@ class Handler(asynchat.async_chat):
             return
         self.ack(command)
         self.push('begin\n')
-        for flag in self.team.game.iter_flags():
+        for flag in self.team.mapper.iter_flags():
             x, y = flag.pos
             color = constants.COLORNAME[flag.color]
             possess = "none"
@@ -288,7 +290,7 @@ class Handler(asynchat.async_chat):
             return
         self.ack(command)
         self.push('begin\n')
-        for shot in self.team.game.iter_shots():
+        for shot in self.team.mapper.iter_shots():
             x, y = shot.pos
             vx, vy = shot.vel
             self.push('shot %s %s %s %s\n' % (x, y, vx, vy))
@@ -350,7 +352,7 @@ class Handler(asynchat.async_chat):
             return
         self.ack(command)
         self.push('begin\n')
-        for team in self.team.game.teams:
+        for team in self.team.mapper.teams:
             if team.color == self.team.color:
                 continue
             for tank in team.tanks:

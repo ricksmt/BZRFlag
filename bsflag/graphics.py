@@ -201,6 +201,13 @@ class Display(object):
         sprite = BZSprite(tank, image, self, TANKSCALE)
         self.sprites.add(sprite)
 
+    def kill_sprite(self, obj):
+        """Kills the sprite for the given object."""
+        for sprite in self.sprites:
+            if isinstance(sprite, BZSprite) and (sprite.bzobject == obj):
+                print 'kill sprite'
+                sprite.kill()
+
     def pos_world_to_screen(self, pos):
         """Converts a position from world space to screen pixel space.
 
