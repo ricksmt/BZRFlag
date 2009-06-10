@@ -527,8 +527,8 @@ class Team(object):
     def __init__(self, color, mapper):
         self.color = color
         self.mapper = mapper
-        self.tanks = [Tank(color) for i in xrange(40)]
-        self.shots = []
+        self.tanks = [Tank(color) for i in xrange(20)]
+        self.shots = [Shot(tank) for tank in self.tanks]
         self.flag = Flag(color, None)
 
     def color_name(self):
@@ -617,6 +617,7 @@ class Base(object):
         self.color = item.color
         self.center = self.get_center(item)
         self.size = self.get_size(item)
+        self.radius = self.get_radius()
         self.corners = self.lst_corners(item)
 
     def get_center(self, item):
@@ -630,6 +631,11 @@ class Base(object):
         w = item.size.asList()[0]
         h = item.size.asList()[1]
         return (w, h)
+
+    def get_radius(self):
+        w, h = self.size
+        radius = math.sqrt(w * w + h * h)
+        return radius
 
     def lst_corners(self, item):
         # TODO: and clean this too
