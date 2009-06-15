@@ -6,8 +6,10 @@ connects, the Server dispatches its connection to a new Handler.
 
 import asynchat
 import asyncore
+import math
 import socket
 import time
+import random
 
 import constants
 
@@ -123,8 +125,11 @@ class Handler(asynchat.async_chat):
             self.invalid_args(args)
             return
         self.ack(command, tankid)
-        self.team.shoot(tankid)
-
+        result = self.team.shoot(tankid)
+        if result:
+            self.push('ok\n')
+        else:
+            self.push('fail\n')
 
     def bzrc_speed(self, args):
         """Request the tank to accelerate as quickly as possible to the 
@@ -166,9 +171,12 @@ class Handler(asynchat.async_chat):
             value = float(value)
         except ValueError, TypeError:
             self.invalid_args(args)
+            self.push('fail\n')
             return
         self.ack(command, tankid, value)
         self.team.angvel(tankid, value)
+        self.push('ok\n')
+        
 
     def bzrc_accelx(self, args):
         """Used specifically for freezeTag."""
@@ -324,8 +332,8 @@ class Handler(asynchat.async_chat):
             index = i
             callsign = tank.callsign
             status = tank.status
-            shotsleft = tank.shotsleft
-            reloadtime = tank.reloadtime
+            shotsleft = self.team.mapper.maximum_shots - len(tank.shots)
+            reloadtime = int(constants.RELOADTIME - tank.reloadtime)
             flag = tank.flag
             x, y = tank.pos
             angle = tank.rot
@@ -384,8 +392,9 @@ class Handler(asynchat.async_chat):
             return
         self.ack(command)
         self.push('begin\n')
-        self.push('constant COLORNAME %s\n' % (constants.COLORNAME))
-        self.push('constant WORLDSIZE %s\n' % (constants.WORLDSIZE))
+        self.push('constant team %s\n' % (constants.COLORNAME[self.team.color]))
+        self.push('constant worldsize %s\n' % (constants.WORLDSIZE))
+        self.push('constant hoverbot %s\n' % (self.team.mapper.hoverbot))
         self.push('constant TANKANGVEL %s\n' % (constants.TANKANGVEL))
         self.push('constant TANKLENGTH %s\n' % (constants.TANKLENGTH))
         self.push('constant TANKRADIUS %s\n' % (constants.TANKRADIUS))
@@ -411,6 +420,31 @@ class Handler(asynchat.async_chat):
             self.invalid_args(args)
             return
         self.close()
+
+    def bzrc_fireatwill(self, args):
+        """All tanks shoot (cheat).
+        """
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        for team in self.team.mapper.teams:
+            for i in xrange(0, len(team.tanks)):
+                team.shoot(i)
+
+    def bzrc_hammertime(self, args):
+        """All tanks shoot (cheat).
+        """
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        for team in self.team.mapper.teams:
+            for tank in team.tanks:
+                tank.givenspeed = random.uniform(-1, 1)
+                tank.angvel = random.uniform(-1, 1)
 
 
 if __name__ == "__main__":

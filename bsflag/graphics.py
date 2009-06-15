@@ -146,6 +146,7 @@ class Display(object):
         self.screen_size = screen_size
         self.screen = None
         self.sprites = None
+        self.sprite_map = {}
         self.images = ImageCache()
         self._background = None
 
@@ -188,25 +189,26 @@ class Display(object):
         image = self.images.shot(shot.color)
         sprite = BZSprite(shot, image, self, SHOTSCALE)
         self.sprites.add(sprite)
+        self.sprite_map[shot] = sprite
 
     def flag_sprite(self, flag):
         """Creates a sprite for the given flag."""
         image = self.images.flag(flag.color)
         sprite = BZSprite(flag, image, self, FLAGSCALE)
         self.sprites.add(sprite)
+        self.sprite_map[flag] = sprite
 
     def tank_sprite(self, tank):
         """Creates a sprite for the given tank."""
         image = self.images.tank(tank.color)
         sprite = BZSprite(tank, image, self, TANKSCALE)
         self.sprites.add(sprite)
+        self.sprite_map[tank] = sprite
 
     def kill_sprite(self, obj):
         """Kills the sprite for the given object."""
-        for sprite in self.sprites:
-            if isinstance(sprite, BZSprite) and (sprite.bzobject == obj):
-                print 'kill sprite'
-                sprite.kill()
+        self.sprite_map[obj].kill()
+        del self.sprite_map[obj]
 
     def pos_world_to_screen(self, pos):
         """Converts a position from world space to screen pixel space.

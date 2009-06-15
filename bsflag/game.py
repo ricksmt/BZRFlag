@@ -9,6 +9,7 @@ from __future__ import division
 # aware of each other and implement collision detection.  Add flags and
 # scoring.
 
+import copy
 import datetime
 import math
 import random
@@ -160,12 +161,93 @@ class Game(object):
 
 class Mapper(object):
     def __init__(self, colors, world):
+        # track objects on map
         self.teams = [Team(color, self) for color in colors]
         self.bases = [Base(color, item) for item in world.bases]
         self.obstacles = [Obstacle(item) for item in world.boxes]
+
+        # defaults for customizable values
+        world_diagonal = constants.WORLDSIZE * math.sqrt(2.0)
+        max_bullet_life = constants.WORLDSIZE / constants.SHOTSPEED
+        self.maximum_shots = int(max_bullet_life / constants.RELOADTIME)
+        self.inertia_linear = 1
+        self.inertia_angular = 1
+        self.tank_angvel = constants.TANKANGVEL
+        self.respawn_time = 30
+        self.grab_own_flag = False
+        self.friendly_fire = False
+        self.hoverbot = 0
+        self.end_game = False
+
+        # queue of objects that need to be created or destroyed
         self.inbox = []
         self.trash = []
 
+    def spawn(self, tank):
+        color = tank.color
+        base = None
+        for team_base in self.bases:
+            if team_base.color == color:
+                base = team_base
+        assert base != None
+        base_x, base_y = base.center
+        spawn_radius = base.radius * 10
+        candidate_obstacles = []
+
+        for obstacle in self.obstacles:
+            assert isinstance(obstacle, Obstacle)
+            obstacle_x, obstacle_y = obstacle.center
+            if (self.distance(base_x, base_y, obstacle_x, obstacle_y) \
+                    - obstacle.radius) <= spawn_radius:
+                padded_obstacle = copy.deepcopy(obstacle)
+                padded_obstacle.pad(constants.TANKRADIUS * 1.5)
+                candidate_obstacles.append(padded_obstacle)
+
+        tank_radius = constants.TANKRADIUS
+        shot_radius = constants.SHOTRADIUS
+        tank_x = 0
+        tank_y = 0
+        placed = False
+        while placed == False:
+            angle = random.uniform(0, 2 * math.pi)
+            offset = random.uniform(0, 1)
+            tank_x = base_x + spawn_radius * offset * math.cos(angle)
+            tank_y = base_y + spawn_radius * offset * math.sin(angle)
+            tank_pos = (tank_x, tank_y)
+
+            if (abs(tank_x) > 400) or (abs(tank_y) > 400):
+                continue
+
+            placed = True
+            for obst in candidate_obstacles:
+                #def point_inside_polygon(self, x, y, poly):
+                if self.point_inside_polygon(tank_x, tank_y, obst.corners):
+                    placed = False
+                    break
+            if placed == False:
+                continue
+            for team in self.teams:
+                for other_tank in team.tanks:
+                    #def circle_intersect_circle(self, pos1, pos2, r1, r2):
+                    if self.circle_intersect_circle(tank_pos, other_tank.pos,
+                            tank_radius, tank_radius):
+                        placed = False
+                        break
+                if placed == False:
+                    break
+                for shot in team.shots:
+                    #def circle_intersect_circle(self, pos1, pos2, r1, r2):
+                    if self.circle_intersect_circle(tank_pos, shot.pos,
+                            tank_radius, shot_radius):
+                        placed = False
+                        break
+                if placed == False:
+                    break
+
+        tank.pos = (tank_x, tank_y)
+        tank.rot = random.uniform(0, 2 * math.pi)
+        tank.status = constants.TANKALIVE
+                
     def handle_collisions(self, obj, dt):
         # generate all position samples
         # using last position (destination), calculate maximum distance
@@ -201,17 +283,30 @@ class Mapper(object):
             # shameless winning, fix this stuff
             for base in self.bases:
                 if base.color != obj.color \
+                        and obj.tank != None \
+                        and base.color == obj.tank.color \
                         and self.point_inside_polygon(x, y, base.corners):
                     for team in self.teams:
-                        if team.color != base.color:
+                        if team.color == obj.color:
+                            team.loser = True
                             for tank in team.tanks:
                                 tank.status = constants.TANKDEAD
+                                tank.dead_timer = 0
             return
-                    
         elif isinstance(obj, Tank):
             obj_radius = constants.TANKRADIUS
+            if obj.status == constants.TANKDEAD:
+                obj.pos = (constants.DEADZONEX, constants.DEADZONEY)
+                for team in self.teams:
+                    if team.color == obj.color and team.loser == True:
+                        obj.dead_timer = 0   
+                return
         elif isinstance(obj, Shot):
             obj_radius = constants.SHOTRADIUS
+            shot_x, shot_y = obj.pos
+            if (abs(shot_x) > 400) or (abs(shot_y) > 400):
+                obj.status = constants.SHOTDEAD
+                return
         else:
             # TODO: error
             print 'error'
@@ -276,11 +371,19 @@ class Mapper(object):
                 if (self.distance(mid_x, mid_y, tank_x, tank_y) \
                         - constants.TANKRADIUS - obj_radius) <= filter_radius:
                     good_pos = self.handle_tank_collision(obj, good_pos, tank)
+                    if good_pos == (constants.DEADZONEX, constants.DEADZONEY):
+                        break
+            if good_pos == (constants.DEADZONEX, constants.DEADZONEY):
+                break
             for shot in team.shots:
                 shot_x, shot_y = shot.pos
                 if (self.distance(mid_x, mid_y, shot_x, shot_y) \
                         - constants.SHOTRADIUS - obj_radius) <= filter_radius:
                     good_pos = self.handle_shot_collision(obj, good_pos, shot)
+                    if good_pos == (constants.DEADZONEX, constants.DEADZONEY):
+                        break
+            if good_pos == (constants.DEADZONEX, constants.DEADZONEY):
+                break
             flag_x, flag_y = team.flag.pos
             if (self.distance(mid_x, mid_y, flag_x, flag_y) \
                     - constants.FLAGRADIUS - obj_radius) <= filter_radius:
@@ -408,6 +511,8 @@ class Mapper(object):
                 print 'shot on tank'
                 obj.status = constants.SHOTDEAD
                 tank.status = constants.TANKDEAD
+                tank.dead_timer = 0
+                tank.pos = (constants.DEADZONEX, constants.DEADZONEY)
                 return obj.pos
 
         return new_pos
@@ -422,7 +527,9 @@ class Mapper(object):
             if dist < (constants.TANKRADIUS + constants.SHOTRADIUS):
                 print 'tank on shot'
                 obj.status = constants.TANKDEAD
+                obj.dead_timer = 0
                 shot.status = constants.SHOTDEAD
+                obj.pos = (constants.DEADZONEX, constants.DEADZONEY)
                 return obj.pos
 
         return new_pos
@@ -435,7 +542,7 @@ class Mapper(object):
             path = [obj.pos, new_pos]
             dist = self.distance_to_line(flag.pos, path)
             if dist < (constants.TANKRADIUS + constants.FLAGRADIUS):
-                print 'tank on flag'
+                #print 'tank on flag'
                 obj.flag = flag
                 flag.tank = obj
 
@@ -483,7 +590,8 @@ class Obstacle(object):
         self.center = self.get_center(item)
         self.size = self.get_size(item)
         self.radius = self.get_radius()
-        self.corners = self.lst_corners(item)
+        self.rot = item.rot
+        self.corners = self.lst_corners()
 
     def get_center(self, item):
         # TODO: clean this
@@ -502,14 +610,11 @@ class Obstacle(object):
         radius = math.sqrt(w * w + h * h)
         return radius
 
-    def lst_corners(self, item):
+    def lst_corners(self):
         # TODO: and clean this too
         corners = []
         x, y = self.center
-        if item.pos:
-            w, h = self.size
-        else:
-            w, h = 0
+        w, h = self.size
         # Implemented for rectangles
         for i in xrange(4):
             if i == 0: a, b = w * -1, h
@@ -517,19 +622,25 @@ class Obstacle(object):
             elif i == 2: a, b = w, h * -1
             elif i == 3: a, b = w, h 
             else: a, b = 0
-            corners.append((a * math.cos(item.rot)  
-                - b * math.sin(item.rot) + x, 
-                a * math.sin(item.rot) + b * math.cos(item.rot) + y))
+            corners.append((a * math.cos(self.rot)  
+                - b * math.sin(self.rot) + x, 
+                a * math.sin(self.rot) + b * math.cos(self.rot) + y))
         return corners
+
+    def pad(self, padding):
+        w, h = self.size
+        self.size = (w + padding, h + padding)
+        self.corners = self.lst_corners()
 
 
 class Team(object):
     def __init__(self, color, mapper):
         self.color = color
         self.mapper = mapper
-        self.tanks = [Tank(color) for i in xrange(20)]
-        self.shots = [Shot(tank) for tank in self.tanks]
+        self.tanks = [Tank(color, i) for i in xrange(10)]
+        self.shots = []
         self.flag = Flag(color, None)
+        self.loser = False
 
     def color_name(self):
         return constants.COLORNAME[self.color]
@@ -547,9 +658,13 @@ class Team(object):
 
     def shoot(self, tankid):
         tank = self.tanks[tankid]
+        if tank.reloadtime < constants.RELOADTIME:
+            return False
         shot = Shot(tank)
         self.shots.insert(0, shot)
         self.mapper.inbox.append(shot)
+        tank.reloadtime = 0
+        return True
 
     def speed(self, tankid, value):
         # TODO: care about list bounds.
@@ -660,25 +775,39 @@ class Base(object):
 class Tank(object):
     size = (constants.TANKRADIUS,) * 2
 
-    def __init__(self, color):
+    def __init__(self, color, tankid):
         self.color = color
         #self.game = game
         # For testing obstacle corners
         # TODO: remove and replace with proper unit test
         #self.pos = (-40, 360)
-        self.pos = (random.uniform(-400, 400), random.uniform(-400, 400))
-        self.rot = random.uniform(0, 2*math.pi)
+        #self.pos = (random.uniform(-400, 400), random.uniform(-400, 400))
+        self.pos = (constants.DEADZONEX, constants.DEADZONEY)
+        self.rot = 0
         self.speed = 0
         self.givenspeed = 0
         self.vel = (0, 0)
         self.angvel = 0
-        self.callsign = constants.COLORNAME[color]
-        self.status = constants.TANKALIVE
-        self.shotsleft = -1
+        self.callsign = constants.COLORNAME[color] + str(tankid)
+        self.status = constants.TANKDEAD
+        self.shots = []
         self.reloadtime = 0
         self.flag = None
+        self.dead_timer = -1
 
     def update(self, mapper, dt):
+        if self.status == constants.TANKDEAD:
+            if self.dead_timer < 0:
+                self.dead_timer = mapper.respawn_time
+            self.dead_timer = self.dead_timer + dt
+            if self.dead_timer >= mapper.respawn_time:
+                mapper.spawn(self)
+                return
+
+        # Increment reload time
+        if self.reloadtime < constants.RELOADTIME:
+            self.reloadtime = self.reloadtime + dt
+
         # Update rotation.
         self.rot += self.angvel * constants.TANKANGVEL * dt
 
@@ -697,14 +826,10 @@ class Tank(object):
 
         mapper.handle_collisions(self, dt)
 
-        if self.status == constants.TANKDEAD:
-            mapper.trash.append(self)
-            if self.flag != None:
-                self.flag.tank = None
-                self.flag = None
-            for team in mapper.teams:
-                if team.color == self.color:
-                    team.tanks.remove(self)
+        if (self.status == constants.TANKDEAD) and (self.flag != None):
+            self.flag.tank = None
+            self.flag = None
+
 
 
 # vim: et sw=4 sts=4

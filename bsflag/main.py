@@ -57,6 +57,7 @@ def run():
         world = World()
 
     colors = (1, 2)
+    #colors = (1, 2, 3, 4)
     # Is world an appropriate parameter?
     game = Game(colors, world)
 
