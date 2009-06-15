@@ -334,15 +334,32 @@ class Handler(asynchat.async_chat):
             status = tank.status
             shotsleft = self.team.mapper.maximum_shots - len(tank.shots)
             reloadtime = int(constants.RELOADTIME - tank.reloadtime)
-            flag = tank.flag
+            flag = None
+            if tank.flag != None:
+                flag = constants.COLORNAME[tank.flag.color]
+            else:
+                flag = '-'
             x, y = tank.pos
+            #if not isinstance(x, float):
+            #    print 'x is not float: %s' % x
             angle = tank.rot
+            if abs(angle) > math.pi:
+                pi_units = 0
+                while abs(angle) > math.pi:
+                    pi_units = pi_units + 1
+                    angle = abs(angle) - math.pi
+                if pi_units % 2 == 1:
+                    angle = math.pi - angle
+                    angle = angle * -1
             vx, vy = tank.vel
             angvel = tank.angvel
             self.push('mytank %s %s %s ' % (index, callsign, status))
             self.push('%s %s %s ' % (shotsleft, reloadtime, flag))
             self.push('%s %s %s %s %s %s\n' % (x, y, angle, vx, vy, angvel))
         self.push('end\n')
+        print('mytank %s %s %s ' % (index, callsign, status))
+        print('%s %s %s ' % (shotsleft, reloadtime, flag))
+        print('%s %s %s %s %s %s\n' % (x, y, angle, vx, vy, angvel))
 
     def bzrc_othertanks(self, args):
         """ Request the status of other tanks in the game (those not 
@@ -367,9 +384,21 @@ class Handler(asynchat.async_chat):
                 callsign = tank.callsign
                 color = constants.COLORNAME[tank.color]
                 status = tank.status
-                flag = tank.flag
+                flag = None
+                if tank.flag != None:
+                    flag = constants.COLORNAME[tank.flag.color]
+                else:
+                    flag = '-'
                 x, y = tank.pos
                 angle = tank.rot
+                if abs(angle) > math.pi:
+                    pi_units = 0
+                    while abs(angle) > math.pi:
+                        pi_units = pi_units + 1
+                        angle = abs(angle) - math.pi
+                    if pi_units % 2 == 1:
+                        angle = math.pi - angle
+                        angle = angle * -1
                 self.push('othertank %s %s %s ' % (callsign, color, status))
                 self.push('%s %s %s %s\n' % (flag, x, y, angle))
         self.push('end\n')

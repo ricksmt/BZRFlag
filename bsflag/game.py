@@ -246,6 +246,7 @@ class Mapper(object):
 
         tank.pos = (tank_x, tank_y)
         tank.rot = random.uniform(0, 2 * math.pi)
+        #tank.rot = 0
         tank.status = constants.TANKALIVE
                 
     def handle_collisions(self, obj, dt):
@@ -502,13 +503,13 @@ class Mapper(object):
             path = [obj.pos, new_pos]
             dist = self.distance_to_line(tank.pos, path)
             if dist < (constants.TANKRADIUS + constants.TANKRADIUS):
-                print 'tank on tank'
+                #print 'tank on tank'
                 return obj.pos
         elif isinstance(obj, Shot):
             path = [obj.pos, new_pos]
             dist = self.distance_to_line(tank.pos, path)
             if dist < (constants.SHOTRADIUS + constants.TANKRADIUS):
-                print 'shot on tank'
+                #print 'shot on tank'
                 obj.status = constants.SHOTDEAD
                 tank.status = constants.TANKDEAD
                 tank.dead_timer = 0
@@ -525,7 +526,7 @@ class Mapper(object):
             path = [obj.pos, new_pos]
             dist = self.distance_to_line(shot.pos, path)
             if dist < (constants.TANKRADIUS + constants.SHOTRADIUS):
-                print 'tank on shot'
+                #print 'tank on shot'
                 obj.status = constants.TANKDEAD
                 obj.dead_timer = 0
                 shot.status = constants.SHOTDEAD
@@ -556,7 +557,7 @@ class Mapper(object):
         vx, vy = vel
         endx, endy = (x + vx * dt), (y + vy * dt)
 
-        segment = r / 2
+        segment = r / 3
         if segment < 1:
             segment = 1
 
@@ -637,7 +638,7 @@ class Team(object):
     def __init__(self, color, mapper):
         self.color = color
         self.mapper = mapper
-        self.tanks = [Tank(color, i) for i in xrange(10)]
+        self.tanks = [Tank(color, i) for i in xrange(100)]
         self.shots = []
         self.flag = Flag(color, None)
         self.loser = False
