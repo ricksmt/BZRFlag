@@ -5,14 +5,13 @@ The Game Logic module implements teams, tanks, shots, etc.
 
 from __future__ import division
 
-# TODO: Allow shots to be dynamically created and expired.  Make the objects
-# aware of each other and implement collision detection.  Add flags and
-# scoring.
+# TODO: 
 
 import copy
 import datetime
 import math
 import random
+import sys
 
 import constants
 
@@ -21,6 +20,10 @@ class Game(object):
     """Takes a list of colors."""
     def __init__(self, colors, world):
         self.mapper = Mapper(colors, world)
+        self.timespent = 0.0
+        self.timelimit = 30000.0
+        self.mapper.timespent = self.timespent
+        self.mapper.timelimit = self.timelimit
         self.timestamp = datetime.datetime.utcnow()
 
     def update(self):
@@ -31,6 +34,12 @@ class Game(object):
         dt = ((24 * 60 * 60) * delta.days
                 + delta.seconds
                 + (10 ** -6) * delta.microseconds)
+
+        self.timespent = self.timespent + dt
+        if self.timespent > self.timelimit:
+            return
+        self.mapper.timespent = self.timespent
+
         for team in self.mapper.teams:
             team.update(dt)
 
@@ -162,18 +171,29 @@ class Game(object):
 class Mapper(object):
     def __init__(self, colors, world):
         # track objects on map
-        self.teams = [Team(color, self) for color in colors]
-        self.bases = [Base(color, item) for item in world.bases]
         self.obstacles = [Obstacle(item) for item in world.boxes]
+        self.bases = [Base(item) for item in world.bases]
+        self.teams = [Team(color, self) for color in colors]
+        for team in self.teams:
+            self.spawn_flag(team.flag)
+        for team in self.teams:
+            for enemy in self.teams:
+                team.score_map[enemy.color] = Score(team, enemy)
 
         # defaults for customizable values
         world_diagonal = constants.WORLDSIZE * math.sqrt(2.0)
         max_bullet_life = constants.WORLDSIZE / constants.SHOTSPEED
         self.maximum_shots = int(max_bullet_life / constants.RELOADTIME)
+        self.timespent = 0.0
+        self.timelimit = 0.0
         self.inertia_linear = 1
         self.inertia_angular = 1
         self.tank_angvel = constants.TANKANGVEL
-        self.respawn_time = 30
+        self.max_tanks = 0.0
+        for team in self.teams:
+            self.max_tanks = float(max(len(team.tanks), self.max_tanks))
+        self.respawn_time = 10
+        self.range = constants.SHOTRANGE
         self.grab_own_flag = False
         self.friendly_fire = False
         self.hoverbot = 0
@@ -183,7 +203,7 @@ class Mapper(object):
         self.inbox = []
         self.trash = []
 
-    def spawn(self, tank):
+    def spawn_tank(self, tank):
         color = tank.color
         base = None
         for team_base in self.bases:
@@ -191,7 +211,7 @@ class Mapper(object):
                 base = team_base
         assert base != None
         base_x, base_y = base.center
-        spawn_radius = base.radius * 10
+        spawn_radius = constants.TANKRADIUS * math.sqrt(self.max_tanks) * 5
         candidate_obstacles = []
 
         for obstacle in self.obstacles:
@@ -248,7 +268,12 @@ class Mapper(object):
         tank.rot = random.uniform(0, 2 * math.pi)
         #tank.rot = 0
         tank.status = constants.TANKALIVE
-                
+
+    def spawn_flag(self, flag):
+        for base in self.bases:
+            if flag.color == base.color:
+                flag.pos = base.center
+
     def handle_collisions(self, obj, dt):
         # generate all position samples
         # using last position (destination), calculate maximum distance
@@ -293,6 +318,12 @@ class Mapper(object):
                             for tank in team.tanks:
                                 tank.status = constants.TANKDEAD
                                 tank.dead_timer = 0
+                        elif team.color == base.color:
+                            team.captured_flags.append(obj)
+                            score = team.score_map[obj.color]
+                            score.returned_flag = True
+                            enemy = score.enemy
+                            enemy.loser = True
             return
         elif isinstance(obj, Tank):
             obj_radius = constants.TANKRADIUS
@@ -317,7 +348,7 @@ class Mapper(object):
         # TODO: merely functional, needs to be fixed badly
         for sample in multisample:
             sample_x, sample_y = sample
-            if (abs(sample_x) > 400) or (abs(sample_y) > 400):
+            if (abs(sample_x) > 399) or (abs(sample_y) > 399):
                 multisample.remove(sample)
 
         if len(multisample) == 0 and isinstance(obj, Shot):
@@ -391,6 +422,10 @@ class Mapper(object):
                 good_pos = self.handle_flag_collision(obj, good_pos, 
                     team.flag)
 
+        if (isinstance(obj, Shot)):
+            good_x, good_y = good_pos
+            range_expended = self.distance(x, y, good_x, good_y)
+            obj.distance = float(obj.distance + range_expended)
         obj.pos = good_pos
 
     def midpoint(self, x1, y1, x2, y2):
@@ -506,10 +541,22 @@ class Mapper(object):
                 #print 'tank on tank'
                 return obj.pos
         elif isinstance(obj, Shot):
+            # Prevents tank from killing self
+            if obj.tank == tank:
+                return new_pos
+            elif obj.color == tank.color and self.friendly_fire == False:
+                return new_pos
             path = [obj.pos, new_pos]
             dist = self.distance_to_line(tank.pos, path)
             if dist < (constants.SHOTRADIUS + constants.TANKRADIUS):
                 #print 'shot on tank'
+                # TODO: fix, very inefficient
+                if tank.flag != None:
+                    for team in self.teams:
+                        if team.color == tank.color:
+                            team.flag_carriers.remove(tank)
+                    tank.flag.tank = None
+                    tank.flag = None
                 obj.status = constants.SHOTDEAD
                 tank.status = constants.TANKDEAD
                 tank.dead_timer = 0
@@ -523,10 +570,22 @@ class Mapper(object):
             return new_pos
 
         if isinstance(obj, Tank):
+            # Prevents tank from killing self
+            if shot.tank == obj:
+                return new_pos
+            elif shot.color == obj.color and self.friendly_fire == False:
+                return new_pos
             path = [obj.pos, new_pos]
             dist = self.distance_to_line(shot.pos, path)
             if dist < (constants.TANKRADIUS + constants.SHOTRADIUS):
                 #print 'tank on shot'
+                # TODO: fix, very inefficient
+                if obj.flag != None:
+                    for team in self.teams:
+                        if team.color == obj.color:
+                            team.flag_carriers.remove(obj)
+                    obj.flag.tank = None
+                    obj.flag = None
                 obj.status = constants.TANKDEAD
                 obj.dead_timer = 0
                 shot.status = constants.SHOTDEAD
@@ -546,6 +605,11 @@ class Mapper(object):
                 #print 'tank on flag'
                 obj.flag = flag
                 flag.tank = obj
+                # TODO: fix, very inefficient
+                for team in self.teams:
+                    for tank in team.tanks:
+                        if tank.flag == flag:
+                            team.flag_carriers.append(tank)
 
         return new_pos
 
@@ -557,9 +621,9 @@ class Mapper(object):
         vx, vy = vel
         endx, endy = (x + vx * dt), (y + vy * dt)
 
-        segment = r / 3
-        if segment < 1:
-            segment = 1
+        segment = r / 2.0
+        if segment == 0:
+            print 'error'
 
         dx = x - endx
         dy = y - endy
@@ -638,10 +702,28 @@ class Team(object):
     def __init__(self, color, mapper):
         self.color = color
         self.mapper = mapper
-        self.tanks = [Tank(color, i) for i in xrange(100)]
+        self.tanks = [Tank(color, i) for i in xrange(20)]
         self.shots = []
         self.flag = Flag(color, None)
+        self.flag_carriers = []
+        self.captured_flags = []
         self.loser = False
+        self.score_map = {}
+        self.base = None
+        for base in mapper.bases:
+            if base.color != self.color:
+                continue
+            else:
+                self.base = base
+                break
+
+    def iter_score(self):
+        for team in self.mapper.teams:
+            yield self.score_map[team.color]
+
+    def iter_ctf_scores(self):
+        for team in self.mapper.teams:
+            yield self.score_map[team.color].ctf_score()
 
     def color_name(self):
         return constants.COLORNAME[self.color]
@@ -652,6 +734,8 @@ class Team(object):
         for tank in self.tanks:
             tank.update(self.mapper, dt)
         self.flag.update(self.mapper, dt)
+        for score in self.iter_score():
+            score.update(self.mapper)
 
     def iter_tanks(self):
         for tank in self.tanks:
@@ -659,7 +743,8 @@ class Team(object):
 
     def shoot(self, tankid):
         tank = self.tanks[tankid]
-        if tank.reloadtime < constants.RELOADTIME:
+        if (tank.reloadtime < constants.RELOADTIME) or \
+                ((self.mapper.maximum_shots - len(tank.shots)) == 0):
             return False
         shot = Shot(tank)
         self.shots.insert(0, shot)
@@ -673,7 +758,7 @@ class Team(object):
             value = 1
         elif value < -1:
             value = -1
-        self.tanks[tankid].givenspeed = value
+        self.tanks[tankid].given_speed = value
 
     def angvel(self, tankid, value):
         # TODO: care about list bounds.
@@ -681,30 +766,94 @@ class Team(object):
             value = 1
         elif value < -1:
             value = -1
-        self.tanks[tankid].angvel = value
+        self.tanks[tankid].given_angvel = value
+
+
+class Score(object):
+    def __init__(self, team, enemy):
+        self.team = team
+        self.enemy = enemy
+        self.returned_flag = False
+        self.dist_with_flag = 0
+        self.dist_to_flag = sys.maxint
+        self.enemy_with_flag = 0
+        self.kills = 0
+
+    def update(self, mapper):
+        if self.returned_flag == True or self.team.loser == True:
+            return
+        if self.team.color == self.enemy.color:
+            return
+        tank = None
+        for carrier in self.team.flag_carriers:
+            if carrier.flag == None or \
+                    carrier.flag.color != self.enemy.color:
+                continue
+            else:
+                tank = carrier
+                break
+        if tank != None:
+            flag_x, flag_y = tank.flag.pos
+            base_x, base_y = self.team.base.center
+            enemy_x, enemy_y = self.enemy.base.center
+            dist_between_bases = mapper.distance(base_x, base_y,
+                enemy_x, enemy_y)        
+            dist_with_flag = dist_between_bases - \
+                mapper.distance(flag_x, flag_y, base_x, base_y)
+            #print ('%s %s' % (self.dist_with_flag, dist_with_flag))
+            self.dist_with_flag = max(self.dist_with_flag, dist_with_flag)
+        else:
+            flag_x, flag_y = self.enemy.flag.pos
+            for tank in self.team.tanks:
+                tank_x, tank_y = tank.pos
+                dist_to_flag = mapper.distance(flag_x, flag_y, tank_x, tank_y)
+                self.dist_to_flag = min(self.dist_to_flag, dist_to_flag)
+        enemy_with_flag = self.enemy.score_map[self.team.color].dist_with_flag
+        self.enemy_with_flag = enemy_with_flag
+
+    def ctf_score(self):
+        score = 0
+        if self.team.color == self.enemy.color:
+            return score
+        elif self.returned_flag == True:
+            score = constants.CAPTUREPOINTS
+            return score
+        elif self.team.loser == False:
+            score = constants.INITPOINTS
+            #print('%s' % (self.dist_with_flag))
+            score = score + self.dist_with_flag - self.dist_to_flag - \
+            self.enemy_with_flag
+        return int(score)
 
 
 class Shot(object):
     size = (constants.SHOTRADIUS,) * 2
 
     def __init__(self, tank):
-        self.color = tank.color
-        self.rot = tank.rot
+        self.tank = tank
+        self.color = self.tank.color
+        self.rot = self.tank.rot
+        self.distance = 0
+        self.tank.shots.append(self)
 
-        tank_x, tank_y = tank.pos
-        x = tank_x + constants.BARRELLENGTH * math.cos(self.rot)
-        y = tank_y + constants.BARRELLENGTH * math.sin(self.rot)
-        self.pos = (x, y)
+        #tank_x, tank_y = tank.pos
+        #x = tank_x + constants.BARRELLENGTH * math.cos(self.rot)
+        #y = tank_y + constants.BARRELLENGTH * math.sin(self.rot)
+        #self.pos = (x, y)
+        self.pos = tank.pos
 
-        speed = constants.SHOTSPEED
+        speed = constants.SHOTSPEED + tank.speed
         self.vel = (speed * math.cos(self.rot), speed * math.sin(self.rot))
 
         self.status = constants.SHOTALIVE
 
     def update(self, mapper, dt):        
         mapper.handle_collisions(self, dt)
+        if self.distance > constants.SHOTRANGE:
+            self.status = constants.SHOTDEAD
         if self.status == constants.SHOTDEAD:
             mapper.trash.append(self)
+            self.tank.shots.remove(self)
             for team in mapper.teams:
                 if team.color == self.color:
                     team.shots.remove(self)
@@ -716,7 +865,7 @@ class Flag(object):
     def __init__(self, color, tank):
         self.color = color
         self.rot = 0
-        self.pos = (random.uniform(-400, 400), random.uniform(-400, 400))
+        self.pos = (constants.DEADZONEX, constants.DEADZONEY)
         self.tank = None
         if tank is not None:
             self.tank = tank
@@ -729,7 +878,7 @@ class Flag(object):
 
 
 class Base(object):
-    def __init__(self, color, item):
+    def __init__(self, item):
         self.color = item.color
         self.center = self.get_center(item)
         self.size = self.get_size(item)
@@ -786,8 +935,9 @@ class Tank(object):
         self.pos = (constants.DEADZONEX, constants.DEADZONEY)
         self.rot = 0
         self.speed = 0
-        self.givenspeed = 0
+        self.given_speed = 0
         self.vel = (0, 0)
+        self.given_angvel = 0
         self.angvel = 0
         self.callsign = constants.COLORNAME[color] + str(tankid)
         self.status = constants.TANKDEAD
@@ -802,7 +952,7 @@ class Tank(object):
                 self.dead_timer = mapper.respawn_time
             self.dead_timer = self.dead_timer + dt
             if self.dead_timer >= mapper.respawn_time:
-                mapper.spawn(self)
+                mapper.spawn_tank(self)
                 return
 
         # Increment reload time
@@ -810,18 +960,27 @@ class Tank(object):
             self.reloadtime = self.reloadtime + dt
 
         # Update rotation.
+        #self.rot += self.angvel * constants.TANKANGVEL * dt
+        if self.angvel < self.given_angvel:
+            self.angvel = self.angvel + constants.ANGULARACCEL * dt
+            if self.angvel > self.given_angvel:
+                self.angvel = self.given_angvel
+        elif self.angvel > self.given_angvel:
+            self.angvel = self.angvel - constants.ANGULARACCEL * dt
+            if self.angvel < self.given_angvel:
+                self.angvel = self.given_angvel
         self.rot += self.angvel * constants.TANKANGVEL * dt
 
         # Update position.
         x, y = self.pos
-        if self.speed < self.givenspeed:
+        if self.speed < self.given_speed:
             self.speed = self.speed + constants.LINEARACCEL * dt
-            if self.speed > self.givenspeed:
-                self.speed = self.givenspeed
-        elif self.speed > self.givenspeed:
+            if self.speed > self.given_speed:
+                self.speed = self.given_speed
+        elif self.speed > self.given_speed:
             self.speed = self.speed - constants.LINEARACCEL * dt
-            if self.speed < self.givenspeed:
-                self.speed = self.givenspeed
+            if self.speed < self.given_speed:
+                self.speed = self.given_speed
         self.vel = (self.speed * math.cos(self.rot) * constants.TANKSPEED, 
             self.speed * math.sin(self.rot) * constants.TANKSPEED)
 

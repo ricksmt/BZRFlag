@@ -22,7 +22,9 @@ def options():
     p.add_option('-c', action='store_true', dest='ctf')
     p.add_option('-d', action='store_true', dest='debug')
     p.add_option('--ms', action='store', type='int', dest='max_shots',
-        default=6)
+        default=3)
+    p.add_option('--maxshots', action='store', type='int', dest='max_shots',
+        default=3)
     p.add_option('--freezeTag', action='store_true', dest='freeze_tag')
     p.add_option('--world', action='store', dest='world')
     p.add_option('--set_inertiaLinear', action='store', type='int',
@@ -56,8 +58,8 @@ def run():
     else:
         world = World()
 
-    colors = (1, 2)
-    #colors = (1, 2, 3, 4)
+    #colors = (1, 2)
+    colors = (1, 2, 3, 4)
     # Is world an appropriate parameter?
     game = Game(colors, world)
 

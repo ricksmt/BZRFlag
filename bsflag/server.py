@@ -333,7 +333,10 @@ class Handler(asynchat.async_chat):
             callsign = tank.callsign
             status = tank.status
             shotsleft = self.team.mapper.maximum_shots - len(tank.shots)
-            reloadtime = int(constants.RELOADTIME - tank.reloadtime)
+            reloadtime = constants.RELOADTIME - tank.reloadtime
+            # no negative reload time
+            if reloadtime < 0:
+                reloadtime = 0.0
             flag = None
             if tank.flag != None:
                 flag = constants.COLORNAME[tank.flag.color]
@@ -357,9 +360,6 @@ class Handler(asynchat.async_chat):
             self.push('%s %s %s ' % (shotsleft, reloadtime, flag))
             self.push('%s %s %s %s %s %s\n' % (x, y, angle, vx, vy, angvel))
         self.push('end\n')
-        print('mytank %s %s %s ' % (index, callsign, status))
-        print('%s %s %s ' % (shotsleft, reloadtime, flag))
-        print('%s %s %s %s %s %s\n' % (x, y, angle, vx, vy, angvel))
 
     def bzrc_othertanks(self, args):
         """ Request the status of other tanks in the game (those not 
@@ -436,6 +436,35 @@ class Handler(asynchat.async_chat):
         self.push('constant FLAGRADIUS %s\n' % (constants.FLAGRADIUS))
         self.push('constant EXPLODETIME %s\n' % (constants.EXPLODETIME))
         self.push('end\n')
+
+    def bzrc_scores(self, args):
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command)
+        self.push('begin\n')
+        for team in self.team.mapper.teams:
+            self.push('\t%s' % (constants.COLORNAME[team.color]))
+        self.push('\n')
+        for team in self.team.mapper.teams:
+            self.push('%s' % (constants.COLORNAME[team.color]))
+            for score in team.iter_ctf_scores():
+                self.push('\t%s' % (score))
+            self.push('\n')
+        self.push('end\n')
+        
+    def bzrc_timer(self, args):
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command)
+        timespent = self.team.mapper.timespent
+        timelimit = self.team.mapper.timelimit
+        self.push('timer %s %s\n' % (timespent, timelimit))
 
     def bzrc_quit(self, args):
         """Disconnects the session.
