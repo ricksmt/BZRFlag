@@ -10,6 +10,7 @@ from __future__ import division
 import copy
 import datetime
 import math
+import mox
 import random
 import sys
 
@@ -17,11 +18,11 @@ import constants
 
 
 class Game(object):
-    """Takes a list of colors."""
-    def __init__(self, colors, world):
-        self.mapper = Mapper(colors, world)
+    """Takes a BZRobots object and a World object."""
+    def __init__(self, bzrobots, world):
+        self.mapper = Mapper(bzrobots, world)
         self.timespent = 0.0
-        self.timelimit = 30000.0
+        self.timelimit = 300000.0
         self.mapper.timespent = self.timespent
         self.mapper.timelimit = self.timelimit
         self.timestamp = datetime.datetime.utcnow()
@@ -43,137 +44,12 @@ class Game(object):
         for team in self.mapper.teams:
             team.update(dt)
 
-    def iter_collisions(self):
-        pass
-
-    def wall_collisions(self):
-        pass
-
-    def distance(self, x1, y1, x2, y2):
-        """Determines the distance between two points.
-
-        Returns the calculated distance."""
-        dx = x2 - x1
-        dy = y2 - y1
-        return math.sqrt(dx * dx + dy * dy)
-
-    def circle_intersect_circle(self, x1, y1, r1, x2, y2, r2):
-        """Determines if a circle intersects a given circle or not."""
-        inside = False
-        dist = self.distance(x1, y1, x2, y2)
-        if dist < (r1 + r2):
-            inside = True
-        return inside
-
-    def circle_intersect_polygon(self, x, y, r, poly):
-        """Determines if a circle intersects a given polygon or not.
-
-        Polygon is a list of (x,y) pairs.
-        """
-        dist = 0
-        n = len(poly)
-        inside = False
-
-        p1x, p1y = poly[0]
-        for i in range(1, n + 1):
-            p2x, p2y = poly[i % n]
-
-            A = x - p1x
-            B = y - p1y
-            C = p2x - p1x
-            D = p2y - p1y
-
-            dot = A * C + B * D
-            len_sq = C * C + D * D
-            param = dot / len_sq
-
-            xx, yy = 0, 0
-            if param < 0:
-                xx = p1x
-                yy = p1y
-            elif param > 1:
-                xx = p2x
-                yy = p2y
-            else:
-                xx = p1x + param * C
-                yy = p1y + param * D
-
-            dist = self.distance(x,y,xx,yy)
-
-            if dist < r:
-                inside = True
-                #print "Collision"
-                #print x, y
-                #print p1x, p1y
-                #print p2x, p2y
-                return inside
-
-            p1x, p1y = p2x, p2y
-
-        return inside
-
-    def point_inside_polygon(self, x, y, poly):
-        """Determines if a point is inside a given polygon or not.
-
-        Polygon is a list of (x,y) pairs.
-        """
-        n = len(poly)
-        inside = False
-
-        p1x, p1y = poly[0]
-        for i in range(n + 1):
-            p2x, p2y = poly[i % n]
-            if y > min(p1y, p2y):
-                if y <= max(p1y, p2y):
-                    if x <= max(p1x, p2x):
-                        if p1y != p2y:
-                            xinters = (y - p1y) * (p2x - p1x) \
-                                / (p2y - p1y) + p1x
-                        if p1x == p2x or x <= xinters:
-                            inside = not inside
-            p1x, p1y = p2x, p2y
-
-        return inside
-
-    def iter_boxes(self):
-        for item in self.world.boxes:
-            yield item
-
-    def lst_boxes(self):
-        boxes = []
-        for item in self.world.boxes:
-            boxes.append(item)
-        return boxes
-
-    def iter_bases(self):
-        for item in self.world.bases:
-            yield item
-
-    def iter_corners(self, item):
-        x = item.pos.asList()[0]
-        y = item.pos.asList()[1]
-        if item.pos:
-            w = item.size.asList()[0]
-            h = item.size.asList()[1]
-        else:
-            w, h = 0
-        # Implemented for rectangles
-        for i in xrange(4):
-            if i == 0: a, b = w * -1, h
-            elif i == 1: a, b = w * -1, h * -1
-            elif i == 2: a, b = w, h * -1
-            elif i == 3: a, b = w, h 
-            else: a, b = 0
-            yield (a * math.cos(item.rot) - b * math.sin(item.rot) + x, 
-                a * math.sin(item.rot) + b * math.cos(item.rot) + y)
-
-
 class Mapper(object):
-    def __init__(self, colors, world):
+    def __init__(self, bzrobots, world):
         # track objects on map
         self.obstacles = [Obstacle(item) for item in world.boxes]
         self.bases = [Base(item) for item in world.bases]
-        self.teams = [Team(color, self) for color in colors]
+        self.teams = [Team(item, self) for item in bzrobots.teams]
         for team in self.teams:
             self.spawn_flag(team.flag)
         for team in self.teams:
@@ -204,6 +80,12 @@ class Mapper(object):
         self.trash = []
 
     def spawn_tank(self, tank):
+        """Creates a tank at its respective base.
+
+        The tank is placed at a random location within a certain radius from 
+        the center of the base. This radius is based on the number of tanks 
+        and the radius of individual tanks (i.e. the area occupied by tanks).
+        """
         color = tank.color
         base = None
         for team_base in self.bases:
@@ -240,7 +122,6 @@ class Mapper(object):
 
             placed = True
             for obst in candidate_obstacles:
-                #def point_inside_polygon(self, x, y, poly):
                 if self.point_inside_polygon(tank_x, tank_y, obst.corners):
                     placed = False
                     break
@@ -248,7 +129,6 @@ class Mapper(object):
                 continue
             for team in self.teams:
                 for other_tank in team.tanks:
-                    #def circle_intersect_circle(self, pos1, pos2, r1, r2):
                     if self.circle_intersect_circle(tank_pos, other_tank.pos,
                             tank_radius, tank_radius):
                         placed = False
@@ -256,7 +136,6 @@ class Mapper(object):
                 if placed == False:
                     break
                 for shot in team.shots:
-                    #def circle_intersect_circle(self, pos1, pos2, r1, r2):
                     if self.circle_intersect_circle(tank_pos, shot.pos,
                             tank_radius, shot_radius):
                         placed = False
@@ -266,41 +145,22 @@ class Mapper(object):
 
         tank.pos = (tank_x, tank_y)
         tank.rot = random.uniform(0, 2 * math.pi)
-        #tank.rot = 0
         tank.status = constants.TANKALIVE
 
     def spawn_flag(self, flag):
+        """Places flag in middle of respective base."""
         for base in self.bases:
             if flag.color == base.color:
                 flag.pos = base.center
 
     def handle_collisions(self, obj, dt):
-        # generate all position samples
-        # using last position (destination), calculate maximum distance
-        # compare distance (plus radius) against objects in this order:
-        #   obstacles
-        #   tanks
-        #   bullets
-        #   flags
-        # if the radius of both objects added together is less than or equal 
-        # to the maximum distance, add the object to the appropriate list
-        # as a potential collision
-        # (if not, then it is impossible to have a collision)
-        # starting with obstacles, check for each position sample colliding
-        # once a collision is found, remove that position and all following
-        # positions, so that the last position is the most recent valid
-        # position
-        # perform the same steps with other tanks (using the pruned list)
-        # if the moving object is a tank, iteratively check the positions 
-        # against bullets, changing the status of both tank and bullet to 
-        # "dead" or "destroyed" (this will flag clean-up) if a collision is
-        # detected
-        # (at this point, checking for flag collisions would be unecessary)
-        # if the moving object is a bullet, no checks are needed beyond tanks
-        # a flag only needs to check if it is in a base of a different color
-        # once all potential objects have been checked, the Map object changes
-        # the status of the objects involved if needed and returns the new
-        # valid position so the object can update itself
+        """Handles the collision detecting process for a given object.
+
+        The obj parameter is the object, while the dt is the time elapsed 
+        since collisions were last handled for this object. As a result of 
+        calling this method, the object's new position and status (alive, 
+        dead, etc.) are set.
+        """
         candidate_obstacles = []
         pos = obj.pos
         x, y = pos
@@ -437,12 +297,23 @@ class Mapper(object):
     def distance(self, x1, y1, x2, y2):
         """Determines the distance between two points.
 
-        Returns the calculated distance."""
+        Returns the calculated distance.
+
+        >>> m = mox.Mox()
+        >>> mock_bzrobots = m.MockObject(BZRobots)
+        >>> mock_world = m.MockObject(World)
+        >>> maptest = Mapper(mock_bzrobots, mock_world)
+        >>> maptest.distance(0, 0, 0, 0)
+        0
+        """
         dx = x2 - x1
         dy = y2 - y1
         return math.sqrt(dx * dx + dy * dy)
 
     def distance_to_line(self, point, line):
+        """Determines the shortest distance between a point and a line
+        segment.
+        """
         x, y = point
         start_x, start_y = line[0]
         end_x, end_y = line[1]
@@ -531,6 +402,10 @@ class Mapper(object):
         return inside
 
     def handle_tank_collision(self, obj, new_pos, tank):
+        """Called when one object in a collision has been identified as a
+        tank. Handles the cases for a tank collision with other moveable
+        objects.
+        """
         if obj == tank:
             return new_pos
 
@@ -699,12 +574,12 @@ class Obstacle(object):
 
 
 class Team(object):
-    def __init__(self, color, mapper):
-        self.color = color
+    def __init__(self, item, mapper):
+        self.color = item.color
         self.mapper = mapper
-        self.tanks = [Tank(color, i) for i in xrange(20)]
+        self.tanks = [Tank(self.color, i) for i in xrange(item.tanks)]
         self.shots = []
-        self.flag = Flag(color, None)
+        self.flag = Flag(self.color, None)
         self.flag_carriers = []
         self.captured_flags = []
         self.loser = False
@@ -716,6 +591,15 @@ class Team(object):
             else:
                 self.base = base
                 break
+        self.posnoise = 0.0
+        if item.posnoise:
+            self.posnoise = item.posnoise
+        self.angnoise = 0.0
+        if item.angnoise:
+            self.angnoise = item.angnoise
+        self.velnoise = 0.0
+        if item.velnoise:
+            self.velnoise = item.velnoise
 
     def iter_score(self):
         for team in self.mapper.teams:
@@ -927,11 +811,6 @@ class Tank(object):
 
     def __init__(self, color, tankid):
         self.color = color
-        #self.game = game
-        # For testing obstacle corners
-        # TODO: remove and replace with proper unit test
-        #self.pos = (-40, 360)
-        #self.pos = (random.uniform(-400, 400), random.uniform(-400, 400))
         self.pos = (constants.DEADZONEX, constants.DEADZONEY)
         self.rot = 0
         self.speed = 0
@@ -960,7 +839,6 @@ class Tank(object):
             self.reloadtime = self.reloadtime + dt
 
         # Update rotation.
-        #self.rot += self.angvel * constants.TANKANGVEL * dt
         if self.angvel < self.given_angvel:
             self.angvel = self.angvel + constants.ANGULARACCEL * dt
             if self.angvel > self.given_angvel:
@@ -991,5 +869,8 @@ class Tank(object):
             self.flag = None
 
 
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
 
 # vim: et sw=4 sts=4

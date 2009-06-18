@@ -390,7 +390,10 @@ class Handler(asynchat.async_chat):
                 else:
                     flag = '-'
                 x, y = tank.pos
+                x = random.gauss(x, self.team.posnoise)
+                y = random.gauss(y, self.team.posnoise)
                 angle = tank.rot
+                angle = random.gauss(angle, self.team.angnoise)
                 if abs(angle) > math.pi:
                     pi_units = 0
                     while abs(angle) > math.pi:
@@ -424,20 +427,31 @@ class Handler(asynchat.async_chat):
         self.push('constant team %s\n' % (constants.COLORNAME[self.team.color]))
         self.push('constant worldsize %s\n' % (constants.WORLDSIZE))
         self.push('constant hoverbot %s\n' % (self.team.mapper.hoverbot))
-        self.push('constant TANKANGVEL %s\n' % (constants.TANKANGVEL))
-        self.push('constant TANKLENGTH %s\n' % (constants.TANKLENGTH))
-        self.push('constant TANKRADIUS %s\n' % (constants.TANKRADIUS))
-        self.push('constant TANKSPEED %s\n' % (constants.TANKSPEED))
-        self.push('constant LINEARACCEL %s\n' % (constants.LINEARACCEL))
-        self.push('constant ANGULARACCEL %s\n' % (constants.ANGULARACCEL))
-        self.push('constant TANKWIDTH %s\n' % (constants.TANKWIDTH))
-        self.push('constant SHOTRADIUS %s\n' % (constants.SHOTRADIUS))
-        self.push('constant SHOTRANGE %s\n' % (constants.SHOTRANGE))
-        self.push('constant FLAGRADIUS %s\n' % (constants.FLAGRADIUS))
-        self.push('constant EXPLODETIME %s\n' % (constants.EXPLODETIME))
+        self.push('constant tankangvel %s\n' % (constants.TANKANGVEL))
+        self.push('constant tanklength %s\n' % (constants.TANKLENGTH))
+        self.push('constant tankradius %s\n' % (constants.TANKRADIUS))
+        self.push('constant tankspeed %s\n' % (constants.TANKSPEED))
+        self.push('constant tankalive %s\n' % (constants.TANKALIVE))
+        self.push('constant tankdead %s\n' % (constants.TANKDEAD))
+        self.push('constant linearaccel %s\n' % (constants.LINEARACCEL))
+        self.push('constant angularaccel %s\n' % (constants.ANGULARACCEL))
+        self.push('constant tankwidth %s\n' % (constants.TANKWIDTH))
+        self.push('constant shotradius %s\n' % (constants.SHOTRADIUS))
+        self.push('constant shotrange %s\n' % (constants.SHOTRANGE))
+        self.push('constant flagradius %s\n' % (constants.FLAGRADIUS))
+        self.push('constant explodetime %s\n' % (constants.EXPLODETIME))
         self.push('end\n')
 
     def bzrc_scores(self, args):
+        """Request the scores of all teams. A score is generated for each team
+        pair in a table:
+
+                       [team 1]   [team 2]   ...
+            [team 1]      0       [score]    ...
+            [team 2]   [score]       0       ...
+
+        Notice that a team generates no score when compared against itself.
+        """
         try:
             command, = args
         except ValueError, TypeError:
@@ -456,6 +470,14 @@ class Handler(asynchat.async_chat):
         self.push('end\n')
         
     def bzrc_timer(self, args):
+        """Requests how much time has passed and what time limit exists.
+
+            timer [time elapsed] [time limit]
+
+        Time elapsed is the number of seconds that the server has been alive, 
+        while time limit is the given limit. Once the limit is reached, the 
+        server will stop updating the game.
+        """
         try:
             command, = args
         except ValueError, TypeError:

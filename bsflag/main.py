@@ -27,6 +27,7 @@ def options():
         default=3)
     p.add_option('--freezeTag', action='store_true', dest='freeze_tag')
     p.add_option('--world', action='store', dest='world')
+    p.add_option('--bzrobots', action='store', dest='bzrobots')
     p.add_option('--set_inertiaLinear', action='store', type='int',
         dest='inertia_linear', default=1)
     p.add_option('--set_inertiaAngular', action='store', type='int', 
@@ -58,10 +59,19 @@ def run():
     else:
         world = World()
 
+    from bzrobots import BZRobots
+    if opts.bzrobots:
+        f = open(opts.bzrobots)
+        parser = BZRobots.parser()
+        results = parser.parseString(f.read())
+        bzrobots = results[0]
+    else:
+        bzrobots = BZRobots()
+
     #colors = (1, 2)
-    colors = (1, 2, 3, 4)
+    #colors = (1, 2, 3, 4)
     # Is world an appropriate parameter?
-    game = Game(colors, world)
+    game = Game(bzrobots, world)
 
     # Create a server for each team.
     # TODO: allow the port to be specified on the command-line.
