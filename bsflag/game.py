@@ -299,12 +299,15 @@ class Mapper(object):
 
         Returns the calculated distance.
 
-        >>> m = mox.Mox()
-        >>> mock_bzrobots = m.MockObject(BZRobots)
-        >>> mock_world = m.MockObject(World)
+        >>> mock_bzrobots = SimpleMock()
+        >>> mock_world = SimpleMock()
+        >>> mock_world.boxes = []
+        >>> mock_world.bases = []
+        >>> mock_bzrobots.teams = []
         >>> maptest = Mapper(mock_bzrobots, mock_world)
         >>> maptest.distance(0, 0, 0, 0)
-        0
+        0.0
+        >>>
         """
         dx = x2 - x1
         dy = y2 - y1
@@ -868,6 +871,9 @@ class Tank(object):
             self.flag.tank = None
             self.flag = None
 
+
+class SimpleMock(object):
+    pass
 
 if __name__ == '__main__':
     import doctest
