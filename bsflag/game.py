@@ -289,7 +289,20 @@ class Mapper(object):
         obj.pos = good_pos
 
     def midpoint(self, x1, y1, x2, y2):
-        """Determines the midpoint of a line segment."""
+        """Determines the midpoint of a line segment.
+
+        >>> mock_bzrobots = SimpleMock()
+        >>> mock_world = SimpleMock()
+        >>> mock_world.boxes = []
+        >>> mock_world.bases = []
+        >>> mock_bzrobots.teams = []
+        >>> maptest = Mapper(mock_bzrobots, mock_world)
+        >>> maptest.midpoint(0, 0, 0, 0)
+        (0.0, 0.0)
+        >>> maptest.midpoint(1, 1, 1, 3)
+        (1.0, 2.0)
+        >>>
+        """
         mid_x = (x1 + x2) / 2
         mid_y = (y1 + y2) / 2
         return (mid_x, mid_y)
@@ -307,6 +320,8 @@ class Mapper(object):
         >>> maptest = Mapper(mock_bzrobots, mock_world)
         >>> maptest.distance(0, 0, 0, 0)
         0.0
+        >>> maptest.distance(1, -2, 4, -6)
+        5.0
         >>>
         """
         dx = x2 - x1
@@ -346,7 +361,20 @@ class Mapper(object):
         return dist
 
     def circle_intersect_circle(self, pos1, pos2, r1, r2):
-        """Determines if a circle intersects a given circle or not."""
+        """Determines if a circle intersects a given circle or not.
+
+        >>> mock_bzrobots = SimpleMock()
+        >>> mock_world = SimpleMock()
+        >>> mock_world.boxes = []
+        >>> mock_world.bases = []
+        >>> mock_bzrobots.teams = []
+        >>> maptest = Mapper(mock_bzrobots, mock_world)
+        >>> maptest.circle_intersect_circle((0, 0), (0, 0), 0, 0)
+        False
+        >>> maptest.circle_intersect_circle((1, 2), (4, 2), 1, 3)
+        True
+        >>>
+        """
         inside = False
         x1, y1 = pos1
         x2, y2 = pos2
