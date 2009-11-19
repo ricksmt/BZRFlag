@@ -73,7 +73,7 @@ def run():
     # Is world an appropriate parameter?
     game = Game(bzrobots, world)
 
-    # Create a server for each team.
+    # Create a server for each team.	
     # TODO: allow the port to be specified on the command-line.
     for team in game.mapper.teams:
         addr = ('0.0.0.0', opts.port)
@@ -102,43 +102,7 @@ def run():
             display.tank_sprite(tank)
         display.flag_sprite(team.flag)
 
-    while True:
-        asyncore.loop(LOOP_TIMEOUT, count=1)
-
-        # TODO: clean this up
-        # shottemp = 0
-        # tanktemp = 0
-
-        #for team in game.mapper.teams:
-        #    shottemp = shottemp + len(team.shots)
-        #    tanktemp = tanktemp + len(team.tanks)
-
-        #if shottemp > shotcount:
-        #    for team in game.mapper.teams:
-        #        for shot in team.shots:
-        #            display.shot_sprite(shot)
-        #if tanktemp > tankcount:
-        #    for team in game.mapper.teams:
-        #        for tank in team.tanks:
-        #            display.tank_sprite(tank)
-
-
-        game.update()
-
-        while len(game.mapper.inbox) > 0:
-            obj = game.mapper.inbox.pop()
-            if isinstance(obj, Tank):
-                display.tank_sprite(obj)
-            elif isinstance(obj, Shot):
-                display.shot_sprite(obj)
-            elif isinstance(obj, Flag):
-                display.flag_sprite(obj)
-
-        while len(game.mapper.trash) > 0:
-            obj = game.mapper.trash.pop()
-            display.kill_sprite(obj)
-
-        display.update()
+    game.loop()
 
 
 # vim: et sw=4 sts=4

@@ -22,6 +22,7 @@ class Game(object):
         self.mapper = Mapper(bzrobots, world)
         self.timespent = 0.0
         self.timelimit = 300000.0
+        self.running = False
         self.mapper.timespent = self.timespent
         self.mapper.timelimit = self.timelimit
         self.timestamp = datetime.datetime.utcnow()
@@ -42,6 +43,49 @@ class Game(object):
 
         for team in self.mapper.teams:
             team.update(dt)
+    
+    def events(self):
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                self.running = True
+    
+    def loop(self):
+        self.running = True
+        while self.running:
+            asyncore.loop(LOOP_TIMEOUT, count=1)
+            # TODO: clean this up
+            # shottemp = 0
+            # tanktemp = 0
+
+            #for team in game.mapper.teams:
+            #    shottemp = shottemp + len(team.shots)
+            #    tanktemp = tanktemp + len(team.tanks)
+
+            #if shottemp > shotcount:
+            #    for team in game.mapper.teams:
+            #        for shot in team.shots:
+            #            display.shot_sprite(shot)
+            #if tanktemp > tankcount:
+            #    for team in game.mapper.teams:
+            #        for tank in team.tanks:
+            #            display.tank_sprite(tank)
+
+            self.update()
+
+            while len(self.mapper.inbox) > 0:
+                obj = self.mapper.inbox.pop()
+                if isinstance(obj, Tank):
+                    display.tank_sprite(obj)
+                elif isinstance(obj, Shot):
+                    display.shot_sprite(obj)
+                elif isinstance(obj, Flag):
+                    display.flag_sprite(obj)
+
+            while len(self.mapper.trash) > 0:
+                obj = self.mapper.trash.pop()
+                display.kill_sprite(obj)
+
+            display.update()
 
 class Mapper(object):
     def __init__(self, bzrobots, world):
