@@ -7,8 +7,10 @@ import asyncore
 import os
 import socket
 import sys
+import ConfigParser
 
-from game import *
+import game
+from game import Game
 import server
 
 
@@ -26,14 +28,17 @@ def options():
     p.add_option('--world',
         dest='world',
         help='specify a world.bzw map to use')
-    p.add_option('--bzrobots',
-        dest='bzrobots',
-        help='set the bzrobots config file')
+    p.add_option('--port',
+        dest='port',default=3012,
+        help='specify a port to use')
+    ## changed name to config from 'bzrobots'...made sense
+    p.add_option('--config',
+        dest='config',
+        help='set the config file')
     p.add_option('--freeze-tag',
         action='store_true',
         dest='freeze_tag',
         help='start a freeze tag game')
-    
     ## tank behavior
     p.add_option('--max-shots',
         type='int',
@@ -68,42 +73,73 @@ def options():
         p.add_option('--%s-port'%color,
             dest='%s_port'%color,
             help='specify the port for the %s team'%color)
+        p.add_option('--%s-tanks'%color,
+            dest='%s_tanks'%color,
+            help='specify the number of tanks for the %s team'%color)
+        p.add_option('--%s-posnoise'%color,
+            dest='%s_posnoise'%color,
+            help='specify the posnoise for the %s team'%color)
+        p.add_option('--%s-velnoise'%color,
+            dest='%s_velnoise'%color,
+            help='specify the velnoise for the %s team'%color)
+        p.add_option('--%s-angnoise'%color,
+            dest='%s_angnoise'%color,
+            help='specify the angnoise for the %s team'%color)
     
     opts, args = p.parse_args()
+    
+    if opts.config:
+        configfile = ConfigParser.ConfigParser()
+        if not len(configfile.read(opts.config)):
+            raise Exception,'config file not found'
+        if not 'global' in configfile.sections():
+            raise Exception,'invalid config file. make sure "[global]"\
+                             is at the top'
+        config = dict(configfile.items('global'))
+        
+        for key in config:
+            if not hasattr(opts,key):
+                raise Exception,'invalid configuration option: %s'%key
+            if getattr(opts,key) == None:
+                setattr(opts,key,config[key])
+    
     if args:
         p.parse_error('No positional arguments are allowed.')
-    return opts
+    return vars(opts)
 
 def run():
-    opts = options()
+    config = options()
 
     from world import World
-    if opts.world:
-        f = open(opts.world)
+    if config['world']:
+        f = open(config['world'])
         parser = World.parser()
         results = parser.parseString(f.read())
         world = results[0]
     else:
         world = World()
 
-    from bzrobots import BZRobots
-    if opts.bzrobots:
+    #from bzrobots import BZRobots
+    '''if opts.bzrobots:
         f = open(opts.bzrobots)
         parser = BZRobots.parser()
         results = parser.parseString(f.read())
         bzrobots = results[0]
     else:
-        bzrobots = BZRobots()
+        bzrobots = BZRobots()'''
 
     #colors = (1, 2)
     #colors = (1, 2, 3, 4)
     # Is world an appropriate parameter?
-    game = Game(bzrobots, world)
-
+    game = Game(config, world)
+    
+    if not game.mapper.teams:
+        raise Exception,'no teams defined'
+    
     # Create a server for each team.	
     # TODO: allow the port to be specified on the command-line.
     for team in game.mapper.teams:
-        addr = ('0.0.0.0', opts.port)
+        addr = ('0.0.0.0', config['port'])
         try:
             bzrc = server.Server(addr, team)
         except socket.error, e:

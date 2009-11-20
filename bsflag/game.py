@@ -22,9 +22,9 @@ LOOP_TIMEOUT = 0.01
 
 
 class Game(object):
-    """Takes a BZRobots object and a World object."""
-    def __init__(self, bzrobots, world):
-        self.mapper = Mapper(bzrobots, world)
+    """Takes a config Values object and a World object."""
+    def __init__(self, config, world):
+        self.mapper = Mapper(config, world)
         self.timespent = 0.0
         self.timelimit = 300000.0
         self.running = False
@@ -94,15 +94,21 @@ class Game(object):
             display.update()
 
 class Mapper(object):
-    def __init__(self, bzrobots, world):
+    def __init__(self, config, world):
         # track objects on map
         self.obstacles = [Obstacle(item) for item in world.boxes]
         self.bases = [Base(item) for item in world.bases]
-        self.teams = [Team(item, self) for item in bzrobots.teams]
+        
+        self.teams = []
+        for color in ('red','green','blue','purple'):
+            if config[color+'_port'] is not None:
+                self.teams.append(Team(self, color, config))
+        #self.teams = [Team(item, self) for item in bzrobots.teams]
         for team in self.teams:
             self.spawn_flag(team.flag)
         for team in self.teams:
             for enemy in self.teams:
+                #if enemy == team:continue
                 team.score_map[enemy.color] = Score(team, enemy)
 
         # defaults for customizable values
@@ -654,10 +660,12 @@ class Obstacle(object):
 
 
 class Team(object):
-    def __init__(self, item, mapper):
-        self.color = item.color
+    def __init__(self, mapper, color, config):
+        self.color = ['rogue','red','green','blue','purple'].index(color)
         self.mapper = mapper
-        self.tanks = [Tank(self.color, i) for i in xrange(item.tanks)]
+        if not config[color+'_tanks']:
+            config[color+'_tanks'] = 10
+        self.tanks = [Tank(self.color, i) for i in xrange(int(config[color+'_tanks']))]
         self.shots = []
         self.flag = Flag(self.color, None)
         self.flag_carriers = []
@@ -672,14 +680,14 @@ class Team(object):
                 self.base = base
                 break
         self.posnoise = 0.0
-        if item.posnoise:
-            self.posnoise = item.posnoise
+        if config[color+'_posnoise']:
+            self.posnoise = config[color+'_posnoise']
         self.angnoise = 0.0
-        if item.angnoise:
-            self.angnoise = item.angnoise
+        if config[color+'_angnoise']:
+            self.angnoise = config[color+'_angnoise']
         self.velnoise = 0.0
-        if item.velnoise:
-            self.velnoise = item.velnoise
+        if config[color+'_velnoise']:
+            self.velnoise = config[color+'_velnoise']
 
     def iter_score(self):
         for team in self.mapper.teams:

@@ -1,26 +1,4 @@
-# configuration file for bzrobots
+[global]
+red_tanks:4
+red_port:3140
 
-#!name team-0
-team
-color 1
-tanks 4
-posnoise 0.0
-end
-
-#!name team-1
-team
-color 2
-tanks 4
-end
-
-#!name team-2
-team
-color 3
-tanks 4
-end
-
-#!name team-3
-team
-color 4
-tanks 4
-end
