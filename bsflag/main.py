@@ -11,9 +11,6 @@ import sys
 from game import *
 import server
 
-# A higher loop timeout decreases CPU usage but also decreases the frame rate.
-LOOP_TIMEOUT = 0.01
-
 
 def options():
     import optparse
@@ -132,7 +129,7 @@ def run():
             display.tank_sprite(tank)
         display.flag_sprite(team.flag)
 
-    game.loop()
+    game.loop(display)
 
 
 # vim: et sw=4 sts=4

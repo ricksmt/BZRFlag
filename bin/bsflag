@@ -3,10 +3,9 @@
 import os
 import sys
 
-basedir, bin = os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))
-sys.path.append(basedir)
+path = os.path.split(os.path.abspath(__file__))[0]
+sys.path.append(os.path.join(path,'../'))
 
 import bsflag
 bsflag.run()
 
-# vim: et sw=4 sts=4

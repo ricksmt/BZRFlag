@@ -6,14 +6,19 @@ The Game Logic module implements teams, tanks, shots, etc.
 from __future__ import division
 
 # TODO: 
-
+import asyncore
 import copy
 import datetime
 import math
 import random
 import sys
+import pygame
+from pygame.locals import *
 
 import constants
+
+# A higher loop timeout decreases CPU usage but also decreases the frame rate.
+LOOP_TIMEOUT = 0.01
 
 
 class Game(object):
@@ -49,7 +54,7 @@ class Game(object):
             if event.type == QUIT:
                 self.running = False
     
-    def loop(self):
+    def loop(self,display):
         self.running = True
         while self.running:
             asyncore.loop(LOOP_TIMEOUT, count=1)
