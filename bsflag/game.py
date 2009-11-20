@@ -47,7 +47,7 @@ class Game(object):
     def events(self):
         for event in pygame.event.get():
             if event.type == QUIT:
-                self.running = True
+                self.running = False
     
     def loop(self):
         self.running = True
@@ -69,6 +69,7 @@ class Game(object):
             #    for team in game.mapper.teams:
             #        for tank in team.tanks:
             #            display.tank_sprite(tank)
+            self.events()
 
             self.update()
 

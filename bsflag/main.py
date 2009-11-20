@@ -19,33 +19,63 @@ def options():
     import optparse
     p = optparse.OptionParser()
     # TODO: many of these options need to be implemented
-    p.add_option('-c', action='store_true', dest='ctf')
-    p.add_option('-d', action='store_true', dest='debug')
-    p.add_option('--ms', action='store', type='int', dest='max_shots',
-        default=3)
-    p.add_option('--maxshots', action='store', type='int', dest='max_shots',
-        default=3)
-    p.add_option('--freezeTag', action='store_true', dest='freeze_tag')
-    p.add_option('--world', action='store', dest='world')
-    p.add_option('--bzrobots', action='store', dest='bzrobots')
-    p.add_option('--set_inertiaLinear', action='store', type='int',
-        dest='inertia_linear', default=1)
-    p.add_option('--set_inertiaAngular', action='store', type='int', 
-        dest='inertia_angular', default=1)
-    p.add_option('--set_tankAngVel', action='store', type='float',
-        dest='tank_angvel')
-    p.add_option('--set_rejoinTime', action='store', type='int',
-        dest='rejoin_time')
-    p.add_option('--set_explodeTime', action='store', type='int',
-        dest='explode_time')
-    p.add_option('--set_grabOwnFlag', action='store', type='int',
-        dest='grab_own_flag', default=0)
-    p.add_option('--port', action='store', type='int', dest='port', default=0)
+    
+    p.add_option('-d','--debug',
+        action='store_true',
+        dest='debug',
+        help='set the debug level')
+    
+    ## world behavior
+    p.add_option('--world',
+        dest='world',
+        help='specify a world.bzw map to use')
+    p.add_option('--bzrobots',
+        dest='bzrobots',
+        help='set the bzrobots config file')
+    p.add_option('--freeze-tag',
+        action='store_true',
+        dest='freeze_tag',
+        help='start a freeze tag game')
+    
+    ## tank behavior
+    p.add_option('--max-shots',
+        type='int',
+        dest='max_shots',
+        help='set the max shots')
+    p.add_option('--inertia-linear',
+        dest='inertia_linear',
+        type='int',default=1,
+        help='set the linear inertia')
+    p.add_option('--inertia-angular',
+        dest='inertia_angular',
+        type='int',default=1,
+        help='set the angular inertia')
+    p.add_option('--angular-velocity',
+        type='float',
+        dest='angular_velocity',
+        help='set the angular velocity for tanks (float)')
+    p.add_option('--rejoin-time',
+        type='int',
+        dest='rejoin_time',
+        help='set the rejoin delay')
+    p.add_option('--explode-time',
+        type='int',
+        dest='explode_time',
+        help='[insert help] what does this do?')
+    p.add_option('--grab-own-flag',
+        action='store_false',
+        dest='grab_own_flag',
+        help='can you grab your own flag')
+    
+    for color in ['red','green','blue','purple']:
+        p.add_option('--%s-port'%color,
+            dest='%s_port'%color,
+            help='specify the port for the %s team'%color)
+    
     opts, args = p.parse_args()
     if args:
         p.parse_error('No positional arguments are allowed.')
     return opts
-
 
 def run():
     opts = options()
