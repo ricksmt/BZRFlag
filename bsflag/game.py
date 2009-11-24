@@ -97,12 +97,14 @@ class Mapper(object):
     def __init__(self, config, world):
         # track objects on map
         self.obstacles = [Obstacle(item) for item in world.boxes]
-        self.bases = [Base(item) for item in world.bases]
+        self.bases = dict((item.color, Base(item)) for item in world.bases)
 
         self.teams = []
-        for color in ('red','green','blue','purple'):
-            if config[color+'_port'] is not None:
-                self.teams.append(Team(self, color, config))
+        for color,base in self.bases.items():
+            self.teams.append(Team(self, color, base, config))
+        #for color in ('red','green','blue','purple'):
+        #    if config[color+'_port'] is not None:
+        #        self.teams.append(Team(self, color, config))
         #self.teams = [Team(item, self) for item in bzrobots.teams]
         for team in self.teams:
             self.spawn_flag(team.flag)
@@ -142,11 +144,7 @@ class Mapper(object):
         and the radius of individual tanks (i.e. the area occupied by tanks).
         """
         color = tank.color
-        base = None
-        for team_base in self.bases:
-            if team_base.color == color:
-                base = team_base
-        assert base != None
+        base = self.bases[color]
         base_x, base_y = base.center
         spawn_radius = constants.TANKRADIUS * math.sqrt(self.max_tanks) * 5
         candidate_obstacles = []
@@ -204,9 +202,7 @@ class Mapper(object):
 
     def spawn_flag(self, flag):
         """Places flag in middle of respective base."""
-        for base in self.bases:
-            if flag.color == base.color:
-                flag.pos = base.center
+        flag.pos = self.bases[flag.color].center
 
     def handle_collisions(self, obj, dt):
         """Handles the collision detecting process for a given object.
@@ -222,7 +218,7 @@ class Mapper(object):
         obj_radius = 0.0
         if isinstance(obj, Flag):
             # shameless winning, fix this stuff
-            for base in self.bases:
+            for color,base in self.bases.items():
                 if base.color != obj.color \
                         and obj.tank != None \
                         and base.color == obj.tank.color \
@@ -660,39 +656,33 @@ class Obstacle(object):
 
 
 class Team(object):
-    def __init__(self, mapper, color, config):
-        self.color = ['rogue','red','green','blue','purple'].index(color)
-        self.colorname = color
+    def __init__(self, mapper, color, base, config):
+        self.color = color
+        self.colorname = ['rogue','red','green','blue','purple'][color]
         self.mapper = mapper
-        if not config[color+'_tanks']:
-            config[color+'_tanks'] = 10
-        if not config[color+'_port']:
-            config[color+'_port'] = 0
-        self.port = config[color+'_port']
+        if not config[self.colorname+'_tanks']:
+            config[self.colorname+'_tanks'] = 10
+        if not config[self.colorname+'_port']:
+            config[self.colorname+'_port'] = 0
+        self.port = config[self.colorname+'_port']
         print [self.port]
-        self.tanks = [Tank(self.color, i) for i in xrange(int(config[color+'_tanks']))]
+        self.tanks = [Tank(self.color, i) for i in xrange(int(config[self.colorname+'_tanks']))]
         self.shots = []
         self.flag = Flag(self.color, None)
         self.flag_carriers = []
         self.captured_flags = []
         self.loser = False
         self.score_map = {}
-        self.base = None
-        for base in mapper.bases:
-            if base.color != self.color:
-                continue
-            else:
-                self.base = base
-                break
+        self.base = base
         self.posnoise = 0.0
-        if config[color+'_posnoise']:
-            self.posnoise = config[color+'_posnoise']
+        if config[self.colorname+'_posnoise']:
+            self.posnoise = config[self.colorname+'_posnoise']
         self.angnoise = 0.0
-        if config[color+'_angnoise']:
-            self.angnoise = config[color+'_angnoise']
+        if config[self.colorname+'_angnoise']:
+            self.angnoise = config[self.colorname+'_angnoise']
         self.velnoise = 0.0
-        if config[color+'_velnoise']:
-            self.velnoise = config[color+'_velnoise']
+        if config[self.colorname+'_velnoise']:
+            self.velnoise = config[self.colorname+'_velnoise']
 
     def iter_score(self):
         for team in self.mapper.teams:

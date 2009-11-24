@@ -137,10 +137,10 @@ def run():
     # Is world an appropriate parameter?
     game = Game(config, world)
 
-    if not game.mapper.teams:
-        raise Exception,'no teams defined -- include a config file?'
     if not game.mapper.bases:
         raise Exception,'no bases defined -- include a world file?'
+    if not game.mapper.teams:
+        raise Exception,'no teams defined -- include a config file?'
 
     # Create a server for each team.
     # TODO: allow the port to be specified on the command-line.
