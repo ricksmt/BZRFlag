@@ -33,6 +33,8 @@ class Game(object):
         self.timestamp = datetime.datetime.utcnow()
 
     def update(self):
+        """updates the game world, team by team.\
+        called in the main loop"""
         now = datetime.datetime.utcnow()
         delta = now - self.timestamp
         self.timestamp = now

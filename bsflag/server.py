@@ -52,10 +52,10 @@ class Server(asyncore.dispatcher):
 class Handler(asynchat.async_chat):
     """Handler which implements the BZRC protocol with one client.
 
-    Methods whose names start with "bzrc_" are automagically interpreted as
-    bzrc commands.  To create the command "xyz", just create a method called
-    "bzrc_xyz", and the Handler will automatically call it when the client
-    sends an "xyz" request.  You don't have to add it to a table or anything.
+Methods whose names start with "bzrc_" are automagically interpreted as
+bzrc commands.  To create the command "xyz", just create a method called
+"bzrc_xyz", and the Handler will automatically call it when the client
+sends an "xyz" request.  You don't have to add it to a table or anything.
     """
     def __init__(self, sock, team, closed_callback):
         asynchat.async_chat.__init__(self, sock)
