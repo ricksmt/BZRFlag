@@ -5,7 +5,7 @@ The Game Logic module implements teams, tanks, shots, etc.
 
 from __future__ import division
 
-# TODO: 
+# TODO:
 import asyncore
 import copy
 import datetime
@@ -48,12 +48,12 @@ class Game(object):
 
         for team in self.mapper.teams:
             team.update(dt)
-    
+
     def events(self):
         for event in pygame.event.get():
             if event.type == QUIT:
                 self.running = False
-    
+
     def loop(self,display):
         self.running = True
         while self.running:
@@ -98,7 +98,7 @@ class Mapper(object):
         # track objects on map
         self.obstacles = [Obstacle(item) for item in world.boxes]
         self.bases = [Base(item) for item in world.bases]
-        
+
         self.teams = []
         for color in ('red','green','blue','purple'):
             if config[color+'_port'] is not None:
@@ -137,8 +137,8 @@ class Mapper(object):
     def spawn_tank(self, tank):
         """Creates a tank at its respective base.
 
-        The tank is placed at a random location within a certain radius from 
-        the center of the base. This radius is based on the number of tanks 
+        The tank is placed at a random location within a certain radius from
+        the center of the base. This radius is based on the number of tanks
         and the radius of individual tanks (i.e. the area occupied by tanks).
         """
         color = tank.color
@@ -211,9 +211,9 @@ class Mapper(object):
     def handle_collisions(self, obj, dt):
         """Handles the collision detecting process for a given object.
 
-        The obj parameter is the object, while the dt is the time elapsed 
-        since collisions were last handled for this object. As a result of 
-        calling this method, the object's new position and status (alive, 
+        The obj parameter is the object, while the dt is the time elapsed
+        since collisions were last handled for this object. As a result of
+        calling this method, the object's new position and status (alive,
         dead, etc.) are set.
         """
         candidate_obstacles = []
@@ -246,7 +246,7 @@ class Mapper(object):
                 obj.pos = (constants.DEADZONEX, constants.DEADZONEY)
                 for team in self.teams:
                     if team.color == obj.color and team.loser == True:
-                        obj.dead_timer = 0   
+                        obj.dead_timer = 0
                 return
         elif isinstance(obj, Shot):
             obj_radius = constants.SHOTRADIUS
@@ -294,7 +294,7 @@ class Mapper(object):
             i = 0
             while i < len(multisample):
                 sample_x, sample_y = multisample[i]
-                if not self.circle_intersect_polygon(sample_x, sample_y, 
+                if not self.circle_intersect_polygon(sample_x, sample_y,
                         obj_radius, obstacle.corners):
                     good_x = sample_x
                     good_y = sample_y
@@ -334,7 +334,7 @@ class Mapper(object):
             flag_x, flag_y = team.flag.pos
             if (self.distance(mid_x, mid_y, flag_x, flag_y) \
                     - constants.FLAGRADIUS - obj_radius) <= filter_radius:
-                good_pos = self.handle_flag_collision(obj, good_pos, 
+                good_pos = self.handle_flag_collision(obj, good_pos,
                     team.flag)
 
         if (isinstance(obj, Shot)):
@@ -594,7 +594,7 @@ class Mapper(object):
         if num_segments == 0:
             samples.append(((x + vx * dt), (y + vy * dt)))
         for i in xrange(num_segments):
-            samples.append(((x + vx * dt * ((i + 1.0) / num_segments)), 
+            samples.append(((x + vx * dt * ((i + 1.0) / num_segments)),
                 (y + vy * dt * ((i + 1.0) / num_segments))))
         return samples
 
@@ -646,10 +646,10 @@ class Obstacle(object):
             if i == 0: a, b = w * -1, h
             elif i == 1: a, b = w * -1, h * -1
             elif i == 2: a, b = w, h * -1
-            elif i == 3: a, b = w, h 
+            elif i == 3: a, b = w, h
             else: a, b = 0
-            corners.append((a * math.cos(self.rot)  
-                - b * math.sin(self.rot) + x, 
+            corners.append((a * math.cos(self.rot)
+                - b * math.sin(self.rot) + x,
                 a * math.sin(self.rot) + b * math.cos(self.rot) + y))
         return corners
 
@@ -662,9 +662,14 @@ class Obstacle(object):
 class Team(object):
     def __init__(self, mapper, color, config):
         self.color = ['rogue','red','green','blue','purple'].index(color)
+        self.colorname = color
         self.mapper = mapper
         if not config[color+'_tanks']:
             config[color+'_tanks'] = 10
+        if not config[color+'_port']:
+            config[color+'_port'] = 0
+        self.port = config[color+'_port']
+        print [self.port]
         self.tanks = [Tank(self.color, i) for i in xrange(int(config[color+'_tanks']))]
         self.shots = []
         self.flag = Flag(self.color, None)
@@ -769,7 +774,7 @@ class Score(object):
             base_x, base_y = self.team.base.center
             enemy_x, enemy_y = self.enemy.base.center
             dist_between_bases = mapper.distance(base_x, base_y,
-                enemy_x, enemy_y)        
+                enemy_x, enemy_y)
             dist_with_flag = dist_between_bases - \
                 mapper.distance(flag_x, flag_y, base_x, base_y)
             #print ('%s %s' % (self.dist_with_flag, dist_with_flag))
@@ -819,7 +824,7 @@ class Shot(object):
 
         self.status = constants.SHOTALIVE
 
-    def update(self, mapper, dt):        
+    def update(self, mapper, dt):
         mapper.handle_collisions(self, dt)
         if self.distance > constants.SHOTRANGE:
             self.status = constants.SHOTDEAD
@@ -887,10 +892,10 @@ class Base(object):
             if i == 0: a, b = w * -1, h
             elif i == 1: a, b = w * -1, h * -1
             elif i == 2: a, b = w, h * -1
-            elif i == 3: a, b = w, h 
+            elif i == 3: a, b = w, h
             else: a, b = 0
-            corners.append((a * math.cos(item.rot)  
-                - b * math.sin(item.rot) + x, 
+            corners.append((a * math.cos(item.rot)
+                - b * math.sin(item.rot) + x,
                 a * math.sin(item.rot) + b * math.cos(item.rot) + y))
         return corners
 
@@ -947,7 +952,7 @@ class Tank(object):
             self.speed = self.speed - constants.LINEARACCEL * dt
             if self.speed < self.given_speed:
                 self.speed = self.given_speed
-        self.vel = (self.speed * math.cos(self.rot) * constants.TANKSPEED, 
+        self.vel = (self.speed * math.cos(self.rot) * constants.TANKSPEED,
             self.speed * math.sin(self.rot) * constants.TANKSPEED)
 
         mapper.handle_collisions(self, dt)

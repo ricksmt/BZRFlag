@@ -28,6 +28,7 @@ class Server(asyncore.dispatcher):
         self.in_use = False
         sock = socket.socket()
         asyncore.dispatcher.__init__(self, sock)
+        self.sock = sock
         self.bind(addr)
         self.listen(BACKLOG)
 
@@ -38,9 +39,14 @@ class Server(asyncore.dispatcher):
         else:
             self.in_use = True
             Handler(sock, self.team, self.handle_closed_handler)
+            self.sock = sock
 
     def handle_closed_handler(self):
         self.in_use = False
+
+    def __del__(self):
+        if self.sock:
+            self.sock.close()
 
 
 class Handler(asynchat.async_chat):
@@ -109,8 +115,23 @@ class Handler(asynchat.async_chat):
         arg_string = ' '.join(str(arg) for arg in args)
         self.push('ack %s %s\n' % (timestamp, arg_string))
 
+    def bzrc_help(self, args):
+        """help [command]
+        if not command is given, list the commands
+        otherwise, return specific help for a command"""
+        if len(args)==1:
+            res = '\n'.join(':'+getattr(self,i).__doc__.split('\n')[0] for i in dir(self) if i.startswith('bzrc_'))
+            self.push(res+'\n')
+        else:
+            func = getattr(self,'bzrc_'+args[1],None)
+            if func:
+                self.push(':'+func.__doc__.strip()+'\n')
+            else:
+                self.push('fail invalid command "%s"\n'%args[1])
+
     def bzrc_shoot(self, args):
-        """Request the tank indexed by the given parameter to fire a shot.
+        """shoot [tankid]
+        Request the tank indexed by the given parameter to fire a shot.
 
         Returns either:
             ok [comment]
@@ -132,7 +153,8 @@ class Handler(asynchat.async_chat):
             self.push('fail\n')
 
     def bzrc_speed(self, args):
-        """Request the tank to accelerate as quickly as possible to the 
+        """speed [tankid] [speed]
+        Request the tank to accelerate as quickly as possible to the
         specified speed.
 
         The speed is given as a multiple of maximum possible speed (1 is full
@@ -157,7 +179,8 @@ class Handler(asynchat.async_chat):
         self.push('ok\n')
 
     def bzrc_angvel(self, args):
-        """Sets the angular velocity of the tank.
+        """angvel [tankid] [angular_velocity]
+        Sets the angular velocity of the tank.
 
         The parameter is given as a multiple of maximum possible angular
         velocity (1 is full speed), where positive values indicate counter-
@@ -176,22 +199,27 @@ class Handler(asynchat.async_chat):
         self.ack(command, tankid, value)
         self.team.angvel(tankid, value)
         self.push('ok\n')
-        
+
 
     def bzrc_accelx(self, args):
-        """Used specifically for freezeTag."""
+        """accelx [??]
+        Used specifically for freezeTag.
+        currently not implemented"""
         pass
 
     def bzrc_accely(self, args):
-        """Used specifically for freezeTag."""
+        """accely [??]
+        Used specifically for freezeTag.
+        currently not implemented"""
         pass
 
     def bzrc_teams(self, args):
-        """Request a list of teams.
+        """teams
+        Request a list of teams.
 
         The response will be a list, whose elements are of the form:
             team [color] [playercount]
-        Color is the identifying team color/team name. Playercount is the 
+        Color is the identifying team color/team name. Playercount is the
         number of tanks on the team.
         """
         try:
@@ -211,7 +239,8 @@ class Handler(asynchat.async_chat):
         self.push('end\n')
 
     def bzrc_obstacles(self, args):
-        """Request a list of obstacles.
+        """obstacles
+        Request a list of obstacles.
 
         The response is a list, whose elements are of the form:
             obstacle [x1] [y1] [x2] [y2] ...
@@ -234,7 +263,8 @@ class Handler(asynchat.async_chat):
         self.push('end\n')
 
     def bzrc_bases(self, args):
-        """Request a list of bases.
+        """bases
+        Request a list of bases.
 
         The response is a list, whose elements are of the form:
             base [team color] [x1] [y1] [x2] [y2] ...
@@ -257,13 +287,14 @@ class Handler(asynchat.async_chat):
         self.push('end\n')
 
     def bzrc_flags(self, args):
-        """Request a list of visible flags.
+        """flags
+        Request a list of visible flags.
 
         The response is a list of flag elements:
             flag [team color] [possessing team color] [x] [y]
-        The team color is the color of the owning team, and the possessing 
+        The team color is the color of the owning team, and the possessing
         team color is the color of the team holding the flag. If no tanks are
-        carrying the flag, the possessing team is "none". The coordinate 
+        carrying the flag, the possessing team is "none". The coordinate
         (x, y) is the current position of the flag. Note that the list may be
         incomplete if visibility is limited.
         """
@@ -284,7 +315,8 @@ class Handler(asynchat.async_chat):
         self.push('end\n')
 
     def bzrc_shots(self, args):
-        """Reports a list of shots.
+        """shots
+        Reports a list of shots.
 
         The response is a list of shot lines:
             shot [x] [y] [vx] [vy]
@@ -305,10 +337,11 @@ class Handler(asynchat.async_chat):
         self.push('end\n')
 
     def bzrc_mytanks(self, args):
-        """Request the status of the tanks controlled by this connection.
+        """mytanks
+        Request the status of the tanks controlled by this connection.
 
         The response is a list of tanks:
-            mytank [index] [callsign] [status] [shots available] 
+            mytank [index] [callsign] [status] [shots available]
                 [time to reload] [flag] [x] [y] [angle] [vx] [vy] [angvel]
         Index is the 0 based index identifying this tank. This index is used
         for instructions. The callsign is the tank's unique identifier within
@@ -316,7 +349,7 @@ class Handler(asynchat.async_chat):
         available is the number of shots remaining before a reload delay. Flag
         is the color/name of the flag being held, or "-" if none is held. The
         coordinate (x, y) is the current position. Angle is the direction the
-        tank is pointed, between negative pi and pi. The vector (vx, vy) is 
+        tank is pointed, between negative pi and pi. The vector (vx, vy) is
         the current velocity of the tank, and angvel is the current angular
         velocity of the tank (in radians per second).
         """
@@ -362,7 +395,8 @@ class Handler(asynchat.async_chat):
         self.push('end\n')
 
     def bzrc_othertanks(self, args):
-        """ Request the status of other tanks in the game (those not 
+        """othertanks
+        Request the status of other tanks in the game (those not
         controlled by this connection.
 
         The response is a list of tanks:
@@ -407,7 +441,8 @@ class Handler(asynchat.async_chat):
         self.push('end\n')
 
     def bzrc_constants(self, args):
-        """Request a list of constants.
+        """constants
+        Request a list of constants.
 
         These constants define the rules of the game and the behavior of the
         world. The response is a list:
@@ -423,6 +458,7 @@ class Handler(asynchat.async_chat):
             self.invalid_args(args)
             return
         self.ack(command)
+        ## is this the best way to do this? hard coding it in?
         self.push('begin\n')
         self.push('constant team %s\n' % (constants.COLORNAME[self.team.color]))
         self.push('constant worldsize %s\n' % (constants.WORLDSIZE))
@@ -443,7 +479,8 @@ class Handler(asynchat.async_chat):
         self.push('end\n')
 
     def bzrc_scores(self, args):
-        """Request the scores of all teams. A score is generated for each team
+        """scores
+        Request the scores of all teams. A score is generated for each team
         pair in a table:
 
                        [team 1]   [team 2]   ...
@@ -468,14 +505,15 @@ class Handler(asynchat.async_chat):
                 self.push('\t%s' % (score))
             self.push('\n')
         self.push('end\n')
-        
+
     def bzrc_timer(self, args):
-        """Requests how much time has passed and what time limit exists.
+        """timer
+        Requests how much time has passed and what time limit exists.
 
             timer [time elapsed] [time limit]
 
-        Time elapsed is the number of seconds that the server has been alive, 
-        while time limit is the given limit. Once the limit is reached, the 
+        Time elapsed is the number of seconds that the server has been alive,
+        while time limit is the given limit. Once the limit is reached, the
         server will stop updating the game.
         """
         try:
@@ -489,7 +527,8 @@ class Handler(asynchat.async_chat):
         self.push('timer %s %s\n' % (timespent, timelimit))
 
     def bzrc_quit(self, args):
-        """Disconnects the session.
+        """quit
+        Disconnects the session.
 
         This is technically an extension to the BZRC protocol.  We should
         really backport this to BZFlag.
@@ -502,7 +541,8 @@ class Handler(asynchat.async_chat):
         self.close()
 
     def bzrc_fireatwill(self, args):
-        """All tanks shoot (cheat).
+        """fireatwill
+        All tanks shoot (cheat).
         """
         try:
             command, = args
@@ -514,7 +554,8 @@ class Handler(asynchat.async_chat):
                 team.shoot(i)
 
     def bzrc_hammertime(self, args):
-        """All tanks shoot (cheat).
+        """hammertime
+        All tanks shoot (cheat).
         """
         try:
             command, = args

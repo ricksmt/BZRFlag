@@ -18,12 +18,12 @@ def options():
     import optparse
     p = optparse.OptionParser()
     # TODO: many of these options need to be implemented
-    
+
     p.add_option('-d','--debug',
         action='store_true',
         dest='debug',
         help='set the debug level')
-    
+
     ## world behavior
     p.add_option('--world',
         dest='world',
@@ -68,13 +68,13 @@ def options():
         action='store_false',
         dest='grab_own_flag',
         help='can you grab your own flag')
-    
+
     for color in ['red','green','blue','purple']:
         p.add_option('--%s-port'%color,
-            dest='%s_port'%color,
+            dest='%s_port'%color,type='int',
             help='specify the port for the %s team'%color)
         p.add_option('--%s-tanks'%color,
-            dest='%s_tanks'%color,
+            dest='%s_tanks'%color,type='int',
             help='specify the number of tanks for the %s team'%color)
         p.add_option('--%s-posnoise'%color,
             dest='%s_posnoise'%color,
@@ -85,9 +85,9 @@ def options():
         p.add_option('--%s-angnoise'%color,
             dest='%s_angnoise'%color,
             help='specify the angnoise for the %s team'%color)
-    
+
     opts, args = p.parse_args()
-    
+
     if opts.config:
         configfile = ConfigParser.ConfigParser()
         if not len(configfile.read(opts.config)):
@@ -96,13 +96,17 @@ def options():
             raise Exception,'invalid config file. make sure "[global]"\
                              is at the top'
         config = dict(configfile.items('global'))
-        
+
         for key in config:
             if not hasattr(opts,key):
                 raise Exception,'invalid configuration option: %s'%key
             if getattr(opts,key) == None:
-                setattr(opts,key,config[key])
-    
+                type = p.get_option('--'+key.replace('_','-')).type
+                value = config[key]
+                if type == 'int':
+                    value = int(value)
+                setattr(opts,key,value)
+
     if args:
         p.parse_error('No positional arguments are allowed.')
     return vars(opts)
@@ -132,14 +136,16 @@ def run():
     #colors = (1, 2, 3, 4)
     # Is world an appropriate parameter?
     game = Game(config, world)
-    
+
     if not game.mapper.teams:
-        raise Exception,'no teams defined'
-    
-    # Create a server for each team.	
+        raise Exception,'no teams defined -- include a config file?'
+    if not game.mapper.bases:
+        raise Exception,'no bases defined -- include a world file?'
+
+    # Create a server for each team.
     # TODO: allow the port to be specified on the command-line.
     for team in game.mapper.teams:
-        addr = ('0.0.0.0', config['port'])
+        addr = ('0.0.0.0', team.port)
         try:
             bzrc = server.Server(addr, team)
         except socket.error, e:
