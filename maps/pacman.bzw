@@ -1,0 +1,457 @@
+### BZFLAG WORLD FILE HEADER
+
+
+# Map name	: Pac-Man
+# File name	: pacman.bzw
+# Version	: 1.00
+# Release date	: 2002-09-25
+
+# Designer	: Raimond "Dutchrai" Kuhlman
+# Email address	: dutchrai@yahoo.com
+# Website	: http://shellshock.bzflag.bz
+
+# BZFS Required	: -j -public "Pac-Man by Dutchrai" -world "pacman.bzw"
+
+
+### BZFLAG WORLD FILE DATA
+
+
+# Outdoors Filling
+
+box
+position 325 0 0
+rotation 0
+size 75 400 1
+end
+
+box
+position -325 0 0
+rotation 0
+size 75 400 1
+end
+
+
+# Border
+
+box
+position 0 390 0
+rotation 0
+size 250 10 20
+end
+
+box
+position 0 -390 0
+rotation 0
+size 250 10 20
+end
+
+box
+position 240 200 0
+rotation 0
+size 10 180 20
+end
+
+box
+position -240 200 0
+rotation 0
+size 10 180 20
+end
+
+box
+position 240 -200 0
+rotation 0
+size 10 180 20
+end
+
+box
+position -240 -200 0
+rotation 0
+size 10 180 20
+end
+
+
+# Left Column
+
+box
+position 120 350 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 0 350 0
+rotation 0
+size 10 30 20
+end
+
+box
+position -120 350 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 180 310 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 60 310 0
+rotation 0
+size 10 30 20
+end
+
+box
+position -60 310 0
+rotation 0
+size 10 30 20
+end
+
+box
+position -180 310 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 120 250 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 0 250 0
+rotation 0
+size 10 30 20
+end
+
+box
+position -120 250 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 160 230 0
+rotation 0
+size 30 10 20
+end
+
+box
+position 40 230 0
+rotation 0
+size 30 10 20
+end
+
+box
+position -80 230 0
+rotation 0
+size 30 10 20
+end
+
+box
+position -200 230 0
+rotation 0
+size 30 10 20
+end
+
+
+# Left Center Column
+
+box
+position 180 160 0
+rotation 0
+size 10 20 20
+end
+
+box
+position 60 160 0
+rotation 0
+size 10 20 20
+end
+
+box
+position -60 160 0
+rotation 0
+size 10 20 20
+end
+
+box
+position -180 160 0
+rotation 0
+size 10 20 20
+end
+
+box
+position 120 130 0
+rotation 0
+size 10 50 20
+end
+
+box
+position 0 130 0
+rotation 0
+size 10 50 20
+end
+
+box
+position -120 130 0
+rotation 0
+size 10 50 20
+end
+
+box
+position 200 90 0
+rotation 0
+size 30 10 20
+end
+
+box
+position 80 90 0
+rotation 0
+size 30 10 20
+end
+
+box
+position -40 90 0
+rotation 0
+size 30 10 20
+end
+
+box
+position -160 90 0
+rotation 0
+size 30 10 20
+end
+
+
+# Center Column
+
+box
+position 180 0 0
+rotation 0
+size 10 40 20
+end
+
+box
+position 120 0 0
+rotation 0
+size 10 40 20
+end
+
+box
+position 30 0 0
+rotation 0
+size 40 40 40
+end
+
+box
+position -60 0 0
+rotation 0
+size 10 40 20
+end
+
+box
+position -120 0 0
+rotation 0
+size 10 40 20
+end
+
+box
+position -180 0 0
+rotation 0
+size 10 40 20
+end
+
+
+# Right Center Column
+
+box
+position 180 -160 0
+rotation 0
+size 10 20 20
+end
+
+box
+position 60 -160 0
+rotation 0
+size 10 20 20
+end
+
+box
+position -60 -160 0
+rotation 0
+size 10 20 20
+end
+
+box
+position -180 -160 0
+rotation 0
+size 10 20 20
+end
+
+box
+position 120 -130 0
+rotation 0
+size 10 50 20
+end
+
+box
+position 0 -130 0
+rotation 0
+size 10 50 20
+end
+
+box
+position -120 -130 0
+rotation 0
+size 10 50 20
+end
+
+box
+position 200 -90 0
+rotation 0
+size 30 10 20
+end
+
+box
+position 80 -90 0
+rotation 0
+size 30 10 20
+end
+
+box
+position -40 -90 0
+rotation 0
+size 30 10 20
+end
+
+box
+position -160 -90 0
+rotation 0
+size 30 10 20
+end
+
+
+# Right Column
+
+box
+position 120 -350 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 0 -350 0
+rotation 0
+size 10 30 20
+end
+
+box
+position -120 -350 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 180 -310 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 60 -310 0
+rotation 0
+size 10 30 20
+end
+
+box
+position -60 -310 0
+rotation 0
+size 10 30 20
+end
+
+box
+position -180 -310 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 120 -250 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 0 -250 0
+rotation 0
+size 10 30 20
+end
+
+box
+position -120 -250 0
+rotation 0
+size 10 30 20
+end
+
+box
+position 160 -230 0
+rotation 0
+size 30 10 20
+end
+
+box
+position 40 -230 0
+rotation 0
+size 30 10 20
+end
+
+box
+position -80 -230 0
+rotation 0
+size 30 10 20
+end
+
+box
+position -200 -230 0
+rotation 0
+size 30 10 20
+end
+
+# Teleporters
+
+#teleporter			
+#position	240.0	0.0	0.0
+#rotation	0.0		
+#size	0.56	16.0	18.0
+#border	2.0		
+#end			
+
+#link			
+#from	0		
+#to	1		
+#end			
+			
+#link			
+#from	1		
+#to	2		
+#end			
+
+#teleporter			
+#position	-240.0	0.0	0.0
+#rotation	0.0		
+#size	0.56	16.0	18.0
+#border	2.0		
+#end			
+
+#link			
+#from	2		
+#to	1		
+#end			
+			
+#link			
+#from	3
+#to	2
+#end			
