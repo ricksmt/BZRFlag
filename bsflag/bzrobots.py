@@ -8,6 +8,9 @@ from __future__ import division
 import math
 from pyparsing import *
 
+import logging
+logger = logging.getLogger('bzrobots')
+
 def numeric(toks):
     n = toks[0]
     try:
@@ -26,7 +29,7 @@ floatnum.setParseAction(numeric)
 end = Keyword('end').suppress()
 
 class Team(object):
-    def __init__(self, color=None, tanks=None, rcport=None, p=None, 
+    def __init__(self, color=None, tanks=None, rcport=None, p=None,
             hoverbot=None, posnoise=None, angnoise=None, velnoise=None):
         self.color = color
         self.tanks = tanks
@@ -48,8 +51,8 @@ class Team(object):
         posnoise = Group(Keyword('posnoise') + floatnum)
         angnoise = Group(Keyword('angnoise') + floatnum)
         velnoise = Group(Keyword('velnoise') + floatnum)
-        team_items = [color, Optional(tanks), Optional(rcport), 
-            Optional(hoverbot), Optional(posnoise), Optional(angnoise), 
+        team_items = [color, Optional(tanks), Optional(rcport),
+            Optional(hoverbot), Optional(posnoise), Optional(angnoise),
             Optional(velnoise)]
 
         team_contents = Each(team_items)

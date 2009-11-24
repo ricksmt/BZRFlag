@@ -10,6 +10,8 @@ import math
 import socket
 import time
 import random
+import logging
+logger = logging.getLogger('server')
 
 import constants
 

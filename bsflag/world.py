@@ -10,6 +10,9 @@ information about the file format (but note that their BNF is incomplete).
 
 from __future__ import division
 
+import logging
+logger = logging.getLogger('world')
+
 WIDTH = HEIGHT = 800
 
 import math

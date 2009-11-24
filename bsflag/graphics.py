@@ -11,6 +11,9 @@ from __future__ import division
 import math
 import os
 
+import logging
+logger = logging.getLogger('graphics')
+
 DEFAULT_SIZE = 700, 700
 
 DATA_DIR = os.path.abspath(os.path.join(

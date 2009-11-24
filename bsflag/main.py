@@ -8,6 +8,8 @@ import os
 import socket
 import sys
 import ConfigParser
+import logging
+logger = logging.getLogger('main')
 
 import game
 from game import Game
@@ -17,7 +19,6 @@ import server
 def options():
     import optparse
     p = optparse.OptionParser()
-    # TODO: many of these options need to be implemented
 
     p.add_option('-d','--debug',
         action='store_true',

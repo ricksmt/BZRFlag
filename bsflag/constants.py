@@ -8,6 +8,9 @@ global.cxx but are not included in the list of BSFlag constants.
 from __future__ import division
 import math
 
+import logging
+logger = logging.getLogger('constants')
+
 # Colors
 COLORNAME = dict(enumerate(('rogue', 'red', 'green', 'blue', 'purple')))
 

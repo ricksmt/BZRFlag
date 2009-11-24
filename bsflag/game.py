@@ -15,6 +15,9 @@ import sys
 import pygame
 from pygame.locals import *
 
+import logging
+logger = logging.getLogger('game')
+
 import constants
 
 # A higher loop timeout decreases CPU usage but also decreases the frame rate.
