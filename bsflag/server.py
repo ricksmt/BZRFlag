@@ -1,5 +1,4 @@
-"""BSFlag BZRC Server
-
+"""
 The Server object listens on a port for incoming connections.  When a client
 connects, the Server dispatches its connection to a new Handler.
 """
@@ -73,6 +72,8 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         self.close()
 
     def collect_incoming_data(self, chunk):
+        #print chunk
+        #self.team.mapper.world.display.log.log(self.input_buffer)
         if self.input_buffer:
             self.input_buffer += chunk
         else:
@@ -84,6 +85,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         Note that Asynchat ensures that our input buffer contains everything
         up to but not including the newline character.
         """
+        self.team.mapper.world.display.log.log(self.team.colorname + ': ' + self.input_buffer)
         args = self.input_buffer.split()
         self.input_buffer = ''
         if args:

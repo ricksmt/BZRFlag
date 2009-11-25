@@ -1,7 +1,4 @@
 [global]
 red_tanks:4
-red_port:3140
 blue_tanks=6
 max_shots:20
-blue_port:3110
-

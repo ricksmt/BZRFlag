@@ -1,6 +1,6 @@
-"""Game Logic
-
-The Game Logic module implements teams, tanks, shots, etc.
+"""
+Implements the game objects; teams, tanks, shots, etc.
+Contains all of the engine logic.
 """
 
 from __future__ import division
@@ -14,7 +14,7 @@ import random
 import sys
 import pygame
 from pygame.locals import *
-
+import os
 import logging
 logger = logging.getLogger('game')
 
@@ -25,7 +25,10 @@ LOOP_TIMEOUT = 0.01
 
 
 class Game(object):
-    """Takes a config Values object and a World object."""
+    """Takes a :class:`ConfigParser.Values` object and a
+    :class:`world.World` object. Contains the
+    main game loop, and manages all of the game logic. uses a
+    :class:`graphics.Display` object to interface with the screen"""
     def __init__(self, config, world):
         self.mapper = Mapper(config, world)
         self.timespent = 0.0
@@ -60,6 +63,8 @@ class Game(object):
                 self.running = False
 
     def loop(self,display):
+        """the main loop of bzflag. checks events, updates positions,
+        and draws to the screen until the pygame window is closed."""
         self.running = True
         while self.running:
             asyncore.loop(LOOP_TIMEOUT, count=1)
@@ -99,23 +104,22 @@ class Game(object):
             display.update()
 
 class Mapper(object):
+    """manages the map data. takes a config dict and a
+    :class:`world.World` object and populates the current map with
+    bases, obstacles, teams and tanks."""
     def __init__(self, config, world):
         # track objects on map
         self.obstacles = [Obstacle(item) for item in world.boxes]
         self.bases = dict((item.color, Base(item)) for item in world.bases)
+        self.world = world
 
         self.teams = []
         for color,base in self.bases.items():
             self.teams.append(Team(self, color, base, config))
-        #for color in ('red','green','blue','purple'):
-        #    if config[color+'_port'] is not None:
-        #        self.teams.append(Team(self, color, config))
-        #self.teams = [Team(item, self) for item in bzrobots.teams]
         for team in self.teams:
             self.spawn_flag(team.flag)
         for team in self.teams:
             for enemy in self.teams:
-                #if enemy == team:continue
                 team.score_map[enemy.color] = Score(team, enemy)
 
         # defaults for customizable values

@@ -1,8 +1,8 @@
-"""BSFlag Graphics Module
-
-The graphics module encapsulates all of the little pieces needed to get things
-to show up on the screen.  It uses pygame, a Python library built on top of
-SDL (a cross-platform 2D graphics platform).  Anyway, BSFlag graphics includes
+"""
+The graphics moduloe contains the interface between the engine logic
+and objects and the user's screen. It is currently implemented in
+pygame (http://pygame.org), a python library built on top of
+SDL (a cross-platform 2D graphics platform). BSFlag graphics includes
 sprites and functions for transforming BZFlag coordinates to screen
 coordinates.  Keep it simple.
 """
@@ -157,10 +157,12 @@ class Display(object):
         """Initializes pygame and creates the screen surface."""
         pygame.init()
         self.screen = pygame.display.set_mode(self.screen_size)
+        self.log = LogSprite(self, (0, self.screen_size[1]-200, self.screen_size[0], 200))
         bg = self.background()
         self.screen.blit(bg, (0, 0))
         pygame.display.update()
         self.sprites = pygame.sprite.RenderUpdates()
+        self.sprites.add(self.log)
 
     def update(self):
         """Updates the state of all sprites and redraws the screen."""
@@ -255,6 +257,30 @@ class Display(object):
         x, y = vector
         return int(round(x * wscale)), -int(round(y * hscale))
 
+
+class LogSprite(pygame.sprite.Sprite):
+    def __init__(self, display, rect):
+        super(LogSprite,self).__init__()
+        self.rect = pygame.Rect(rect)
+        self.image = None
+        self.dirty = True
+        self.txt = []
+        self.image = pygame.Surface(self.rect.size,pygame.SRCALPHA)
+        self.image.fill((255,255,255,0))
+        self.font = pygame.font.Font(None,20)
+        self.update()
+
+    def log(self,txt):
+        self.txt.append(txt)
+        self.txt = self.txt[-20:]
+        self.dirty = True
+
+    def update(self):
+        if not self.dirty:return
+        self.dirty = False
+        self.image.fill((255,255,255,0))
+        for i,line in enumerate(self.txt):
+            self.image.blit(self.font.render(line,1,(0,0,0),(255,255,0)), (5,17*i))
 
 class BZSprite(pygame.sprite.Sprite):
     """Determines how a single object in the game will be drawn.

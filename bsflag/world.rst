@@ -1,12 +1,11 @@
-The Game Module
+The World Module
 ===============
 
 .. toctree::
    :maxdepth: 2
 
-.. automodule:: game
+.. automodule:: world
    :members:
    :undoc-members:
    :inherited-members:
-
 

@@ -159,7 +159,7 @@ def run():
     import graphics
     display = graphics.Display(world)
     display.setup()
-
+    world.display = display
     #shotcount = 0
     #tankcount = 0
 

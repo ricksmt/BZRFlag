@@ -3,22 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to BZRFlag's documentation!
+BZFlag With Robots!
 ===================================
 
 Contents:
 
 .. toctree:: 
    :maxdepth: 2
-   
+
    game.rst
    server.rst
    graphics.rst
+   world.rst
 
-Indices and tables
+Other
 ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 
