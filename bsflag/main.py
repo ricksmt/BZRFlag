@@ -12,9 +12,14 @@ import logging
 logger = logging.getLogger('main')
 
 import game
-from game import Game
 import server
 
+import graphics
+import world
+import server
+
+import snapshot
+snapshot.init([game,graphics,world,server])
 
 def options():
     import optparse
@@ -115,14 +120,13 @@ def options():
 def run():
     config = options()
 
-    from world import World
     if config['world']:
         f = open(config['world'])
-        parser = World.parser()
+        parser = world.World.parser()
         results = parser.parseString(f.read())
-        world = results[0]
+        worldobj = results[0]
     else:
-        world = World()
+        worldobj = world.World()
 
     #from bzrobots import BZRobots
     '''if opts.bzrobots:
@@ -136,16 +140,16 @@ def run():
     #colors = (1, 2)
     #colors = (1, 2, 3, 4)
     # Is world an appropriate parameter?
-    game = Game(config, world)
+    gameobj = game.Game(config, worldobj)
 
-    if not game.mapper.bases:
+    if not gameobj.mapper.bases:
         raise Exception,'no bases defined -- include a world file?'
-    if not game.mapper.teams:
+    if not gameobj.mapper.teams:
         raise Exception,'no teams defined -- include a config file?'
 
     # Create a server for each team.
     # TODO: allow the port to be specified on the command-line.
-    for team in game.mapper.teams:
+    for team in gameobj.mapper.teams:
         addr = ('0.0.0.0', team.port)
         try:
             bzrc = server.Server(addr, team)
@@ -155,15 +159,13 @@ def run():
         host, port = bzrc.socket.getsockname()
         print 'Listening on port %s for %s team.' % (port, team.color_name())
 
-
-    import graphics
-    display = graphics.Display(world)
+    display = graphics.Display(worldobj)
     display.setup()
     world.display = display
     #shotcount = 0
     #tankcount = 0
 
-    for team in game.mapper.teams:
+    for team in gameobj.mapper.teams:
         #shotcount = shotcount + len(team.shots)
         for shot in team.shots:
             display.shot_sprite(shot)
@@ -172,7 +174,14 @@ def run():
             display.tank_sprite(tank)
         display.flag_sprite(team.flag)
 
-    game.loop(display)
+    ''' Creates a debug snapshot of the objects -- not used
+     in normal gameplay
+    snapshot.render(gameobj)
+    snapshot.render(bzrc)
+    snapshot.render(display)
+    '''
+
+    gameobj.loop(display)
 
 
 # vim: et sw=4 sts=4

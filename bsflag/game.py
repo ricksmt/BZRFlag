@@ -66,6 +66,7 @@ class Game(object):
         """the main loop of bzflag. checks events, updates positions,
         and draws to the screen until the pygame window is closed."""
         self.running = True
+
         while self.running:
             asyncore.loop(LOOP_TIMEOUT, count=1)
             # TODO: clean this up
