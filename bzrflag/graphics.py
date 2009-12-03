@@ -1,18 +1,15 @@
-"""
-The graphics moduloe contains the interface between the engine logic
-and objects and the user's screen. It is currently implemented in
-pygame (http://pygame.org), a python library built on top of
-SDL (a cross-platform 2D graphics platform). BSFlag graphics includes
-sprites and functions for transforming BZFlag coordinates to screen
-coordinates.  Keep it simple.
-"""
+'''Graphics module:
+    handles all graphics; here are defined the base
+classes for various graphics implementations to subclass
 
-from __future__ import division
-import math
-import os
+NOTE:
+    to find the pygame implementation, look in modpygame.py
 
-import logging
-logger = logging.getLogger('graphics')
+'''
+
+import pygame
+import constants
+from world import Base, Box
 
 DEFAULT_SIZE = 700, 700
 
@@ -29,68 +26,21 @@ SHOTSCALE = 2
 FLAGSCALE = 3
 TANKSCALE = 1.2
 
-
-import pygame
-import constants
-from world import Base, Box
-
-
-def load_image(filename):
-    """Loads the image with the given filename from the DATA_DIR.
-
-    Note that convert_alpha is applied to the loaded image to preserve
-    transparency.
-    """
-    path = os.path.join(DATA_DIR, filename)
-    image = pygame.image.load(path).convert_alpha()
-    return image
-
-
-def scaled_size(size, scale):
-    """Scales a size (width-height pair).
-
-    If the scale is None, scaled_size returns the original size unmodified.
-    """
-    if scale is not None:
-        w, h = size
-        w = int(round(w * scale))
-        h = int(round(h * scale))
-        size = w, h
-    return size
-
-
-def scaled_image(image, scale):
-    """Scales the given image to the given size."""
-    size = scaled_size(image.get_size(), scale)
-    return pygame.transform.smoothscale(image, size)
-
-
-def tile(tile, size):
-    """Creates a surface of the given size tiled with the given surface."""
-    tile_width, tile_height = tile.get_size()
-    width, height = size
-    surface = pygame.surface.Surface(size, pygame.SRCALPHA)
-    for i in xrange(width // tile_width + 1):
-        for j in xrange(height // tile_height + 1):
-            surface.blit(tile, (i * tile_width, j * tile_height))
-    return surface
-
-
 class ImageCache(object):
     def __init__(self):
         self._ground = None
         self._wall = None
-        self._bases = {}
-        self._shots = {}
-        self._flags = {}
-        self._tanks = {}
+
+        self.suffixes = {'base':'basetop','shot':'bolt','tank':'tank','flag':'flag'}
+        ## curently lazy loading...is that good?
+        self._teamcache = {'base':{},'shot':{},'flag':{},'tank':{}}
 
     def ground(self):
         """Creates a surface of the ground image.
 
         The surface is scaled down using the factor in TILESCALE.
         """
-        if not self._ground:
+        if not self._cache.has_key('ground'):
             ground = load_image(GROUND)
             self._ground = scaled_image(ground, TILESCALE)
         return self._ground
@@ -102,118 +52,57 @@ class ImageCache(object):
         """
         if not self._wall:
             wall = load_image(WALL)
-            self._wall = scaled_image(wall, TILESCALE)
+            self._wall = self.scaled_image(wall, TILESCALE)
         return self._wall
 
-    def base(self, color):
-        """Returns a surface for the base for the given color index."""
-        try:
-            image = self._bases[color]
-        except KeyError:
-            image = load_image(BASE_PATTERN % constants.COLORNAME[color])
-            self._shots[color] = image
-        return image
+    def loadteam(self, type, color):
+        if not self._teamcache.has_key(type):
+            raise KeyError,"invalid image type: %s"%type
+        if not color in constants.COLORS:
+            raise KeyError,"invalid color: %s"%color
+        if not self._teamcache[type].has_key(color):
+            self._teamcache[type][color] = self.load_image('%s_%s.png'%(color,self.suffixes[type]))
+        return self._teamcache[type][color]
 
-    def shot(self, color):
-        """Returns a surface for shots for the given color index."""
-        try:
-            image = self._shots[color]
-        except KeyError:
-            image = load_image(SHOT_PATTERN % constants.COLORNAME[color])
-            self._shots[color] = image
-        return image
+    def scaled_size(self, size, scale):
+        """Scales a size (width-height pair).
 
-    def flag(self, color):
-        """Returns a surface for flags for the given color index."""
-        try:
-            image = self._flags[color]
-        except KeyError:
-            image = load_image(FLAG_PATTERN % constants.COLORNAME[color])
-            self._flags[color] = image
-        return image
+        If the scale is None, scaled_size returns the original size unmodified.
+        """
+        if scale is not None:
+            w, h = size
+            w = int(round(w * scale))
+            h = int(round(h * scale))
+            size = w, h
+        return size
 
-    def tank(self, color):
-        """Returns a surface for tanks for the given color index."""
-        try:
-            image = self._tanks[color]
-        except KeyError:
-            image = load_image(TANK_PATTERN % constants.COLORNAME[color])
-            self._tanks[color] = image
-        return image
+    def load_image(self, filename):
+        """Loads the image with the given filename from the DATA_DIR."""
+        raise Exception,'override this method'
 
+    def scaled_image(self, image, scale):
+        """Scales the given image to the given size."""
+        raise Exception,'override this method'
+
+    def tile(self, tile, size):
+        """Creates a surface of the given size tiled with the given surface."""
+        raise Exception,'override this method'
 
 class Display(object):
     """Manages all graphics."""
-    def __init__(self, world, screen_size=DEFAULT_SIZE):
+    def __init__(self, world, screen_size=(700,700)):
         self.world = world
         self.screen_size = screen_size
-        self.screen = None
-        self.sprites = None
-        self.sprite_map = {}
         self.images = ImageCache()
         self._background = None
 
     def setup(self):
-        """Initializes pygame and creates the screen surface."""
-        pygame.init()
-        self.screen = pygame.display.set_mode(self.screen_size)
-        self.log = LogSprite(self, (0, self.screen_size[1]-200, self.screen_size[0], 200))
-        bg = self.background()
-        self.screen.blit(bg, (0, 0))
-        pygame.display.update()
-        self.sprites = pygame.sprite.RenderUpdates()
-        self.sprites.add(self.log)
+        """Initializes and creates the screen surface."""
+        pass
 
     def update(self):
         """Updates the state of all sprites and redraws the screen."""
-        self.sprites.update()
-        bg = self.background()
-        self.sprites.clear(self.screen, bg)
-        changes = self.sprites.draw(self.screen)
-        pygame.display.update(changes)
-
-    def background(self):
-        """Creates a surface of the background with all obstacles.
-
-        Obstacles includes both bases and boxes.
-        """
-        if not self._background:
-            bg = tile(self.images.ground(), self.screen_size)
-            for box in self.world.boxes:
-                s = TiledBZSprite(box, self.images.wall(), self)
-                bg.blit(s.image, s.rect)
-            for base in self.world.bases:
-                image = self.images.base(base.color)
-                s = BZSprite(base, image, self)
-                bg.blit(s.image, s.rect)
-            self._background = bg
-        return self._background
-
-    def shot_sprite(self, shot):
-        """Creates a sprite for the given shot."""
-        image = self.images.shot(shot.color)
-        sprite = BZSprite(shot, image, self, SHOTSCALE)
-        self.sprites.add(sprite)
-        self.sprite_map[shot] = sprite
-
-    def flag_sprite(self, flag):
-        """Creates a sprite for the given flag."""
-        image = self.images.flag(flag.color)
-        sprite = BZSprite(flag, image, self, FLAGSCALE)
-        self.sprites.add(sprite)
-        self.sprite_map[flag] = sprite
-
-    def tank_sprite(self, tank):
-        """Creates a sprite for the given tank."""
-        image = self.images.tank(tank.color)
-        sprite = BZSprite(tank, image, self, TANKSCALE)
-        self.sprites.add(sprite)
-        self.sprite_map[tank] = sprite
-
-    def kill_sprite(self, obj):
-        """Kills the sprite for the given object."""
-        self.sprite_map[obj].kill()
-        del self.sprite_map[obj]
+        pass
 
     def pos_world_to_screen(self, pos):
         """Converts a position from world space to screen pixel space.
@@ -257,30 +146,18 @@ class Display(object):
         x, y = vector
         return int(round(x * wscale)), -int(round(y * hscale))
 
+    def add_object(self, obj):
+        types = (Tank, 'tank'),(Shot,'shot'),(Flag,'flag')
+        otype = None
+        for cls,name in types:
+            if isinstance(obj,cls):
+                otype = name
+                break
+        else:
+            raise Exception,'invalid object added to display: %s'%obj
 
-class LogSprite(pygame.sprite.Sprite):
-    def __init__(self, display, rect):
-        super(LogSprite,self).__init__()
-        self.rect = pygame.Rect(rect)
-        self.image = None
-        self.dirty = True
-        self.txt = []
-        self.image = pygame.Surface(self.rect.size,pygame.SRCALPHA)
-        self.image.fill((255,255,255,0))
-        self.font = pygame.font.Font(None,20)
-        self.update()
-
-    def log(self,txt):
-        self.txt.append(txt)
-        self.txt = self.txt[-20:]
-        self.dirty = True
-
-    def update(self):
-        if not self.dirty:return
-        self.dirty = False
-        self.image.fill((255,255,255,0))
-        for i,line in enumerate(self.txt):
-            self.image.blit(self.font.render(line,1,(0,0,0),(255,255,0)), (5,17*i))
+        image = self.images.loadteam(otype, obj.team.color)
+        sprite = BZSprite(obj, image, self, 1)
 
 class BZSprite(pygame.sprite.Sprite):
     """Determines how a single object in the game will be drawn.
@@ -375,10 +252,3 @@ class TiledBZSprite(BZSprite):
                 self._rotate()
 
         self._translate()
-
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
-
-# vim: et sw=4 sts=4
