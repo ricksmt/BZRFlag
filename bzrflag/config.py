@@ -1,4 +1,4 @@
-import sys
+import sys, os
 import optparse
 import ConfigParser
 
@@ -7,26 +7,38 @@ import world
 class ParseError(Exception):pass
 class ArgumentError(Exception):pass
 
-'''done'''
+import logging
+logger = logging.getLogger("config.py")
 
 class Config:
+    '''Config class:
+    parses command line options and the --config file if given'''
     def __init__(self):
         self.options = self.parse_cli_args()
         self.setup_world()
+        logger.debug("Options:\n"+"\n".join("%s :: %s"%(k,v) for k,v in self.options.items()))
+
+    def get(self, key, default):
+        if self.options[key] is None:
+            return default
+        return self.options[key]
+
+    def __getitem__(self, key):
+        return self.options[key]
 
     def setup_world(self):
-        if not config['world']:
+        if not self.options['world']:
             raise ArgumentError,'no world defined'
-        if not os.path.isfile(config['world']):
-            raise ArgumentError, 'world file not found: %s'%config['world']
-        text = open(config['world']).read()
+        if not os.path.isfile(self.options['world']):
+            raise ArgumentError, 'world file not found: %s'%self.options['world']
+        text = open(self.options['world']).read()
         parser = world.World.parser()
         results = world.World.parser().parseString(text)
         if not results:
             raise ParseError,'invalid world file: %s'%config['world']
         self.world = results[0]
 
-    def parse_cli_args(self, args):
+    def parse_cli_args(self):
         p = optparse.OptionParser()
 
         p.add_option('-d','--debug',

@@ -1,7 +1,9 @@
+import os
 import pygame
 from pygame.locals import *
 
 import graphics
+import constants
 
 DEFAULT_SIZE = 700, 700
 
@@ -30,6 +32,7 @@ class ImageCache(graphics.ImageCache):
         return surface
 
 class Display(graphics.Display):
+    _imagecache = ImageCache
     def setup(self):
         """Initializes pygame and creates the screen surface."""
         pygame.init()
@@ -48,6 +51,12 @@ class Display(graphics.Display):
         self.sprites.clear(self.screen, bg)
         changes = self.sprites.draw(self.screen)
         pygame.display.update(changes)
+        for e in pygame.event.get():
+            if e.type == QUIT:
+                self.game.running = False
+                self.game.map.end_game = True
+            else:
+                pass#pygame.event.post(e)
 
     def background(self):
         """Creates a surface of the background with all obstacles.
@@ -55,13 +64,13 @@ class Display(graphics.Display):
         Obstacles includes both bases and boxes.
         """
         if not self._background:
-            bg = tile(self.images.ground(), self.screen_size)
+            bg = self.images.tile(self.images.ground(), self.screen_size)
             for box in self.world.boxes:
-                s = TiledBZSprite(box, self.images.wall(), self)
+                s = graphics.TiledBZSprite(box, self.images.wall(), self)
                 bg.blit(s.image, s.rect)
             for base in self.world.bases:
-                image = self.images.base(base.color)
-                s = BZSprite(base, image, self)
+                image = self.images.loadteam('base',base.color)
+                s = graphics.BZSprite(base, image, self)
                 bg.blit(s.image, s.rect)
             self._background = bg
         return self._background

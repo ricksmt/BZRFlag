@@ -107,8 +107,8 @@ def circle2line((c,r),(p1,p2)):
         return pos
     return circle2point((c,r),p1) or circle2point((c,r),p2)
 
-def circle2circle((p,r),(c2,r2)):
-    return dist(c,c2)<=r+r2
+def circle2circle((c1,r1),(c2,r2)):
+    return dist(c1,c2)<=r1+r2
 
 def rect2point((x,y,w,h),(x1,y1)):
     if w<0:
