@@ -16,7 +16,7 @@ class Config:
     def __init__(self):
         self.options = self.parse_cli_args()
         self.setup_world()
-        logger.debug("Options:\n"+"\n".join("%s :: %s"%(k,v) for k,v in self.options.items()))
+        #logger.debug("Options:\n"+"\n".join("%s :: %s"%(k,v) for k,v in self.options.items()))
 
     def get(self, key, default):
         if self.options[key] is None:

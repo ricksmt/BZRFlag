@@ -4,6 +4,7 @@ from pygame.locals import *
 
 import graphics
 import constants
+import math
 
 DEFAULT_SIZE = 700, 700
 
@@ -31,8 +32,54 @@ class ImageCache(graphics.ImageCache):
                 surface.blit(tile, (i * tile_width, j * tile_height))
         return surface
 
+class BZSprite(graphics.BZSprite):
+
+    def _render_image(self):
+        if self.display.scale == self.prev_scale and self.bzobject.rot == self.prev_rot:
+            return
+        image = self._rotate_image(self.orig_image, self.bzobject.rot * 180/math.pi)
+        image = self._scale_image(image,self.display.scale)
+        self.prev_scale = self.display.scale
+        self.prev_rot = self.bzobject.rot
+        self.image = image
+
+    '''def _rotate(self):
+        """Rotates the image according to the bzobject.
+
+        Don't rotate a previously rotated object.  That causes data loss.
+        """
+        rot = 360 * self.bzobject.rot / (2 * math.pi)
+        self.image = pygame.transform.rotate(self.image, rot)
+        self.rect.size = self.image.get_size()
+
+    def _scale_prerotated(self):
+        """Scales the image to the bzobject's prerotated size."""
+        size = self.display.images.scaled_size(self.object_size(), self.scale)
+        self.image = pygame.transform.smoothscale(self.image, size)
+        self.rect.size = size'''
+
+    def _scale_image(self, image, scale):
+        size = image.get_rect().size
+        nsize = self.display.images.scaled_size(size, scale)
+        return pygame.transform.smoothscale(image,nsize)
+
+    def _rotate_image(self, image, rotation):
+        return pygame.transform.rotate(image, rotation)
+
+    '''def _scale_rotated(self):
+        """Scales the image to the bzobject's rotated size."""
+        rot = self.bzobject.rot
+        w, h = self.object_size()
+        new_w = abs(w * math.cos(rot)) + abs(h * math.sin(rot))
+        new_h = abs(h * math.cos(rot)) + abs(w * math.sin(rot))
+        size = self.display.images.scaled_size((new_w, new_h), self.scale)
+
+        self.image = pygame.transform.smoothscale(self.image, size)
+        self.rect.size = size'''
+
 class Display(graphics.Display):
     _imagecache = ImageCache
+    _spriteclass = BZSprite
     def setup(self):
         """Initializes pygame and creates the screen surface."""
         pygame.init()
@@ -41,8 +88,13 @@ class Display(graphics.Display):
         bg = self.background()
         self.screen.blit(bg, (0, 0))
         pygame.display.update()
-        self.sprites = pygame.sprite.RenderUpdates()
-        #self.sprites.add(self.log)
+        self.sprites = pygame.sprite.LayeredUpdates()
+
+    def add_sprite(self, sprite, otype):
+        self.sprites.add(sprite,layer = ['base','tank','shot'].index(otype))
+
+    def remove_sprite(self, sprite):
+        self.sprites.remove(sprite)
 
     def update(self):
         """Updates the state of all sprites and redraws the screen."""
@@ -70,7 +122,7 @@ class Display(graphics.Display):
                 bg.blit(s.image, s.rect)
             for base in self.world.bases:
                 image = self.images.loadteam('base',base.color)
-                s = graphics.BZSprite(base, image, self)
+                s = self._spriteclass(base, image, self)
                 bg.blit(s.image, s.rect)
             self._background = bg
         return self._background

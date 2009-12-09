@@ -133,12 +133,13 @@ class Team(object):
         self.color = color
         self.map = map
         self.tanks = [Tank(self, i) for i in xrange(int(config.get(self.color+'_tanks',10)))]
-        self.tanks_radius = constants.TANKRADIUS * len(self.tanks) * 5
+        self.tanks_radius = constants.TANKRADIUS * len(self.tanks)
         self.base = base
         base.team = self
         self.flag = Flag(self)
         # get rid of?
         self.captured_flags = []
+        self.hoverbot = False
         ## what's with the noise?
         self.posnoise = config.get(self.color+'_posnoise',0)
         self.angnoise = config.get(self.color+'_angnoise',0)
@@ -217,7 +218,7 @@ class Team(object):
             value = 1
         elif value < -1:
             value = -1
-        self.tank(tankid).speed(value)
+        self.tank(tankid).setspeed(value)
 
     def angvel(self, tankid, value):
         '''set a tank's goal angular velocity'''
@@ -225,7 +226,7 @@ class Team(object):
             value = 1
         elif value < -1:
             value = -1
-        self.tank(tankid).angvel(value)
+        self.tank(tankid).setangvel(value)
 
 ## TODO: i don't like constants. especially ALL_CAPS
 
@@ -249,11 +250,11 @@ class Tank(object):
         self.dead_timer = -1
         self.flag = None
 
-    def speed(self, speed):
+    def setspeed(self, speed):
         '''set the goal speed'''
         self.goal_speed = speed
 
-    def angvel(self, angvel):
+    def setangvel(self, angvel):
         '''set the goal angular velocity'''
         self.goal_angvel = angvel
 
@@ -262,7 +263,9 @@ class Tank(object):
         if self.reloadtimer > 0 or \
                 len(self.shots) == self.team.map.maximum_shots:
             return False
-        self.shots.insert(0, Shot(self))
+        shot = Shot(self)
+        self.shots.insert(0, shot)
+        self.team.map.inbox.append(shot)
         self.reloadtimer = constants.RELOADTIME
 
     def kill(self):
@@ -270,7 +273,7 @@ class Tank(object):
         self.team.map.trash.append(self)
         self.status = constants.TANKDEAD
         self.dead_timer = self.team.map.respawn_time
-        self.team.addScore(self)
+        self.team.score.tank_died(self)
         if self.flag:
             self.team.map.returnFlag(self.flag)
             self.flag = None
@@ -289,18 +292,18 @@ class Tank(object):
         if self.reloadtimer > 0:
             self.reloadtimer -= dt
 
-        self.update_goals()
-        self.rot += self.angvel
+        self.update_goals(dt)
+        self.rot += self.angvel * constants.TANKANGVEL * dt
         dx,dy = self.velocity()
-        self.pos[0] += dx
-        self.pos[1] += dy
+        self.pos[0] += dx*dt
+        self.pos[1] += dy*dt
 
-    def update_goals(self):
+    def update_goals(self, dt):
         '''update the velocities to match the goals'''
         if self.speed < self.goal_speed:
             self.speed += constants.LINEARACCEL * dt
             if self.speed > self.goal_speed:
-                self.speed = sefl.goal_speed
+                self.speed = self.goal_speed
         elif self.speed > self.goal_speed:
             self.speed -= constants.LINEARACCEL * dt
             if self.speed < self.goal_speed:
@@ -326,20 +329,21 @@ class Shot(object):
     contains the logic for a shot on the map'''
     def __init__(self, tank):
         self.tank = tank
-        self.color = self.tank.team.color
+        self.team = tank.team
         self.rot = self.tank.rot
         self.distance = 0
-        self.pos = tank.pos
+        self.pos = tank.pos[:]
 
         speed = constants.SHOTSPEED + tank.speed
         self.vel = (speed * math.cos(self.rot), speed * math.sin(self.rot))
 
         self.status = constants.SHOTALIVE
 
-    def update(self, mapper, dt):
+    def update(self, dt):
         '''move the shot'''
-        self.pos[0] += self.vel[0]
-        self.pos[1] += self.vel[1]
+        self.distance += math.hypot(self.vel[0]*dt, self.vel[1]*dt)
+        self.pos[0] += self.vel[0]*dt
+        self.pos[1] += self.vel[1]*dt
         if self.distance > constants.SHOTRANGE:
             self.kill()
         # handle collide
@@ -347,7 +351,7 @@ class Shot(object):
     def kill(self):
         '''remove the shot from the map'''
         self.status = constants.SHOTDEAD
-        mapper.trash.append(self)
+        self.tank.team.map.trash.append(self)
         self.tank.shots.remove(self)
 
 class Flag(object):
@@ -369,7 +373,7 @@ class Flag(object):
             self.pos = self.tank.pos
         # handle collide
 
-def rotate_around(p1, p2, angle, scale = 1.0):
+def rotate_scale(p1, p2, angle, scale = 1.0):
     '''rotate p1 around p2 with an angle of angle'''
     theta = math.atan2(p1[1] - p2[1], p1[0] - p2[0])
     dst = math.hypot(p1[0]-p2[0], p1[1]-p2[1]) * scale
@@ -387,7 +391,7 @@ def convertBoxtoPoly(center, size, rotation = 0):
 def scale_rotate_poly(points, scale, rotation):
     center = polygon_center(points)
     for point in points:
-        yield rotate_around(point, (cx,cy), rotation, scale)
+        yield rotate_scale(point, (cx,cy), rotation, scale)
 
 def polygon_center(points):
     points = tuple(points)
@@ -427,10 +431,30 @@ class Box(Obstacle):
         self.radius = math.hypot(*item.size)
         self.shape = scale_rotate_poly((convertBoxtoPoly(item.pos,item.size,item.rot)), 1, item.rot)
 
-
 class Score(object):
+    '''Score object: keeps track of a team's score'''
     def __init__(self, team):
-        pass
+        self.team = team
+        self.value = 0
 
-    def update(self):
-        pass
+    def tank_died(self, tank):
+        if tank.flag:
+            distance_to = collide.dist(self.team.base.center,tank.flag.team.base.center)
+            distance_back = collide.dist(tank.pos,self.team.base.center)
+            self.setValue(distance_to + distance_back)
+        else:
+            closest = None
+            for team in self.team.map.teams:
+                if team is self.team:continue
+                dst = collide.dist(tank.pos, team.base.center)
+                if closest is None or dst < closest[0]:
+                    closest = dst, team.base
+            if not closest:
+                return False
+            distance_to = collide.dist(self.team.base.center,closest[1].base.center)
+            self.setValue(distance_to - collide.dist(tank.pos, closest[1].base.center))
+
+    def setValue(self,value):
+        if value>self.value:
+            self.value = value
+

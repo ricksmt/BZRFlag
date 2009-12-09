@@ -93,15 +93,92 @@ class ImageCache(object):
         """Creates a surface of the given size tiled with the given surface."""
         raise Exception,'override this method'
 
+
+class BZSprite(pygame.sprite.Sprite):
+    """Determines how a single object in the game will be drawn.
+
+    The sprite manager uses the sprite's `image` and `rect` attributes to draw
+    it.
+    """
+
+    def __init__(self, bzobject, image, display, scale=None):
+        super(BZSprite, self).__init__()
+
+        self.bzobject = bzobject
+        self.display = display
+        self.orig_image = image
+        self.image = None
+        self.scale = scale
+
+        self.rect = image.get_rect()
+        self.prev_rot = None
+        self.prev_scale = None
+
+        self.update(True)
+
+    def object_size(self):
+        """Finds the screen size of the original unrotated bzobject."""
+        return self.display.size_world_to_screen(self.bzobject.size)
+
+    def _translate(self):
+        """Translates the image to the bzobject's position."""
+
+        self.rect.center = self.display.pos_world_to_screen(self.bzobject.pos)
+
+    def _render_image(self, image, scale):
+        raise Exception,'_scale_image must be overridden'
+
+    def update(self, force=False):
+        """Overrideable function for creating the image.
+
+        If force is specified, the image should be redrawn even if the
+        bzobject doesn't appear to have changed.
+        """
+        rot = self.bzobject.rot
+
+        '''if force or (rot != self.prev_rot):
+            self.prev_rot = rot
+            self.image = self.orig_image
+            if rot:
+                self._rotate()
+                self._scale_rotated()
+            else:
+                self._scale_prerotated()'''
+        self._render_image()
+        self.rect = self.image.get_rect()
+        self._translate()
+
+
+class TiledBZSprite(BZSprite):
+    """A BZSprite with a tiled image."""
+
+    def update(self, force=False):
+        rot = self.bzobject.rot
+
+        if force or (rot != self.prev_rot):
+            self.prev_rot = rot
+            self.image = self.orig_image
+            size = self.display.images.scaled_size(self.object_size(), self.scale)
+            self.image = self.display.images.tile(self.image, size)
+            self.rect.size = size
+            #if rot:
+            #    self._rotate()
+
+        self._translate()
+
+
 class Display(object):
     """Manages all graphics."""
     _imagecache = ImageCache
+    _spriteclass = BZSprite
     def __init__(self, game, screen_size=(700,700)):
         self.game = game
         self.world = game.config.world
         self.screen_size = screen_size
         self.images = self._imagecache()
         self._background = None
+        self.spritemap = {}
+        self.scale = .1
 
     def setup(self):
         """Initializes and creates the screen surface."""
@@ -165,102 +242,15 @@ class Display(object):
         #print 'adding',otype,'at pos',obj.pos,'translated to',self.pos_world_to_screen(obj.pos)
         #print self.world.size,self.screen_size
         image = self.images.loadteam(otype, obj.team.color)
-        sprite = BZSprite(obj, image, self, 1)
+        sprite = self._spriteclass(obj, image, self, 1)
         self.add_sprite(sprite, otype)
+        self.spritemap[obj] = sprite
+
+    def remove_object(self, obj):
+        self.remove_sprite(self.spritemap[obj])
 
     def add_sprite(self,sprite,otype):
-        pass
+        raise Exception,'add_sprite must be overridden'
 
-class BZSprite(pygame.sprite.Sprite):
-    """Determines how a single object in the game will be drawn.
-
-    The sprite manager uses the sprite's `image` and `rect` attributes to draw
-    it.
-    """
-
-    def __init__(self, bzobject, image, display, scale=None):
-        super(BZSprite, self).__init__()
-
-        self.bzobject = bzobject
-        self.display = display
-        self.orig_image = image
-        self.image = None
-        self.scale = scale
-
-        self.rect = image.get_rect()
-        self.prev_rot = None
-
-        self.update(True)
-
-    def object_size(self):
-        """Finds the screen size of the original unrotated bzobject."""
-        return self.display.size_world_to_screen(self.bzobject.size)
-
-    def _rotate(self):
-        """Rotates the image according to the bzobject.
-
-        Don't rotate a previously rotated object.  That causes data loss.
-        """
-        rot = 360 * self.bzobject.rot / (2 * math.pi)
-        self.image = pygame.transform.rotate(self.image, rot)
-        self.rect.size = self.image.get_size()
-
-    def _scale_prerotated(self):
-        """Scales the image to the bzobject's prerotated size."""
-        size = self.display.images.scaled_size(self.object_size(), self.scale)
-        self.image = pygame.transform.smoothscale(self.image, size)
-        self.rect.size = size
-
-    def _scale_rotated(self):
-        """Scales the image to the bzobject's rotated size."""
-        rot = self.bzobject.rot
-        w, h = self.object_size()
-        new_w = abs(w * math.cos(rot)) + abs(h * math.sin(rot))
-        new_h = abs(h * math.cos(rot)) + abs(w * math.sin(rot))
-        size = self.display.images.scaled_size((new_w, new_h), self.scale)
-
-        self.image = pygame.transform.smoothscale(self.image, size)
-        self.rect.size = size
-
-    def _translate(self):
-        """Translates the image to the bzobject's position."""
-
-        self.rect.center = self.display.pos_world_to_screen(self.bzobject.pos)
-
-    def update(self, force=False):
-        """Overrideable function for creating the image.
-
-        If force is specified, the image should be redrawn even if the
-        bzobject doesn't appear to have changed.
-        """
-        rot = self.bzobject.rot
-
-        if force or (rot != self.prev_rot):
-            self.prev_rot = rot
-            self.image = self.orig_image
-            if rot:
-                self._rotate()
-                self._scale_rotated()
-            else:
-                self._scale_prerotated()
-        self.image = self.orig_image
-        self.rect = self.image.get_rect()
-        self._translate()
-
-
-class TiledBZSprite(BZSprite):
-    """A BZSprite with a tiled image."""
-
-    def update(self, force=False):
-        rot = self.bzobject.rot
-
-        if force or (rot != self.prev_rot):
-            self.prev_rot = rot
-            self.image = self.orig_image
-            size = self.display.images.scaled_size(self.object_size(), self.scale)
-            self.image = self.display.images.tile(self.image, size)
-            self.rect.size = size
-            if rot:
-                self._rotate()
-
-        self._translate()
+    def remove_sprite(self, sprite):
+        raise Exception,'remove_sprite must be overridden'
