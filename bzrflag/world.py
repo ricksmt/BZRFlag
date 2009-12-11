@@ -11,6 +11,7 @@ information about the file format (but note that their BNF is incomplete).
 from __future__ import division
 
 import logging
+import constants
 logger = logging.getLogger('world')
 
 WIDTH = HEIGHT = 800
@@ -71,7 +72,7 @@ class Base(object):
     """a BZFlag Base. one per team"""
     def __init__(self, color=None, pos=None, position=None, rot=None,
             rotation=None, size=None):
-        self.color = color
+        self.color = constants.COLORNAME[color]
         self.pos = pos or position
         self.rot = rot or rotation
         if self.rot:

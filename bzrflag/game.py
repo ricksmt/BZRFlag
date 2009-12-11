@@ -4,6 +4,7 @@ import random
 import datetime
 
 import constants
+import config
 
 class Game:
     '''Game object:
@@ -12,10 +13,9 @@ class Game:
         input => :class:(input.Input)
         display => :class:(display.Display)
     contains the main loop'''
-    def __init__(self, config, displayclass, inputclass):
-        self.config = config
+    def __init__(self, displayclass, inputclass):
         self.display = displayclass(self)
-        self.map = Map(self, config)
+        self.map = Map(self)
         self.input = inputclass(self)
         self.running = False
         self.gameover = False
@@ -56,9 +56,9 @@ class Game:
             self.display.update()
 
 class Map(object):
-    """manages the map data. takes a config object and populates
+    """manages the map data. populates
     the current map with bases, obstacles, teams and tanks."""
-    def __init__(self, game, config):
+    def __init__(self, game):
         self.game = game
 
         self.end_game = False
@@ -68,37 +68,29 @@ class Map(object):
 
         # attrs ::fix these -- are they all needed? they should be
         #       defined somewhere else::
-        self.respawn_time = 10
-        self.range = constants.SHOTRANGE
-        self.grab_own_flag = False
-        self.friendly_fire = False
-        self.hoverbot = 0
         # defaults for customizable values
-        world_diagonal = constants.WORLDSIZE * math.sqrt(2.0)
-        max_bullet_life = constants.WORLDSIZE / constants.SHOTSPEED
-        self.maximum_shots = int(max_bullet_life / constants.RELOADTIME)
+
+        # is maximum_shots
+        #world_diagonal = constants.WORLDSIZE * math.sqrt(2.0)
+        #max_bullet_life = constants.WORLDSIZE / constants.SHOTSPEED
+        #self.maximum_shots = int(max_bullet_life / constants.RELOADTIME)
         self.timespent = 0.0
-        self.timelimit = 300000.0
+        ## these should be set
         self.inertia_linear = 1
         self.inertia_angular = 1
-        self.tank_angvel = constants.TANKANGVEL
 
         # track objects on map
-        self.obstacles = [Obstacle(item) for item in config.world.boxes]
-        self.bases = dict((item.color, Base(item)) for item in config.world.bases)
+        self.obstacles = [Box(item) for item in config.config.world.boxes]
+        self.bases = dict((item.color, Base(item)) for item in config.config.world.bases)
 
         self.teams = {}
         for color,base in self.bases.items():
-            self.teams[color] = Team(self, color, base, config)
-        ## why is max_tanks important?
-        self.max_tanks = 0.0
-        for team in self.teams.values():
-            self.max_tanks = float(max(len(team.tanks), self.max_tanks))
+            self.teams[color] = Team(self, color, base)
 
     def update(self, dt):
         '''update the teams'''
         self.timespent += dt
-        if self.timespent > self.timelimit:
+        if self.timespent > config.config['time_limit']:
             self.end_game = True
             return
         for team in self.teams.values():
@@ -129,21 +121,19 @@ class Map(object):
 class Team(object):
     '''Team object:
     manages a BZRFlag team -- w/ a base, a flag, a score, and tanks.'''
-    def __init__(self, map, color, base, config):
+    def __init__(self, map, color, base):
         self.color = color
         self.map = map
-        self.tanks = [Tank(self, i) for i in xrange(int(config.get(self.color+'_tanks',10)))]
-        self.tanks_radius = constants.TANKRADIUS * len(self.tanks)
+        self.tanks = [Tank(self, i) for i in xrange(config.config[self.color+'_tanks'])]
+        self.tanks_radius = constants.TANKRADIUS * len(self.tanks) / 2
         self.base = base
         base.team = self
         self.flag = Flag(self)
         # get rid of?
         self.captured_flags = []
-        self.hoverbot = False
-        ## what's with the noise?
-        self.posnoise = config.get(self.color+'_posnoise',0)
-        self.angnoise = config.get(self.color+'_angnoise',0)
-        self.velnoise = config.get(self.color+'_velnoise',0)
+        self.posnoise = config.config[self.color+'_posnoise']
+        self.angnoise = config.config[self.color+'_angnoise']
+        self.velnoise = config.config[self.color+'_velnoise']
         self.score = Score(self)
         self._obstacles = []
         self.map.inbox.append(self.base)
@@ -192,10 +182,6 @@ class Team(object):
         dist = random.uniform(0,1) * self.tanks_radius
         return [self.base.center[0] + dist*math.cos(angle), self.base.center[1] + dist*math.sin(angle)]
 
-    def addScore(self, tank):
-        '''calculates a tank's score at the time of death'''
-        raise Exception,'addScore not yet implemented'
-
     def update(self, dt):
         '''update the tanks and flag'''
         for tank in self.tanks:
@@ -228,8 +214,6 @@ class Team(object):
             value = -1
         self.tank(tankid).setangvel(value)
 
-## TODO: i don't like constants. especially ALL_CAPS
-
 class Tank(object):
     size = (constants.TANKRADIUS,) * 2
 ## internally complete
@@ -261,7 +245,7 @@ class Tank(object):
     def shoot(self):
         '''tell the tank to shoot'''
         if self.reloadtimer > 0 or \
-                len(self.shots) == self.team.map.maximum_shots:
+                len(self.shots) >= config.config['max_shots']:
             return False
         shot = Shot(self)
         self.shots.insert(0, shot)
@@ -272,8 +256,9 @@ class Tank(object):
         '''destroy the tank'''
         self.team.map.trash.append(self)
         self.status = constants.TANKDEAD
-        self.dead_timer = self.team.map.respawn_time
+        self.dead_timer = config.config['respawn_time']
         self.team.score.tank_died(self)
+        ## check ## self.pos = constants.DEADZONE
         if self.flag:
             self.team.map.returnFlag(self.flag)
             self.flag = None
@@ -399,7 +384,6 @@ def polygon_center(points):
     cy = sum(p[1] for p in points)/len(points)
     return cx,cy
 
-
 class Base(object):
     '''Base object:
     contains the logic & data for a team's Base on a map'''
@@ -416,7 +400,7 @@ class Obstacle(object):
     '''Obstacle object:
     contains the logic and data for an obstacle on the map'''
     def __init__(self, item):
-        self.center = item.pos.asList()
+        self.center = self.pos = item.pos.asList()
         self.shape = ()
         self.rot = item.rot
         self.radius = 0
@@ -426,10 +410,11 @@ class Obstacle(object):
 
 class Box(Obstacle):
     '''a Box Obstacle'''
-    def __init__(self, object):
-        Obstacle.__init__(self, object)
+    def __init__(self, item):
+        Obstacle.__init__(self, item)
         self.radius = math.hypot(*item.size)
         self.shape = scale_rotate_poly((convertBoxtoPoly(item.pos,item.size,item.rot)), 1, item.rot)
+        self.size = item.size
 
 class Score(object):
     '''Score object: keeps track of a team's score'''

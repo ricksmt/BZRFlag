@@ -42,6 +42,9 @@ class Server(asyncore.dispatcher):
             Handler(sock, self.team, self.handle_closed_handler)
             self.sock = sock
 
+    def get_port(self):
+        return self.socket.getsockname()[1]
+
     def handle_closed_handler(self):
         self.in_use = False
 
@@ -72,8 +75,6 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         self.close()
 
     def collect_incoming_data(self, chunk):
-        #print chunk
-        #self.team.mapper.world.display.log.log(self.input_buffer)
         if self.input_buffer:
             self.input_buffer += chunk
         else:
@@ -85,7 +86,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         Note that Asynchat ensures that our input buffer contains everything
         up to but not including the newline character.
         """
-        self.team.mapper.world.display.log.log(self.team.colorname + ': ' + self.input_buffer)
+        #self.team.map.world.display.log.log(self.team.colorname + ': ' + self.input_buffer)
         args = self.input_buffer.split()
         self.input_buffer = ''
         if args:
@@ -95,7 +96,11 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
                 except AttributeError:
                     self.push('fail Invalid command\n')
                     return
-                command(args)
+                try:
+                    command(args)
+                except Exception, e:
+                    self.push('fail '+str(e)+'\n')
+                    return
             elif args == ['agent', '1']:
                 self.established = True
             else:
@@ -233,13 +238,8 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             return
         self.ack(command)
         self.push('begin\n')
-        for team in self.team.mapper.teams:
-            color = team.color_name()
-            # TODO: javariffic?
-            playercount = 0
-            for tank in team.tanks:
-                playercount = playercount + 1
-            self.push('team %s %s\n' % (color, playercount))
+        for color,team in self.team.map.teams.items():
+            self.push('team %s %d\n'%(color, len(team.tanks)))
         self.push('end\n')
 
     def bzrc_obstacles(self, args):
@@ -258,11 +258,10 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             return
         self.ack(command)
         self.push('begin\n')
-        for obstacle in self.team.mapper.obstacles:
+        for obstacle in self.team.map.obstacles:
             self.push('obstacle')
-            for corner in obstacle.corners:
-                x, y = corner
-                self.push(' %s %s' % (x, y))
+            for point in obstacle.shape:
+                self.push(' %s %s' % tuple(point))
             self.push('\n')
         self.push('end\n')
 
@@ -282,11 +281,10 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             return
         self.ack(command)
         self.push('begin\n')
-        for base in self.team.mapper.bases:
-            self.push('base %s' % constants.COLORNAME[base.color])
-            for corner in base.corners:
-                x, y = corner
-                self.push(' %s %s' % (x, y))
+        for color,base in self.team.map.bases.items():
+            self.push('base %s' % color)
+            for point in base.shape:
+                self.push(' %s %s' % tuple(point))
             self.push('\n')
         self.push('end\n')
 
@@ -309,13 +307,12 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             return
         self.ack(command)
         self.push('begin\n')
-        for flag in self.team.mapper.iter_flags():
-            x, y = flag.pos
-            color = constants.COLORNAME[flag.color]
+        for color,team in self.team.map.teams.items():
             possess = "none"
+            flag = team.flag
             if flag.tank is not None:
-                possess = constants.COLORNAME[flag.tank.color]
-            self.push('flag %s %s %s %s\n' % (color, possess, x, y))
+                possess = flag.tank.color
+            self.push('flag %s %s %s %s\n' % ((color, possess)+tuple(flag.pos)))
         self.push('end\n')
 
     def bzrc_shots(self, args):
@@ -334,7 +331,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             return
         self.ack(command)
         self.push('begin\n')
-        for shot in self.team.mapper.iter_shots():
+        for shot in self.team.map.shots():
             x, y = shot.pos
             vx, vy = shot.vel
             self.push('shot %s %s %s %s\n' % (x, y, vx, vy))
@@ -366,36 +363,20 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         self.push('begin\n')
         for i in xrange (len(self.team.tanks)):
             tank = self.team.tanks[i]
-            index = i
-            callsign = tank.callsign
-            status = tank.status
-            shotsleft = self.team.mapper.maximum_shots - len(tank.shots)
-            reloadtime = constants.RELOADTIME - tank.reloadtime
-            # no negative reload time
-            if reloadtime < 0:
-                reloadtime = 0.0
-            flag = None
-            if tank.flag != None:
-                flag = constants.COLORNAME[tank.flag.color]
-            else:
-                flag = '-'
-            x, y = tank.pos
-            #if not isinstance(x, float):
-            #    print 'x is not float: %s' % x
-            angle = tank.rot
-            if abs(angle) > math.pi:
-                pi_units = 0
-                while abs(angle) > math.pi:
-                    pi_units = pi_units + 1
-                    angle = abs(angle) - math.pi
-                if pi_units % 2 == 1:
-                    angle = math.pi - angle
-                    angle = angle * -1
-            vx, vy = tank.vel
-            angvel = tank.angvel
-            self.push('mytank %s %s %s ' % (index, callsign, status))
-            self.push('%s %s %s ' % (shotsleft, reloadtime, flag))
-            self.push('%s %s %s %s %s %s\n' % (x, y, angle, vx, vy, angvel))
+            data = {'id':i}
+            data['callsign'] = tank.callsign
+            data['status'] = tank.status
+            data['shots_avail'] = 10-len(tank.shots)
+            data['reload'] = tank.reloadtimer
+            data['flag'] = tank.flag and tank.flag.team.color or '-'
+            data['x'],data['y'] = tank.pos
+            data['angle'] = tank.rot
+            data['vx'],data['vy'] = tank.velocity()
+            data['angvel'] = tank.angvel
+
+            self.push("mytank %(id)s %(callsign)s %(status)s %(shots_avail)s\
+ %(reload)s %(flag)s %(x)s %(y)s %(angle)s %(vx)s %(vy)s %(angvel)s\n"%data)
+
         self.push('end\n')
 
     def bzrc_othertanks(self, args):
@@ -404,7 +385,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         controlled by this connection.
 
         The response is a list of tanks:
-            othertank [callsign] [color] [flag] [x] [y] [angle]
+            othertank [callsign] [color] [status] [flag] [x] [y] [angle]
         where callsign, status, flag, x, y, and angle are as described under
         mytanks and color is the name of the team color.
         """
@@ -415,11 +396,26 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             return
         self.ack(command)
         self.push('begin\n')
-        for team in self.team.mapper.teams:
-            if team.color == self.team.color:
-                continue
+        for color,team in self.team.map.teams.items():
+            if team == self.team:continue
             for tank in team.tanks:
-                callsign = tank.callsign
+                data = {'color':color}
+                data['callsign'] = tank.callsign
+                data['status'] = tank.status
+                data['shots_avail'] = 10-len(tank.shots)
+                data['reload'] = tank.reloadtimer
+                data['flag'] = tank.flag and tank.flag.team.color or '-'
+                data['x'],data['y'] = tank.pos
+                data['angle'] = tank.rot
+                data['vx'],data['vy'] = tank.velocity()
+                data['angvel'] = tank.angvel
+
+                self.push("othertank %(callsign)s %(color)s %(status)s %(flag)s %(x)s \
+%(y)s %(angle)s\n"%data)
+
+                ## TODO: implement noise
+
+                '''callsign = tank.callsign
                 color = constants.COLORNAME[tank.color]
                 status = tank.status
                 flag = None
@@ -441,7 +437,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
                         angle = math.pi - angle
                         angle = angle * -1
                 self.push('othertank %s %s %s ' % (callsign, color, status))
-                self.push('%s %s %s %s\n' % (flag, x, y, angle))
+                self.push('%s %s %s %s\n' % (flag, x, y, angle))'''
         self.push('end\n')
 
     def bzrc_constants(self, args):
@@ -464,9 +460,9 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         self.ack(command)
         ## is this the best way to do this? hard coding it in?
         self.push('begin\n')
-        self.push('constant team %s\n' % (constants.COLORNAME[self.team.color]))
+        self.push('constant team %s\n' % (self.team.color))
         self.push('constant worldsize %s\n' % (constants.WORLDSIZE))
-        self.push('constant hoverbot %s\n' % (self.team.mapper.hoverbot))
+        self.push('constant hoverbot %s\n' % (self.team.map.hoverbot))
         self.push('constant tankangvel %s\n' % (constants.TANKANGVEL))
         self.push('constant tanklength %s\n' % (constants.TANKLENGTH))
         self.push('constant tankradius %s\n' % (constants.TANKRADIUS))
@@ -493,22 +489,23 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
 
         Notice that a team generates no score when compared against itself.
         """
-        try:
+        self.push('fail not implemented\n')
+        '''try:
             command, = args
         except ValueError, TypeError:
             self.invalid_args(args)
             return
         self.ack(command)
         self.push('begin\n')
-        for team in self.team.mapper.teams:
+        for team in self.team.map.teams:
             self.push('\t%s' % (constants.COLORNAME[team.color]))
         self.push('\n')
-        for team in self.team.mapper.teams:
+        for team in self.team.map.teams:
             self.push('%s' % (constants.COLORNAME[team.color]))
             for score in team.iter_ctf_scores():
                 self.push('\t%s' % (score))
             self.push('\n')
-        self.push('end\n')
+        self.push('end\n')'''
 
     def bzrc_timer(self, args):
         """timer
@@ -526,8 +523,8 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             self.invalid_args(args)
             return
         self.ack(command)
-        timespent = self.team.mapper.timespent
-        timelimit = self.team.mapper.timelimit
+        timespent = self.team.map.timespent
+        timelimit = self.team.map.timelimit
         self.push('timer %s %s\n' % (timespent, timelimit))
 
     def bzrc_quit(self, args):
@@ -553,20 +550,20 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         except ValueError, TypeError:
             self.invalid_args(args)
             return
-        for team in self.team.mapper.teams:
+        for team in self.team.map.teams.values():
             for i in xrange(0, len(team.tanks)):
                 team.shoot(i)
 
     def bzrc_hammertime(self, args):
         """hammertime
-        All tanks shoot (cheat).
+        All tanks move (cheat).
         """
         try:
             command, = args
         except ValueError, TypeError:
             self.invalid_args(args)
             return
-        for team in self.team.mapper.teams:
+        for team in self.team.map.teams.values():
             for tank in team.tanks:
                 tank.givenspeed = random.uniform(-1, 1)
                 tank.angvel = random.uniform(-1, 1)

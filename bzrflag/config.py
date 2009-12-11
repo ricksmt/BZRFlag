@@ -10,10 +10,16 @@ class ArgumentError(Exception):pass
 import logging
 logger = logging.getLogger("config.py")
 
+config = None
+
 class Config:
     '''Config class:
     parses command line options and the --config file if given'''
     def __init__(self):
+        global config
+        if config is not None:
+            raise Exception,"there should only be one config instance"
+        config = self
         self.options = self.parse_cli_args()
         self.setup_world()
         #logger.debug("Options:\n"+"\n".join("%s :: %s"%(k,v) for k,v in self.options.items()))
@@ -64,7 +70,7 @@ class Config:
         ## tank behavior
         p.add_option('--max-shots',
             type='int',
-            dest='max_shots',
+            dest='max_shots',default=20,
             help='set the max shots')
         p.add_option('--inertia-linear',
             dest='inertia_linear',
@@ -90,22 +96,38 @@ class Config:
             action='store_false',
             dest='grab_own_flag',
             help='can you grab your own flag')
+        p.add_option('--friendly-fire',
+            action='store_false',
+            dest='friendly_fire',
+            help='allow friendly fire')
+        p.add_option('--respawn-time',
+            type='int',default=10,
+            dest='respawn_time',
+            help='set the respawn time')
+        p.add_option('--hoverbot',
+            action='store_false',
+            dest='hoverbot',
+            help='allow hoverbots')
+        p.add_option('--time-limit',
+            type='int',default=300000,
+            dest='time_limit',
+            help='set the time limit')
 
         for color in ['red','green','blue','purple']:
             p.add_option('--%s-port'%color,
-                dest='%s_port'%color,type='int',
+                dest='%s_port'%color,type='int',default=0,
                 help='specify the port for the %s team'%color)
             p.add_option('--%s-tanks'%color,
-                dest='%s_tanks'%color,type='int',
+                dest='%s_tanks'%color,type='int',default=10,
                 help='specify the number of tanks for the %s team'%color)
             p.add_option('--%s-posnoise'%color,
-                dest='%s_posnoise'%color,
+                dest='%s_posnoise'%color,default=0,
                 help='specify the posnoise for the %s team'%color)
             p.add_option('--%s-velnoise'%color,
-                dest='%s_velnoise'%color,
+                dest='%s_velnoise'%color,default=0,
                 help='specify the velnoise for the %s team'%color)
             p.add_option('--%s-angnoise'%color,
-                dest='%s_angnoise'%color,
+                dest='%s_angnoise'%color,default=0,
                 help='specify the angnoise for the %s team'%color)
 
         opts, args = p.parse_args()
@@ -132,3 +154,5 @@ class Config:
         if args:
             p.parse_error('No positional arguments are allowed.')
         return vars(opts)
+
+

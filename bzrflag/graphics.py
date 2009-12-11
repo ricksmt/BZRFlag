@@ -10,6 +10,7 @@ NOTE:
 import math
 import pygame
 import constants
+import config
 from world import Base, Box
 from game import Tank, Shot, Flag, Base
 
@@ -101,14 +102,14 @@ class BZSprite(pygame.sprite.Sprite):
     it.
     """
 
-    def __init__(self, bzobject, image, display, scale=None):
+    def __init__(self, bzobject, image, display, otype=None):
         super(BZSprite, self).__init__()
 
         self.bzobject = bzobject
         self.display = display
         self.orig_image = image
         self.image = None
-        self.scale = scale
+        self.type = otype
 
         self.rect = image.get_rect()
         self.prev_rot = None
@@ -151,20 +152,20 @@ class BZSprite(pygame.sprite.Sprite):
 
 class TiledBZSprite(BZSprite):
     """A BZSprite with a tiled image."""
-
+'''
     def update(self, force=False):
         rot = self.bzobject.rot
 
         if force or (rot != self.prev_rot):
             self.prev_rot = rot
             self.image = self.orig_image
-            size = self.display.images.scaled_size(self.object_size(), self.scale)
+            size = self.display.images.scaled_size(self.object_size(), 1)
             self.image = self.display.images.tile(self.image, size)
             self.rect.size = size
             #if rot:
             #    self._rotate()
 
-        self._translate()
+        self._translate()'''
 
 
 class Display(object):
@@ -173,12 +174,13 @@ class Display(object):
     _spriteclass = BZSprite
     def __init__(self, game, screen_size=(700,700)):
         self.game = game
-        self.world = game.config.world
+        self.world = config.config.world
         self.screen_size = screen_size
         self.images = self._imagecache()
         self._background = None
         self.spritemap = {}
-        self.scale = .1
+        self.scale = 1
+        self.pos = [0,0]
 
     def setup(self):
         """Initializes and creates the screen surface."""
@@ -201,7 +203,8 @@ class Display(object):
         world_width, world_height = self.world.size
         x += world_width / 2
         y -= world_height / 2
-        return self.vec_world_to_screen((x, y))
+        x, y = self.vec_world_to_screen((x, y))
+        return x+self.pos[0], y+self.pos[1]
 
     def size_world_to_screen(self, size):
         """Converts sizes from BZFlag world space to screen space.
@@ -222,13 +225,17 @@ class Display(object):
         (100, -100)
         >>>
         """
-        screen_width, screen_height = self.screen_size
-        world_width, world_height = self.world.size
-        wscale = screen_width / float(world_width)
-        hscale = screen_height / float(world_height)
+        wscale,hscale = self.world_to_screen_scale()
 
         x, y = vector
         return int(round(x * wscale)), -int(round(y * hscale))
+
+    def world_to_screen_scale(self):
+        screen_width, screen_height = self.screen_size
+        world_width, world_height = self.world.size
+        wscale = screen_width / float(world_width) * self.scale
+        hscale = screen_height / float(world_height) * self.scale
+        return wscale, hscale
 
     def add_object(self, obj):
         types = (Tank, 'tank'),(Shot,'shot'),(Flag,'flag'),(Base,'base')
@@ -242,7 +249,7 @@ class Display(object):
         #print 'adding',otype,'at pos',obj.pos,'translated to',self.pos_world_to_screen(obj.pos)
         #print self.world.size,self.screen_size
         image = self.images.loadteam(otype, obj.team.color)
-        sprite = self._spriteclass(obj, image, self, 1)
+        sprite = self._spriteclass(obj, image, self, otype)
         self.add_sprite(sprite, otype)
         self.spritemap[obj] = sprite
 
