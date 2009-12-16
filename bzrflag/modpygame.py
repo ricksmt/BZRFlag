@@ -42,7 +42,7 @@ class BZSprite(graphics.BZSprite):
 
         image = self._rotate_image(self.orig_image, self.bzobject.rot * 180/math.pi)
         if self.type == 'shot':
-            comp = 7
+            comp = 3
         else:
             comp = 1
         wscale = self.display.world_to_screen_scale()
@@ -135,6 +135,7 @@ class Display(graphics.Display):
         self.sprites.remove(sprite)
 
     def process_events(self):
+        dirty = False
         for e in pygame.event.get():
             self.console.event(e)
             if e.type == QUIT:
@@ -142,11 +143,15 @@ class Display(graphics.Display):
                 self.game.map.end_game = True
             elif e.type == MOUSEBUTTONDOWN:
                 if e.button == 4:
+                    dirty = True
                     self.rescale(self.scale*1.1, e.pos)
                 elif e.button == 5:
                     self.rescale(self.scale*(1/1.1), e.pos)
+                    dirty = True
             elif e.type == KEYDOWN:
                 amt = 20
+                if not self.console.minimized:
+                    continue
                 if e.key == K_DOWN:
                     self.pos[1] -= amt
                 elif e.key == K_UP:
@@ -157,7 +162,14 @@ class Display(graphics.Display):
                     self.pos[0] -= amt
                 else:
                     continue
-                self.redraw()
+                dirty = True
+            elif e.type == MOUSEMOTION:
+                if e.buttons[0]:
+                    self.pos[0]+=e.rel[0]
+                    self.pos[1]+=e.rel[1]
+                    dirty = True
+        if dirty:
+            self.redraw()
 
     def rescale(self, scale, pos):
         if scale < 1:return False
@@ -172,7 +184,7 @@ class Display(graphics.Display):
 
         #self.pos[0] -= scale * pos[0] - oscale * pos[0]
         #self.pos[1] -= scale * pos[1] - oscale * pos[1]
-        self.redraw()
+        #self.redraw()
 
     def redraw(self):
         size = self._normal_background.get_rect().size
@@ -182,12 +194,16 @@ class Display(graphics.Display):
             self.pos[0] = self.screen_size[0] - size[0]*self.scale
         if self.pos[1]<self.screen_size[1] - size[1]*self.scale:
             self.pos[1] = self.screen_size[1] - size[1]*self.scale
-
+        ## problem: jerky background.
         tmp = pygame.Surface((size[0]/self.scale,size[1]/self.scale))
-        tmp.blit(self._normal_background, (self.pos[0]/self.scale, self.pos[1]/self.scale))
+        tmp.blit(self._normal_background, (self.pos[0]/self.scale-1, self.pos[1]/self.scale-1))
 
         self._background = pygame.transform.smoothscale(tmp, size)
         self.screen.blit(self._background,(0,0))
+        self.sprites.update()
+        for layer in self.sprites.layers():
+            for sprite in self.sprites.get_sprites_from_layer(layer):
+                self.screen.blit(sprite.image,sprite.rect)
         self.console.draw(self.screen)
         pygame.display.flip()
 
@@ -219,9 +235,9 @@ class Display(graphics.Display):
                 s.rect.h *= wscale[1]
 #                print s.rect
                 bg.blit(s.image, s.rect.topleft)
-            for base in self.world.bases:
+            '''for base in self.world.bases:
                 image = self.images.loadteam('base',base.color)
                 s = self._spriteclass(base, image, self)
-                bg.blit(s.image, s.rect)
+                bg.blit(s.image, s.rect)'''
             self._normal_background = self._background = bg
         return self._background

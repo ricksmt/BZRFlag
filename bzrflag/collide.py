@@ -229,6 +229,9 @@ def rect2line(rect,(p1,p2)):
 def rect2rect(rect1,rect2):
     return poly2poly(_rect2pts(rect1),_rect2pts(rect2))
 
+def rect2circle(rect,circle):
+    return poly2circle(_rect2pts(rect),circle) or rect2point(rect, circle[0])
+
 def _rect2pts((x,y,w,h)):
     '''won't test'''
     return (x,y),(x,y+h),(x+w,y+h),(x+w,y)
@@ -255,6 +258,8 @@ def poly2poly(pts1,pts2):
 
 def dist((x1,y1),(x2,y2)):
     return math.sqrt((x2-x1)**2+(y2-y1)**2)
+
+ditance = dist
 
 def dist_to_line((a,b),((x1,y1),(x2,y2))):
     if x2==x1:

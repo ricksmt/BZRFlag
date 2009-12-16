@@ -75,7 +75,7 @@ class Map(object):
         #max_bullet_life = constants.WORLDSIZE / constants.SHOTSPEED
         #self.maximum_shots = int(max_bullet_life / constants.RELOADTIME)
         self.timespent = 0.0
-        ## these should be set
+        ## these should be set elsewhere
         self.inertia_linear = 1
         self.inertia_angular = 1
 
@@ -95,6 +95,7 @@ class Map(object):
             return
         for team in self.teams.values():
             team.update(dt)
+        self.handle_collisions(dt)
 
     def tanks(self):
         '''iterate through all tanks on the map'''
@@ -116,6 +117,8 @@ class Map(object):
         calling this method, the object's new position and status (alive,
         dead, etc.) are set.
         """
+        collides = {}
+
 
 
 class Team(object):
@@ -215,7 +218,8 @@ class Team(object):
         self.tank(tankid).setangvel(value)
 
 class Tank(object):
-    size = (constants.TANKRADIUS,) * 2
+    size = (constants.TANKRADIUS*2,) * 2
+    radius = constants.TANKRADIUS
 ## internally complete
     '''Tank object:
     handles the logic for dealing with a tank in the game'''
@@ -263,8 +267,27 @@ class Tank(object):
             self.team.map.returnFlag(self.flag)
             self.flag = None
 
+    def collision_at(self, pos):
+        #return False
+        for obs in self.team.map.obstacles:
+            if collide.rect2circle(obs.rect, ((pos),constants.TANKRADIUS)):
+                return True
+        for tank in self.team.map.tanks():
+            if tank is self:continue
+            if collide.circle2circle((tank.pos, constants.TANKRADIUS),
+                                     (pos, constants.TANKRADIUS)):
+                #if tank.team != self.team:
+                #    self.
+                return True
+        if pos[0]<-config.config.world.size[0]/2 or\
+         pos[1]<-config.config.world.size[1]/2 or\
+         pos[0]>config.config.world.size[0]/2 or \
+         pos[1]>config.config.world.size[1]/2:
+            return True
+        return False
+
     def update(self, dt):
-        '''upodate the tank's position, status, velocities'''
+        '''update the tank's position, status, velocities'''
         if self.status == constants.TANKDEAD:
             self.dead_timer -= dt
             if self.dead_timer <= 0:
@@ -280,8 +303,9 @@ class Tank(object):
         self.update_goals(dt)
         self.rot += self.angvel * constants.TANKANGVEL * dt
         dx,dy = self.velocity()
-        self.pos[0] += dx*dt
-        self.pos[1] += dy*dt
+        if not self.collision_at((self.pos[0]+dx*dt, self.pos[1]+dy*dt)):
+            self.pos[0] += dx*dt
+            self.pos[1] += dy*dt
 
     def update_goals(self, dt):
         '''update the velocities to match the goals'''
@@ -309,7 +333,7 @@ class Tank(object):
             self.speed * math.sin(self.rot) * constants.TANKSPEED)
 
 class Shot(object):
-    size = (constants.SHOTRADIUS,) * 2
+    size = (constants.SHOTRADIUS*2,) * 2
     '''Shot object:
     contains the logic for a shot on the map'''
     def __init__(self, tank):
@@ -340,7 +364,7 @@ class Shot(object):
         self.tank.shots.remove(self)
 
 class Flag(object):
-    size = (constants.FLAGRADIUS,) * 2
+    size = (constants.FLAGRADIUS*2,) * 2
     '''Flag object:
     contains the logic for team flags on a map'''
     def __init__(self, team):
@@ -390,8 +414,8 @@ class Base(object):
     def __init__(self, item):
         self.color = item.color
         self.center = self.pos = item.pos.asList()
-        self.size = item.size.asList()
-        self.radius = math.sqrt(self.size[0]**2 + self.size[1]**2)
+        self.size = tuple(x*2 for x in item.size.asList())
+        self.radius = math.sqrt((self.size[0]/2)**2 + (self.size[1]/2)**2)
         poly = tuple(convertBoxtoPoly(item.pos,item.size))
         self.shape = scale_rotate_poly(poly, 1, item.rot)
         self.rot = item.rot
@@ -415,6 +439,7 @@ class Box(Obstacle):
         self.radius = math.hypot(*item.size)
         self.shape = scale_rotate_poly((convertBoxtoPoly(item.pos,item.size,item.rot)), 1, item.rot)
         self.size = item.size
+        self.rect = (item.pos.asList()+item.size.asList())
 
 class Score(object):
     '''Score object: keeps track of a team's score'''
