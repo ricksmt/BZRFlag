@@ -462,7 +462,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         self.push('begin\n')
         self.push('constant team %s\n' % (self.team.color))
         self.push('constant worldsize %s\n' % (constants.WORLDSIZE))
-        self.push('constant hoverbot %s\n' % (self.team.map.hoverbot))
+        self.push('constant hoverbot %s\n' % (0))
         self.push('constant tankangvel %s\n' % (constants.TANKANGVEL))
         self.push('constant tanklength %s\n' % (constants.TANKLENGTH))
         self.push('constant tankradius %s\n' % (constants.TANKRADIUS))

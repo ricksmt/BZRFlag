@@ -9,14 +9,18 @@ class Console:
     def __init__(self, game, rect):
         self.console = IC({'game':game,'sys':sys,'pygame':pygame,'self':self,'purple':game.map.teams['purple']})
         self.rect = pygame.Rect(rect)
+        self.minrect = pygame.Rect(self.rect.bottom-30,self.rect.right-30,30,30)
         self.image = pygame.Surface(self.rect.size)
         #self.image.set_alpha(100)
         self.dirty = True
         self.txt = ''
+        self.game = game
         self.font = pygame.font.Font(None,20)
         self.lineheight = 15
         self.history = []
+        self.minimized = True
         self.athistory = 0
+        self.bgc = (0,110,7)
         self.prompt()
 
     def write(self, text):
@@ -29,14 +33,22 @@ class Console:
 
     def render(self):
         if not self.dirty:return
-        self.image.fill((100,100,100))
+        self.image.fill(self.bgc)#006E0700))
         for i,line in enumerate(self.txt.split('\n')[-10:]):
-            self.image.blit(self.font.render(line,1,(0,0,0),(100,100,100)),(10,self.lineheight*i+10))
+            self.image.blit(self.font.render(line,1,(0,0,0),self.bgc),(10,self.lineheight*i+10))
+        nrect = pygame.Rect(self.minrect)
+        nrect.bottomright = self.rect.size
+        pygame.draw.rect(self.image, (255,255,255), nrect)
+        pygame.draw.rect(self.image, self.bgc, nrect.inflate(-6,-6))
         self.dirty = False
 
     def draw(self, screen):
-        self.render()
-        screen.blit(self.image, self.rect)
+        if self.minimized:
+            pygame.draw.rect(screen, (255,255,255), self.minrect)
+            pygame.draw.rect(screen, self.bgc, self.minrect.inflate(-6,-6))
+        else:
+            self.render()
+            screen.blit(self.image, self.rect)
 
     def execute(self):
         next = self.txt[self.index:]
@@ -62,6 +74,7 @@ class Console:
 
     def event(self, e):
         if e.type == KEYDOWN:
+            if self.minimized:return
             if e.key == 8:
                 if len(self.txt)>self.index:
                     self.txt = self.txt[:-1]
@@ -77,3 +90,8 @@ class Console:
                 self.txt += e.unicode
             else:return
             self.dirty = True
+        elif e.type == MOUSEBUTTONDOWN:
+            if self.minrect.collidepoint(e.pos):
+                self.minimized = not self.minimized
+                if self.minimized:
+                    self.game.display.redraw()

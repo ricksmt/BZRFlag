@@ -118,7 +118,9 @@ class Display(graphics.Display):
     def setup(self):
         """Initializes pygame and creates the screen surface."""
         pygame.init()
+        pygame.key.set_repeat(50,50)
         self.screen = pygame.display.set_mode(self.screen_size)
+        self._screen = pygame.Surface(self.screen_size)
         #self.log = LogSprite(self, (0, self.screen_size[1]-200, self.screen_size[0], 200))
         bg = self.background()
         self.screen.blit(bg, (0, 0))
@@ -145,7 +147,7 @@ class Display(graphics.Display):
                     self.rescale(self.scale*(1/1.1), e.pos)
             elif e.type == KEYDOWN:
                 amt = 20
-                '''if e.key == K_DOWN:
+                if e.key == K_DOWN:
                     self.pos[1] -= amt
                 elif e.key == K_UP:
                     self.pos[1] += amt
@@ -155,15 +157,21 @@ class Display(graphics.Display):
                     self.pos[0] -= amt
                 else:
                     continue
-                self.redraw()'''
+                self.redraw()
 
     def rescale(self, scale, pos):
         if scale < 1:return False
         oscale = self.scale
         self.scale = scale
 
-        self.pos[0] -= scale * pos[0] - oscale * pos[0]
-        self.pos[1] -= scale * pos[1] - oscale * pos[1]
+
+        realpos = (pos[0] - self.pos[0])/oscale, (pos[1] - self.pos[1])/oscale
+        #realpos = (pos[0] - self.pos[0])/self.scale
+        self.pos[0] = pos[0] - realpos[0]*self.scale
+        self.pos[1] = pos[1] - realpos[1]*self.scale
+
+        #self.pos[0] -= scale * pos[0] - oscale * pos[0]
+        #self.pos[1] -= scale * pos[1] - oscale * pos[1]
         self.redraw()
 
     def redraw(self):
@@ -174,8 +182,12 @@ class Display(graphics.Display):
             self.pos[0] = self.screen_size[0] - size[0]*self.scale
         if self.pos[1]<self.screen_size[1] - size[1]*self.scale:
             self.pos[1] = self.screen_size[1] - size[1]*self.scale
-        self._background = pygame.transform.smoothscale(self._normal_background, (size[0]*self.scale,size[1]*self.scale))
-        self.screen.blit(self._background,self.pos)
+
+        tmp = pygame.Surface((size[0]/self.scale,size[1]/self.scale))
+        tmp.blit(self._normal_background, (self.pos[0]/self.scale, self.pos[1]/self.scale))
+
+        self._background = pygame.transform.smoothscale(tmp, size)
+        self.screen.blit(self._background,(0,0))
         self.console.draw(self.screen)
         pygame.display.flip()
 
