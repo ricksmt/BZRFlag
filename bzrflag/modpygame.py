@@ -173,6 +173,8 @@ class Display(graphics.Display):
 
     def rescale(self, scale, pos):
         if scale < 1:return False
+        if scale > 20:
+            return False
         oscale = self.scale
         self.scale = scale
 

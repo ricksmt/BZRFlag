@@ -33,6 +33,7 @@ class Config:
         return self.options[key]
 
     def setup_world(self):
+        '''Parse the world file'''
         if not self.options['world']:
             raise ArgumentError,'no world defined'
         if not os.path.isfile(self.options['world']):

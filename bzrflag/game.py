@@ -128,7 +128,7 @@ class Team(object):
         self.color = color
         self.map = map
         self.tanks = [Tank(self, i) for i in xrange(config.config[self.color+'_tanks'])]
-        self.tanks_radius = constants.TANKRADIUS * len(self.tanks) / 2
+        self.tanks_radius = constants.TANKRADIUS * len(self.tanks) * 3/2.0
         self.base = base
         base.team = self
         self.flag = Flag(self)
@@ -171,7 +171,7 @@ class Team(object):
                 return False
         for shot in self.map.shots():
             if collide.circle2circle((point, radius),
-                    (shot.center, shot.radius)):
+                    (shot.pos, constants.SHOTRADIUS)):
                 return False
         for tank in self.map.tanks():
             if collide.circle2circle((point, radius),
@@ -180,7 +180,7 @@ class Team(object):
         return True
 
     def spawn_position(self):
-        '''generate a random spawning position'''
+        '''generate a random spawning position around the base'''
         angle = random.uniform(0, 2*math.pi)
         dist = random.uniform(0,1) * self.tanks_radius
         return [self.base.center[0] + dist*math.cos(angle), self.base.center[1] + dist*math.sin(angle)]
@@ -258,11 +258,10 @@ class Tank(object):
 
     def kill(self):
         '''destroy the tank'''
-        self.team.map.trash.append(self)
         self.status = constants.TANKDEAD
         self.dead_timer = config.config['respawn_time']
         self.team.score.tank_died(self)
-        ## check ## self.pos = constants.DEADZONE
+        self.pos = constants.DEADZONE
         if self.flag:
             self.team.map.returnFlag(self.flag)
             self.flag = None
@@ -276,8 +275,6 @@ class Tank(object):
             if tank is self:continue
             if collide.circle2circle((tank.pos, constants.TANKRADIUS),
                                      (pos, constants.TANKRADIUS)):
-                #if tank.team != self.team:
-                #    self.
                 return True
         if pos[0]<-config.config.world.size[0]/2 or\
          pos[1]<-config.config.world.size[1]/2 or\
@@ -351,17 +348,62 @@ class Shot(object):
     def update(self, dt):
         '''move the shot'''
         self.distance += math.hypot(self.vel[0]*dt, self.vel[1]*dt)
-        self.pos[0] += self.vel[0]*dt
-        self.pos[1] += self.vel[1]*dt
+
+        ## do we need to lerp?
+        if self.vel[0]*dt > constants.TANKRADIUS*2 or \
+            self.vel[0]*dt > constants.TANKRADIUS*2:
+                p1 = self.pos[:]
+                p2 = [self.pos[0]+self.vel[0]*dt, \
+                    self.pos[1]+self.vel[1]*dt]
+                self.check_line(p1,p2)
+        else:
+            self.pos[0] += self.vel[0]*dt
+            self.pos[1] += self.vel[1]*dt
+            self.check_collisions()
         if self.distance > constants.SHOTRANGE:
             self.kill()
         # handle collide
+
+    def check_collisions(self):
+        for obs in self.team.map.obstacles:
+            if collide.rect2circle(obs.rect, ((self.pos),constants.SHOTRADIUS)):
+                return self.kill()
+        for tank in self.team.map.tanks():
+            if collide.circle2circle((tank.pos, constants.TANKRADIUS),
+                                     (self.pos, constants.SHOTRADIUS)):
+                if tank.team == self.team and not config.config['friendly_fire']:
+                    continue
+                tank.kill()
+                return self.kill()
+        if self.pos[0]<-config.config.world.size[0]/2 or\
+         self.pos[1]<-config.config.world.size[1]/2 or\
+         self.pos[0]>config.config.world.size[0]/2 or \
+         self.pos[1]>config.config.world.size[1]/2:
+            return self.kill()
+
+    def check_line(self, p1, p2):
+        for obs in self.team.map.obstacles:
+            if collide.rect2line(obs.rect, (p1,p2)):
+                return self.kill()
+        for tank in self.team.map.tanks():
+            if collide.circle2line((tank.pos, constants.TANKRADIUS + constants.SHOTRADIUS),
+                                     (p1,p2)):
+                if tank.team == self.team and not config.config['friendly_fire']:
+                    continue
+                tank.kill()
+                return self.kill()
+        if self.pos[0]<-config.config.world.size[0]/2 or\
+         self.pos[1]<-config.config.world.size[1]/2 or\
+         self.pos[0]>config.config.world.size[0]/2 or \
+         self.pos[1]>config.config.world.size[1]/2:
+            return self.kill()
 
     def kill(self):
         '''remove the shot from the map'''
         self.status = constants.SHOTDEAD
         self.tank.team.map.trash.append(self)
-        self.tank.shots.remove(self)
+        if self in self.tank.shots:
+            self.tank.shots.remove(self)
 
 class Flag(object):
     size = (constants.FLAGRADIUS*2,) * 2
@@ -454,15 +496,15 @@ class Score(object):
             self.setValue(distance_to + distance_back)
         else:
             closest = None
-            for team in self.team.map.teams:
+            for color,team in self.team.map.teams.items():
                 if team is self.team:continue
                 dst = collide.dist(tank.pos, team.base.center)
                 if closest is None or dst < closest[0]:
                     closest = dst, team.base
             if not closest:
                 return False
-            distance_to = collide.dist(self.team.base.center,closest[1].base.center)
-            self.setValue(distance_to - collide.dist(tank.pos, closest[1].base.center))
+            distance_to = collide.dist(self.team.base.center,closest[1].center)
+            self.setValue(distance_to - collide.dist(tank.pos, closest[1].center))
 
     def setValue(self,value):
         if value>self.value:
