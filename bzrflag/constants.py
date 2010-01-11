@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger('constants')
 
 # Colors
-COLORNAME = dict(enumerate(('rogue', 'red', 'green', 'blue', 'purple')))
+COLORNAME = ('rogue', 'red', 'green', 'blue', 'purple')
 
 # World
 WORLDSIZE = 800
@@ -27,8 +27,7 @@ ANGULARACCEL = 0.5
 TANKWIDTH = 2.8
 TANKALIVE = 'alive'
 TANKDEAD = 'dead'
-DEADZONEX = -999999.0
-DEADZONEY = -999999.0
+DEADZONE = -999999.0, -999999.0
 
 # Shots
 SHOTRADIUS = 0.5
