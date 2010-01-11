@@ -1,0 +1,32 @@
+The Game Module
+===============
+
+.. toctree::
+   :maxdepth: 2
+
+.. module:: game
+
+Game
+----
+.. autoclass:: Game
+    :members:
+    :undoc-members:
+
+Map
+----
+.. autoclass:: Map
+    :members:
+    :undoc-members:
+
+Tank
+----
+.. autoclass:: Tank
+    :members:
+    :undoc-members:
+
+Team
+----
+.. autoclass:: Team
+    :members:
+    :undoc-members:
+
