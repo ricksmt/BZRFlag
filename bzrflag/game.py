@@ -7,16 +7,23 @@ import constants
 import config
 
 class Game:
-    '''Game object:
-    the main container object:
-        map => :class:(game.Map)
-        input => :class:(input.Input)
-        display => :class:(display.Display)
-    contains the main loop'''
-    def __init__(self, displayclass, inputclass):
-        self.display = displayclass(self)
+    """*Main control object. Contains the main loop.*
+
+    Attributes:
+
+    * map => :class:`game.Map`
+    * input => :class:`headless.Input`
+    * display => :class:`modpygame.Display`
+    """
+    def __init__(self):
+
+        import headless
+        import modpygame
+
+        self.display = modpygame.Display(self)
         self.map = Map(self)
-        self.input = inputclass(self)
+        self.input = headless.Input(self)
+        
         self.running = False
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()

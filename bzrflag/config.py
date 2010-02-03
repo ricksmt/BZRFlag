@@ -156,4 +156,6 @@ class Config:
             p.parse_error('No positional arguments are allowed.')
         return vars(opts)
 
-
+def init():
+    if not config:
+        Config()
