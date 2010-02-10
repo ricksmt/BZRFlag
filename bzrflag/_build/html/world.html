@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The World Module &mdash; BZRobots v1.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="BZRobots v1.0 documentation" href="index.html" />
+    <link rel="prev" title="ModPygame - The Pygame implementation" href="modpygame.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="modpygame.html" title="ModPygame - The Pygame implementation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">BZRobots v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-world">
+<h1>The World Module<a class="headerlink" href="#module-world" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+</ul>
+<p>BSFlag World Model</p>
+<p>The BSFlag World module implements a parser for reading in bzw files and
+creating Python objects for all of the static components of a BZFlag world
+(such as bases and obstacles).  It doesn&#8217;t implement everything because BSFlag
+only worries about a subset of BZFlag features anyway.  However, everything
+that is supported is implemented correctly.  See the bzw man page for more
+information about the file format (but note that their BNF is incomplete).</p>
+<dl class="class">
+<dt id="world.Base">
+<em class="property">class </em><tt class="descclassname">world.</tt><tt class="descname">Base</tt><big>(</big><em>color=None</em>, <em>pos=None</em>, <em>position=None</em>, <em>rot=None</em>, <em>rotation=None</em>, <em>size=None</em><big>)</big><a class="headerlink" href="#world.Base" title="Permalink to this definition">¶</a></dt>
+<dd><p>a BZFlag Base. one per team</p>
+<dl class="classmethod">
+<dt id="world.Base.parser">
+<em class="property">classmethod </em><tt class="descname">parser</tt><big>(</big><big>)</big><a class="headerlink" href="#world.Base.parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="world.Box">
+<em class="property">class </em><tt class="descclassname">world.</tt><tt class="descname">Box</tt><big>(</big><em>pos=None</em>, <em>position=None</em>, <em>rot=None</em>, <em>rotation=None</em>, <em>size=None</em><big>)</big><a class="headerlink" href="#world.Box" title="Permalink to this definition">¶</a></dt>
+<dd><p>a basic obstacle type</p>
+<dl class="classmethod">
+<dt id="world.Box.parser">
+<em class="property">classmethod </em><tt class="descname">parser</tt><big>(</big><big>)</big><a class="headerlink" href="#world.Box.parser" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="world.World">
+<em class="property">class </em><tt class="descclassname">world.</tt><tt class="descname">World</tt><big>(</big><em>items=None</em><big>)</big><a class="headerlink" href="#world.World" title="Permalink to this definition">¶</a></dt>
+<dd><p>encompassing class which parses the entire file. Returns a World
+object that is used by the classes in <a title="" class="reference external" href="game.html#module-game"><tt class="xref docutils literal"><span class="pre">game</span></tt></a> to populate the
+game</p>
+<dl class="classmethod">
+<dt id="world.World.parser">
+<em class="property">classmethod </em><tt class="descname">parser</tt><big>(</big><big>)</big><a class="headerlink" href="#world.World.parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a BZW file.</p>
+<p>For now, we&#8217;re only supporting a subset of BZW&#8217;s allobjects.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="world.numeric">
+<tt class="descclassname">world.</tt><tt class="descname">numeric</tt><big>(</big><em>toks</em><big>)</big><a class="headerlink" href="#world.numeric" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="modpygame.html"
+                                  title="previous chapter">ModPygame - The Pygame implementation</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/world.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modpygame.html" title="ModPygame - The Pygame implementation"
+             >previous</a> |</li>
+        <li><a href="index.html">BZRobots v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jared Forsyth, Andrew McNabb.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

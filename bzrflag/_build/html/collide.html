@@ -1,0 +1,337 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>collide.py - collision library &mdash; BZRobots v1.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="BZRobots v1.0 documentation" href="index.html" />
+    <link rel="next" title="The Server Module" href="server.html" />
+    <link rel="prev" title="The Game Module" href="game.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="server.html" title="The Server Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="game.html" title="The Game Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">BZRobots v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-collide">
+<h1>collide.py - collision library<a class="headerlink" href="#module-collide" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+</ul>
+<p>collide.py
+Jared Forsyth (jabapyth)
+This is a lightweight library implementing collision testing
+of a 2D Plane. Feel free to just copy/paste one functon, or
+use the whole library, but please credit me in a comment.</p>
+<div class="section" id="objects-used">
+<h2>Objects used<a class="headerlink" href="#objects-used" title="Permalink to this headline">¶</a></h2>
+<p>(object):(form)</p>
+<ul>
+<li><p class="first"><strong>point</strong> : (x,y)</p>
+</li>
+<li><dl class="first docutils">
+<dt><strong>line</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(p1,p2)</span></dt>
+<dd><ul class="first last simple">
+<li>2-tuple of points</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p class="first"><strong>circle</strong> : ((cx,cy),r)</p>
+</li>
+<li><p class="first"><strong>rect</strong> : (x,y,w,h)</p>
+</li>
+<li><dl class="first docutils">
+<dt><strong>polygon</strong> <span class="classifier-delimiter">:</span> <span class="classifier">(p1,p2,p3,p4,...)</span></dt>
+<dd><ul class="first last simple">
+<li>unlimited tuple of points</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="collision-functions-defined">
+<h2>collision functions defined:<a class="headerlink" href="#collision-functions-defined" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">in the function name, the more complex object comes first.</p>
+</div>
+<ul class="simple">
+<li><a title="collide.circle2circle" class="reference internal" href="#collide.circle2circle"><tt class="xref docutils literal"><span class="pre">circle2circle()</span></tt></a> (circle, circle)</li>
+<li><a title="collide.circle2line" class="reference internal" href="#collide.circle2line"><tt class="xref docutils literal"><span class="pre">circle2line()</span></tt></a> (circle, line)</li>
+<li><a title="collide.circle2point" class="reference internal" href="#collide.circle2point"><tt class="xref docutils literal"><span class="pre">circle2point()</span></tt></a> (circle, point)</li>
+<li><a title="collide.line2line" class="reference internal" href="#collide.line2line"><tt class="xref docutils literal"><span class="pre">line2line()</span></tt></a> (line, line)</li>
+<li><a title="collide.line2point" class="reference internal" href="#collide.line2point"><tt class="xref docutils literal"><span class="pre">line2point()</span></tt></a> (line, point)</li>
+<li><a title="collide.poly2circle" class="reference internal" href="#collide.poly2circle"><tt class="xref docutils literal"><span class="pre">poly2circle()</span></tt></a> (poly, circle)</li>
+<li><a title="collide.poly2line" class="reference internal" href="#collide.poly2line"><tt class="xref docutils literal"><span class="pre">poly2line()</span></tt></a> (poly, line)</li>
+<li><a title="collide.poly2poly" class="reference internal" href="#collide.poly2poly"><tt class="xref docutils literal"><span class="pre">poly2poly()</span></tt></a> (poly, poly)</li>
+<li><a title="collide.rect2line" class="reference internal" href="#collide.rect2line"><tt class="xref docutils literal"><span class="pre">rect2line()</span></tt></a> (rect, line)</li>
+<li><a title="collide.rect2point" class="reference internal" href="#collide.rect2point"><tt class="xref docutils literal"><span class="pre">rect2point()</span></tt></a> (rect, point)</li>
+<li><a title="collide.rect2rect" class="reference internal" href="#collide.rect2rect"><tt class="xref docutils literal"><span class="pre">rect2rect()</span></tt></a> (rect, rect)</li>
+</ul>
+<dl class="function">
+<dt id="collide.circle2circle">
+<tt class="descclassname">collide.</tt><tt class="descname">circle2circle</tt><big>(</big><em>(c1</em>, <em>r1)</em>, <em>(c2</em>, <em>r2)</em><big>)</big><a class="headerlink" href="#collide.circle2circle" title="Permalink to this definition">¶</a></dt>
+<dd><p>test two circles for a collision</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">circle2circle</span><span class="p">(((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mi">5</span><span class="p">),((</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">circle2circle</span><span class="p">(((</span><span class="o">-</span><span class="mi">20</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="mi">4</span><span class="p">),((</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="collide.circle2line">
+<tt class="descclassname">collide.</tt><tt class="descname">circle2line</tt><big>(</big><em>(c</em>, <em>r)</em>, <em>(p1</em>, <em>p2)</em><big>)</big><a class="headerlink" href="#collide.circle2line" title="Permalink to this definition">¶</a></dt>
+<dd><p>test if a line collides or is inside a circle</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">circle2line</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">),(</span><span class="mi">10</span><span class="p">,</span><span class="mi">23</span><span class="p">)))</span>
+<span class="go">(3, 4)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">circle2line</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">circle2line</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="mi">6</span><span class="p">)))</span>
+<span class="go">(0, 4)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="collide.circle2point">
+<tt class="descclassname">collide.</tt><tt class="descname">circle2point</tt><big>(</big><em>(p</em>, <em>r)</em>, <em>p2</em><big>)</big><a class="headerlink" href="#collide.circle2point" title="Permalink to this definition">¶</a></dt>
+<dd><p>test if a point is inside a circle</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">circle2point</span><span class="p">(((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mi">3</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+<span class="go">(0, 0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">circle2point</span><span class="p">(((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mi">3</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
+<span class="go">(1, 0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">circle2point</span><span class="p">(((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mi">3</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="go">(2, 1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">circle2point</span><span class="p">(((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span><span class="mi">3</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">circle2point</span><span class="p">(((</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="mi">2</span><span class="p">),(</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">(5, 2)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="collide.dist">
+<tt class="descclassname">collide.</tt><tt class="descname">dist</tt><big>(</big><em>(x1</em>, <em>y1)</em>, <em>(x2</em>, <em>y2)</em><big>)</big><a class="headerlink" href="#collide.dist" title="Permalink to this definition">¶</a></dt>
+<dd><em>returns</em> the distance between two points</dd></dl>
+
+<dl class="function">
+<dt id="collide.dist_to_line">
+<tt class="descclassname">collide.</tt><tt class="descname">dist_to_line</tt><big>(</big><em>(a</em>, <em>b)</em>, <em>((x1</em>, <em>y1)</em>, <em>(x2</em>, <em>y2))</em><big>)</big><a class="headerlink" href="#collide.dist_to_line" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="collide.ditance">
+<tt class="descclassname">collide.</tt><tt class="descname">ditance</tt><big>(</big><em>(x1</em>, <em>y1)</em>, <em>(x2</em>, <em>y2)</em><big>)</big><a class="headerlink" href="#collide.ditance" title="Permalink to this definition">¶</a></dt>
+<dd><em>returns</em> the distance between two points</dd></dl>
+
+<dl class="function">
+<dt id="collide.line2line">
+<tt class="descclassname">collide.</tt><tt class="descname">line2line</tt><big>(</big><em>((x1</em>, <em>y1)</em>, <em>(x2</em>, <em>y2))</em>, <em>((a1</em>, <em>b1)</em>, <em>(a2</em>, <em>b2))</em><big>)</big><a class="headerlink" href="#collide.line2line" title="Permalink to this definition">¶</a></dt>
+<dd><p>find if and where two lines intersect</p>
+<p><em>returns</em> the point of intersection or False if there is none</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">line2line</span><span class="p">(((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)),((</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
+<span class="go">(1, 1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line2line</span><span class="p">(((</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">)),((</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
+<span class="go">(2, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line2line</span><span class="p">(((</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">)),((</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">)))</span>
+<span class="go">(3, 5)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line2line</span><span class="p">(((</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">)),((</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">),(</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">)))</span>
+<span class="go">(3, 5)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line2line</span><span class="p">(((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">)),((</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line2line</span><span class="p">(((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)),((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)))</span>
+<span class="go">(0.5, 0.5)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line2line</span><span class="p">(((</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)),((</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span>
+<span class="go">(2, 2)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="collide.line2point">
+<tt class="descclassname">collide.</tt><tt class="descname">line2point</tt><big>(</big><em>((x1</em>, <em>y1)</em>, <em>(x2</em>, <em>y2))</em>, <em>(x</em>, <em>y)</em><big>)</big><a class="headerlink" href="#collide.line2point" title="Permalink to this definition">¶</a></dt>
+<dd><p>find whether a <em>point</em> is on a <em>line</em>:</p>
+<p><em>returns</em> True/False</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">line2point</span><span class="p">(((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="go">(1, 1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line2point</span><span class="p">(((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)),(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line2point</span><span class="p">(((</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">)),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="go">(2, 1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line2point</span><span class="p">(((</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">)),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="go">(2, 5)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line2point</span><span class="p">(((</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">)),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">line2point</span><span class="p">(((</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">6</span><span class="p">)),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="go">(2, 2)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="collide.poly2circle">
+<tt class="descclassname">collide.</tt><tt class="descname">poly2circle</tt><big>(</big><em>pts</em>, <em>circle</em><big>)</big><a class="headerlink" href="#collide.poly2circle" title="Permalink to this definition">¶</a></dt>
+<dd>test the intersection of a polygon and a circle</dd></dl>
+
+<dl class="function">
+<dt id="collide.poly2line">
+<tt class="descclassname">collide.</tt><tt class="descname">poly2line</tt><big>(</big><em>pts</em>, <em>(p1</em>, <em>p2)</em><big>)</big><a class="headerlink" href="#collide.poly2line" title="Permalink to this definition">¶</a></dt>
+<dd>test the collision of a polygon and a line</dd></dl>
+
+<dl class="function">
+<dt id="collide.poly2poly">
+<tt class="descclassname">collide.</tt><tt class="descname">poly2poly</tt><big>(</big><em>pts1</em>, <em>pts2</em><big>)</big><a class="headerlink" href="#collide.poly2poly" title="Permalink to this definition">¶</a></dt>
+<dd>test the intersection of a polygon and a polygon</dd></dl>
+
+<dl class="function">
+<dt id="collide.rect2circle">
+<tt class="descclassname">collide.</tt><tt class="descname">rect2circle</tt><big>(</big><em>rect</em>, <em>circle</em><big>)</big><a class="headerlink" href="#collide.rect2circle" title="Permalink to this definition">¶</a></dt>
+<dd><em>returns</em> whetehr <em>rect</em> intersects with <em>circle</em></dd></dl>
+
+<dl class="function">
+<dt id="collide.rect2line">
+<tt class="descclassname">collide.</tt><tt class="descname">rect2line</tt><big>(</big><em>rect</em>, <em>line</em><big>)</big><a class="headerlink" href="#collide.rect2line" title="Permalink to this definition">¶</a></dt>
+<dd><em>returns</em> whether a <em>rect</em> intersects with a <em>line</em></dd></dl>
+
+<dl class="function">
+<dt id="collide.rect2point">
+<tt class="descclassname">collide.</tt><tt class="descname">rect2point</tt><big>(</big><em>(x</em>, <em>y</em>, <em>w</em>, <em>h)</em>, <em>(x1</em>, <em>y1)</em><big>)</big><a class="headerlink" href="#collide.rect2point" title="Permalink to this definition">¶</a></dt>
+<dd>test if a <em>point</em> is inside a <em>rectangle</em></dd></dl>
+
+<dl class="function">
+<dt id="collide.rect2rect">
+<tt class="descclassname">collide.</tt><tt class="descname">rect2rect</tt><big>(</big><em>rect1</em>, <em>rect2</em><big>)</big><a class="headerlink" href="#collide.rect2rect" title="Permalink to this definition">¶</a></dt>
+<dd><em>returns</em> whether <em>rect1</em> intersects <em>rect2</em></dd></dl>
+
+<dl class="function">
+<dt id="collide.rectcenter">
+<tt class="descclassname">collide.</tt><tt class="descname">rectcenter</tt><big>(</big><em>(a</em>, <em>b</em>, <em>c</em>, <em>d)</em><big>)</big><a class="headerlink" href="#collide.rectcenter" title="Permalink to this definition">¶</a></dt>
+<dd><p>find the center of a rectangle</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rectcenter</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="go">(5.0, 2.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rectcenter</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="go">(1.5, 4.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="collide.rectunion">
+<tt class="descclassname">collide.</tt><tt class="descname">rectunion</tt><big>(</big><em>rect1</em>, <em>rect2</em><big>)</big><a class="headerlink" href="#collide.rectunion" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>returns</em> the union of <em>rect1</em> and <em>rect2</em></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rectunion</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">),(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="go">(0, 0, 15, 15)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">collide.py - collision library</a><ul>
+<li><a class="reference external" href="#objects-used">Objects used</a></li>
+<li><a class="reference external" href="#collision-functions-defined">collision functions defined:</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="game.html"
+                                  title="previous chapter">The Game Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="server.html"
+                                  title="next chapter">The Server Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/collide.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="server.html" title="The Server Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="game.html" title="The Game Module"
+             >previous</a> |</li>
+        <li><a href="index.html">BZRobots v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Jared Forsyth, Andrew McNabb.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>
