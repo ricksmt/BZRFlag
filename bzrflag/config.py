@@ -60,14 +60,17 @@ class Config:
         p.add_option('--port',
             dest='port',default=3012,
             help='specify a port to use')
-        ## changed name to config from 'bzrobots'...made sense
         p.add_option('--config',
             dest='config',
             help='set the config file')
-        p.add_option('--freeze-tag',
+        p.add_option('--freeze-tag',   ## redundandt w/ --goodrich
             action='store_true',
             dest='freeze_tag',
             help='start a freeze tag game')
+        p.add_option('--hoverbot',
+            action='store_false',
+            dest='hoverbot',
+            help='allow hoverbots')
         ## tank behavior
         p.add_option('--max-shots',
             type='int',
@@ -105,10 +108,6 @@ class Config:
             type='int',default=10,
             dest='respawn_time',
             help='set the respawn time')
-        p.add_option('--hoverbot',
-            action='store_false',
-            dest='hoverbot',
-            help='allow hoverbots')
         p.add_option('--time-limit',
             type='int',default=300000,
             dest='time_limit',

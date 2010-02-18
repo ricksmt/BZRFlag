@@ -447,9 +447,10 @@ def convertBoxtoPoly(center, size, rotation = 0):
         yield x + w/2*dx, y + h/2 * dy
 
 def scale_rotate_poly(points, scale, rotation):
+    points = list(points)
     center = polygon_center(points)
     for point in points:
-        yield rotate_scale(point, (cx,cy), rotation, scale)
+        yield rotate_scale(point, center, rotation, scale)
 
 def polygon_center(points):
     points = tuple(points)
@@ -465,7 +466,7 @@ class Base(object):
         self.center = self.pos = item.pos.asList()
         self.size = tuple(x*2 for x in item.size.asList())
         self.radius = math.sqrt((self.size[0]/2)**2 + (self.size[1]/2)**2)
-        poly = tuple(convertBoxtoPoly(item.pos,item.size))
+        poly = tuple(convertBoxtoPoly(item.pos,self.size))
         self.shape = scale_rotate_poly(poly, 1, item.rot)
         self.rot = item.rot
 
@@ -486,9 +487,9 @@ class Box(Obstacle):
     def __init__(self, item):
         Obstacle.__init__(self, item)
         self.radius = math.hypot(*item.size)
-        self.shape = scale_rotate_poly((convertBoxtoPoly(item.pos,item.size,item.rot)), 1, item.rot)
-        self.size = item.size
-        self.rect = (item.pos.asList()+item.size.asList())
+        self.size = tuple(x*2 for x in item.size.asList())
+        self.shape = list(scale_rotate_poly((convertBoxtoPoly(item.pos,self.size,item.rot)), 1, item.rot))
+        self.rect = (tuple(self.pos)+self.size)
 
 class Score(object):
     '''Score object: keeps track of a team's score'''

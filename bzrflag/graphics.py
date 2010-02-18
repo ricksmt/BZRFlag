@@ -149,25 +149,6 @@ class BZSprite(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self._translate()
 
-
-class TiledBZSprite(BZSprite):
-    """A BZSprite with a tiled image."""
-'''
-    def update(self, force=False):
-        rot = self.bzobject.rot
-
-        if force or (rot != self.prev_rot):
-            self.prev_rot = rot
-            self.image = self.orig_image
-            size = self.display.images.scaled_size(self.object_size(), 1)
-            self.image = self.display.images.tile(self.image, size)
-            self.rect.size = size
-            #if rot:
-            #    self._rotate()
-
-        self._translate()'''
-
-
 class Display(object):
     """Manages all graphics."""
     _imagecache = ImageCache

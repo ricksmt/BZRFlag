@@ -32,10 +32,6 @@ poly2line(poly,line)
 poly2circle(coply,circle)
 poly2poly(poly,poly)
 
->>> 2+4
-6
-
-
 '''
 import math
 
@@ -72,7 +68,7 @@ x = (b1-y1+m1x1-m2a1)/(m1-m2)
 y = m1(x-x1)+y1
 '''
 
-def line2point(((x1,y1),(x2,y2)),(x,y)):
+def line2point(line, point):
     '''find whether a point is on a line:
     @param: line
     @param: point
@@ -92,6 +88,8 @@ def line2point(((x1,y1),(x2,y2)),(x,y)):
     >>> line2point(((2,2),(2,6)),(2,2))
     (2, 2)
     '''
+    ((x1,y1),(x2,y2)) = line
+    (x,y) = point
     if (x1==x2):
         return x==x1 and y1<=y<=y2 and (x,y)
     m = (y2-y1)/(x2-x1)
@@ -99,7 +97,7 @@ def line2point(((x1,y1),(x2,y2)),(x,y)):
     online =  y - y1 == m*(x-x1)
     return online and rect2point((x1,y1,x2-x1,y2-y1),(x,y)) and (x,y)
 
-def line2line(((x1,y1),(x2,y2)),((a1,b1),(a2,b2))):
+def line2line(line1, line2):
     '''find where two lines intersect
     @param: line1
     @param: line2
@@ -121,6 +119,8 @@ def line2line(((x1,y1),(x2,y2)),((a1,b1),(a2,b2))):
     >>> line2line(((1,2),(3,2)),((2,1),(2,3)))
     (2, 2)
     '''
+    ((x1,y1),(x2,y2)) = line1
+    ((a1,b1),(a2,b2)) = line2
 
     if x2==x1:
         if a2 == a1:
@@ -145,7 +145,6 @@ def line2line(((x1,y1),(x2,y2)),((a1,b1),(a2,b2))):
             return False
         x = round((m1*x1-m2*a1+b1-y1)/float(m1-m2),5)
     y = round(m1*(x-x1)+y1,5)
-    #logger.debug(str([(x1,y1),(x2,y2),(a1,b1),(a2,b2)],[x,y],(rect2point((x1,y1,x2-x1,y2-y1),(x,y)),rect2point((a1,b1,a2-a1,b2-b1),(x,y)))))
     return (rect2point((x1,y1,x2-x1,y2-y1),(x,y)) and rect2point((a1,b1,a2-a1,b2-b1),(x,y))) and (int(round(x)),int(round(y)))
 
 def rectunion(rect1,rect2):
@@ -165,16 +164,17 @@ def rectunion(rect1,rect2):
     b = max(p[1] for p in pts)
     return x, y, r-x, b-y
 
-def rectcenter((a,b,c,d)):
+def rectcenter(rect):
     '''find the center of a rectangle
     >>> rectcenter((0,0,10,4))
     (5.0, 2.0)
     >>> rectcenter((0,2,3,4))
     (1.5, 4.0)
     '''
+    (a,b,c,d) = rect
     return a+c/2.0, b+d/2.0
 
-def circle2point((p,r),p2):
+def circle2point(circle, point):
     '''test if a point is inside a circle
     >>> circle2point(((0,0),3),(0,0))
     (0, 0)
@@ -187,9 +187,9 @@ def circle2point((p,r),p2):
     >>> circle2point(((5,1),2),(5,2))
     (5, 2)
     '''
-    return dist(p,p2)<=r and p2
+    return dist(circle[0], point)<=circle[1] and point
 
-def circle2line((c,r),(p1,p2)):
+def circle2line(circle, line):
     '''test if a line collides or is inside a circle
     >>> c = ((3,4),4)
     >>> circle2line(c, ((3,4),(10,23)))
@@ -199,21 +199,33 @@ def circle2line((c,r),(p1,p2)):
     >>> circle2line(c, ((0,0),(0,6)))
     (0, 4)
     '''
-    d,pos = dist_to_line(c,(p1,p2))
-    #print d,pos
-    if d>r:
+    d,pos = dist_to_line(circle[0], line)
+    if d>circle[1]:
         return False
-    x,y=p1
-    a,b=p2
+    x,y = line[0]
+    a,b = line[1]
     if rect2point((x,y,a-x,b-y),pos):
         return pos
-    return circle2point((c,r),p1) or circle2point((c,r),p2)
+    return circle2point(circle, line[0]) or circle2point(circle, line[1])
 
-def circle2circle((c1,r1),(c2,r2)):
-    '''won't test -- basic stuff'''
-    return dist(c1,c2)<=r1+r2
+def circle2circle(circle1, circle2):
+    '''test if two circles intersect
+    >>> circle2circle(((0,0),3), ((4,0),1))
+    True
+    >>> circle2circle(((0,0),3), ((4.1,0),1))
+    False
+    '''
+    return dist(circle1[0], circle2[0]) <= circle1[1] + circle2[1]
 
-def rect2point((x,y,w,h),(x1,y1)):
+def rect2point(rect, point):
+    '''test for a collision from a rectangle to a point
+    >>> rect2point((1,2,4,5),(2,3))
+    True
+    >>> rect2point((0,0,3,4),(6,7))
+    False
+    '''
+    (x,y,w,h) = rect
+    (x1,y1) = point
     if w<0:
         x+=w
         w*=-1
@@ -222,46 +234,97 @@ def rect2point((x,y,w,h),(x1,y1)):
         h*=-1
     return x<=x1<=x+w and y<=y1<=y+h
 
-def rect2line(rect,(p1,p2)):
+def rect2line(rect, line):
+    '''find if a rect intersects with a line
+    >>> rect2line((2,3,4,5),((0,0),(9,9)))
+    True
+    >>> rect2line((0,0,3,4),((-1,0),(-1,5)))
+    False
+    '''
     ## TODO: design a function for if a line is *inside* a polygon
-    return poly2line(_rect2pts(rect),p1,p2)
+    return poly2line(_rect2pts(rect), line)
 
 def rect2rect(rect1,rect2):
-    return poly2poly(_rect2pts(rect1),_rect2pts(rect2))
+    '''collide two rectangles
+    >>> rect2rect((0,0,3,4),(1,1,5,6))
+    True
+    >>> rect2rect((0,1,7,8),(10,10,3,4))
+    False
+    '''
+    for point in _rect2pts(rect1):
+        if rect2point(rect2, point):
+            return True
+    return False
+
+#    return poly2poly(_rect2pts(rect1),_rect2pts(rect2))
 
 def rect2circle(rect,circle):
-    return poly2circle(_rect2pts(rect),circle) or rect2point(rect, circle[0])
+    '''collide a rect and a circle
+    >>> rect2circle((0,0,4,5), ((2,2),1))
+    True
+    >>> rect2circle((1,1,5,4), ((6,6),3))
+    True
+    >>> rect2circle((0,0,3,3), ((5,5),1))
+    False
+    '''
+    return rect2point(rect, circle[0]) or poly2circle(_rect2pts(rect),circle)
 
-def _rect2pts((x,y,w,h)):
-    '''won't test'''
+def _rect2pts(rect):
+    '''returns the corners of a rectangle
+    >>> _rect2pts((0,1,4,5))
+    ((0, 1), (0, 6), (4, 6), (4, 1))
+    '''
+    (x,y,w,h) = rect
     return (x,y),(x,y+h),(x+w,y+h),(x+w,y)
 
 def poly2line(pts,(p1,p2)):
+    '''collide a polygon with a line
+    *this is tested by other methods*'''
     for i,pt1 in enumerate(pts):
         pt2 = pts[i-1]
-        if line2line(pt1,pt2,p1,p2):
+        if line2line((pt1,pt2),(p1,p2)):
             return True
     return False
 
 def poly2circle(pts, circle):
+    '''collide a polygon with a circle
+    *this is tested by other methods*'''
     for i,pt1 in enumerate(pts):
         if circle2line(circle,(pt1,pts[i-1])):
             return True
     return False
 
 def poly2poly(pts1,pts2):
+    '''collide a polygon with a polygon
+    *this is tested by other methods*'''
     for i,pt1 in enumerate(pts1):
         pt2 = pts1[i-1]
         if poly2line(pts2,pt1,pt2):
             return True
     return False
 
-def dist((x1,y1),(x2,y2)):
+def dist(point1, point2):
+    '''returns the pythagorean distance between two points
+    >>> dist((0,0), (4,3))
+    5.0
+    '''
+    (x1,y1) = point1
+    (x2,y2) = point2
     return math.sqrt((x2-x1)**2+(y2-y1)**2)
 
 ditance = dist
 
-def dist_to_line((a,b),((x1,y1),(x2,y2))):
+def dist_to_line(point, line):
+    '''get the distance from a point to a line
+    @returns: (distance, closest_point_on_line)
+    >>> import math
+    >>> dist_to_line((0,0),((2,0),(0,2)))[0] == math.sqrt(2)
+    True
+    >>> dist_to_line((0,1),((2,0),(2,2)))
+    (2, (2, 1))
+    '''
+    (a,b) = point
+    ((x1,y1),(x2,y2)) = line
     if x2==x1:
         return abs(x1-a),(x1,b)
     elif y2==y1:

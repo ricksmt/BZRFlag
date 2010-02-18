@@ -32,6 +32,7 @@ class Server(asyncore.dispatcher):
         self.sock = sock
         self.bind(addr)
         self.listen(BACKLOG)
+        print self.sock,addr
 
     def handle_accept(self):
         sock, addr = self.accept()

@@ -25,6 +25,10 @@ class ImageCache(graphics.ImageCache):
         size = self.scaled_size(image.get_size(), scale)
         return pygame.transform.smoothscale(image, size)
 
+    def rotate(self, image, rot):
+        nimg = pygame.transform.rotate(image, rot/math.pi*180)
+        return nimg
+
     def tile(self, tile, size):
         tile_width, tile_height = tile.get_size()
         width, height = size
@@ -56,21 +60,6 @@ class BZSprite(graphics.BZSprite):
         self.prev_rot = self.bzobject.rot
         self.image = image
 
-    '''def _rotate(self):
-        """Rotates the image according to the bzobject.
-
-        Don't rotate a previously rotated object.  That causes data loss.
-        """
-        rot = 360 * self.bzobject.rot / (2 * math.pi)
-        self.image = pygame.transform.rotate(self.image, rot)
-        self.rect.size = self.image.get_size()
-
-    def _scale_prerotated(self):
-        """Scales the image to the bzobject's prerotated size."""
-        size = self.display.images.scaled_size(self.object_size(), self.scale)
-        self.image = pygame.transform.smoothscale(self.image, size)
-        self.rect.size = size'''
-
     def _scale_image(self, image, scale):
         size = image.get_rect().size
         nsize = self.display.images.scaled_size(size, scale)
@@ -84,7 +73,6 @@ class BZSprite(graphics.BZSprite):
         return pygame.transform.rotate(image, rotation)
 
     '''def _scale_rotated(self):
-        """Scales the image to the bzobject's rotated size."""
         rot = self.bzobject.rot
         w, h = self.object_size()
         new_w = abs(w * math.cos(rot)) + abs(h * math.sin(rot))
@@ -100,17 +88,20 @@ class TiledBZSprite(BZSprite):
     def _render_image(self):
 
         self.prev_rot = self.bzobject.rot
-        self.image = self.orig_image
-
+        image = self.orig_image
+        image = self.display.images.tile(image, self.bzobject.size)
+        image = self.display.images.rotate(image, self.bzobject.rot)
+        self.image = image
+        self._translate()
+        '''
         wscale = self.display.world_to_screen_scale()
-        #isize = image.get_rect().size
-        #obj_size = wscale[0]*self.bzobject.size[0], wscale[1]*self.bzobject.size[1]
-        #orig_size = self.orig_image.get_rect().size
-        #thescale = obj_size[0]/orig_size[0], obj_size[1]/orig_size[1]
 
         size = self.display.images.scaled_size(self.object_size(), 1)#wscale[0])
-        self.image = self.display.images.tile(self.image, size)
-        self.rect.size = size
+        center = self.rect.center
+        self.image, self.rect = self.display.images.rotate(self.display.images.tile(self.image, size), self.bzobject.rot, self.rect)
+        self.rect.center = center
+        self._translate()
+        #self.rect.size = size'''
 
 class Display(graphics.Display):
     _imagecache = ImageCache
@@ -231,15 +222,9 @@ class Display(graphics.Display):
             bg = self.images.tile(self.images.ground(), self.screen_size)
             for box in self.game.map.obstacles:
                 s = TiledBZSprite(box, self.images.wall(), self)
-                s.rect.x *= wscale[0]
-                s.rect.y *= wscale[1]
-                s.rect.w *= wscale[0]
-                s.rect.h *= wscale[1]
-#                print s.rect
                 bg.blit(s.image, s.rect.topleft)
-            '''for base in self.world.bases:
-                image = self.images.loadteam('base',base.color)
-                s = self._spriteclass(base, image, self)
-                bg.blit(s.image, s.rect)'''
+                #print box.shape
+                #pts = list(self.pos_world_to_screen(xy) for xy in box.shape)
+                #pygame.draw.lines(bg, (255,255,255), 1, pts, 4)
             self._normal_background = self._background = bg
         return self._background
