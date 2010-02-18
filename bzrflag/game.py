@@ -34,11 +34,9 @@ class Game:
         now = datetime.datetime.utcnow()
         delta = now - self.timestamp
         self.timestamp = now
-
         dt = ((24 * 60 * 60) * delta.days
                 + delta.seconds
                 + (10 ** -6) * delta.microseconds)
-
         self.map.update(dt)
 
     def update_sprites(self):
@@ -127,7 +125,6 @@ class Map(object):
         collides = {}
 
 
-
 class Team(object):
     '''Team object:
     manages a BZRFlag team -- w/ a base, a flag, a score, and tanks.'''
@@ -146,9 +143,8 @@ class Team(object):
         self.velnoise = config.config[self.color+'_velnoise']
         self.score = Score(self)
         self._obstacles = []
-        self.map.inbox.append(self.base)
-        for tank in self.tanks:
-            self.map.inbox.append(tank)
+        for item in self.tanks+[self.base, self.flag, self.score]:
+            self.map.inbox.append(item)
 
     def setup(self):
         '''initialize the cache of obstacles near the base'''
@@ -276,7 +272,7 @@ class Tank(object):
     def collision_at(self, pos):
         #return False
         for obs in self.team.map.obstacles:
-            if collide.rect2circle(obs.rect, ((pos),constants.TANKRADIUS)):
+            if collide.poly2circle(obs.shape, ((pos),constants.TANKRADIUS)):
                 return True
         for tank in self.team.map.tanks():
             if tank is self:continue
@@ -354,6 +350,8 @@ class Shot(object):
 
     def update(self, dt):
         '''move the shot'''
+        if (self.status == constants.SHOTDEAD or self.pos == constants.DEADZONE):
+            return
         self.distance += math.hypot(self.vel[0]*dt, self.vel[1]*dt)
 
         ## do we need to lerp?
@@ -369,7 +367,6 @@ class Shot(object):
             self.check_collisions()
         if self.distance > constants.SHOTRANGE:
             self.kill()
-        # handle collide
 
     def check_collisions(self):
         for obs in self.team.map.obstacles:
@@ -510,6 +507,7 @@ class Score(object):
                 if closest is None or dst < closest[0]:
                     closest = dst, team.base
             if not closest:
+                print "no closest found...",self,tank,self.team.map.teams.items()
                 return False
             distance_to = collide.dist(self.team.base.center,closest[1].center)
             self.setValue(distance_to - collide.dist(tank.pos, closest[1].center))
@@ -517,4 +515,7 @@ class Score(object):
     def setValue(self,value):
         if value>self.value:
             self.value = value
+
+    def text(self):
+        return "Team %s: %d"%(self.team.color, self.value)
 

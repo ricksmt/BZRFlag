@@ -47,6 +47,8 @@ class BZSprite(graphics.BZSprite):
         image = self._rotate_image(self.orig_image, self.bzobject.rot * 180/math.pi)
         if self.type == 'shot':
             comp = 3
+        elif self.type == 'flag':
+            comp = 4
         else:
             comp = 1
         wscale = self.display.world_to_screen_scale()
@@ -72,16 +74,6 @@ class BZSprite(graphics.BZSprite):
     def _rotate_image(self, image, rotation):
         return pygame.transform.rotate(image, rotation)
 
-    '''def _scale_rotated(self):
-        rot = self.bzobject.rot
-        w, h = self.object_size()
-        new_w = abs(w * math.cos(rot)) + abs(h * math.sin(rot))
-        new_h = abs(h * math.cos(rot)) + abs(w * math.sin(rot))
-        size = self.display.images.scaled_size((new_w, new_h), self.scale)
-
-        self.image = pygame.transform.smoothscale(self.image, size)
-        self.rect.size = size'''
-
 class TiledBZSprite(BZSprite):
     """A BZSprite with a tiled image."""
 
@@ -93,26 +85,41 @@ class TiledBZSprite(BZSprite):
         image = self.display.images.rotate(image, self.bzobject.rot)
         self.image = image
         self._translate()
-        '''
-        wscale = self.display.world_to_screen_scale()
 
-        size = self.display.images.scaled_size(self.object_size(), 1)#wscale[0])
-        center = self.rect.center
-        self.image, self.rect = self.display.images.rotate(self.display.images.tile(self.image, size), self.bzobject.rot, self.rect)
-        self.rect.center = center
-        self._translate()
-        #self.rect.size = size'''
+class TextSprite(graphics.TextSprite):
+
+    def refresh(self):
+        self.text = self.bzobject.text()
+        lines = self.text.split('\n')
+        font = pygame.font.Font(None, 25)
+        mw = 0
+        mh = 0
+        for line in lines:
+            w,h = font.size(line)
+            if w>mw:mw=w
+            mh += h
+        image = pygame.Surface((mw,mh))
+        at = 0
+        for line in lines:
+            image.blit(font.render(line, False, (255, 255, 255)), (0,at))
+        self.image = image
+        image.set_colorkey((0,0,0))
+        self.rect.size = image.get_rect().size
+
+    def reposition(self):
+        self.rect.center = (0,0)#self.display.pos_world_to_screen(self.bzobject.pos)
 
 class Display(graphics.Display):
     _imagecache = ImageCache
     _spriteclass = BZSprite
+    _textclass = TextSprite
+    
     def setup(self):
         """Initializes pygame and creates the screen surface."""
         pygame.init()
         pygame.key.set_repeat(50,50)
         self.screen = pygame.display.set_mode(self.screen_size)
         self._screen = pygame.Surface(self.screen_size)
-        #self.log = LogSprite(self, (0, self.screen_size[1]-200, self.screen_size[0], 200))
         bg = self.background()
         self.screen.blit(bg, (0, 0))
         pygame.display.update()
@@ -120,7 +127,7 @@ class Display(graphics.Display):
         self.console = pygameconsole.Console(self.game, (25,self.screen_size[1]*2/3-25,self.screen_size[0]-50,self.screen_size[1]/3))
 
     def add_sprite(self, sprite, otype):
-        self.sprites.add(sprite,layer = ['base','tank','shot'].index(otype))
+        self.sprites.add(sprite,layer = ['base','tank','flag','shot','score'].index(otype))
 
     def remove_sprite(self, sprite):
         self.sprites.remove(sprite)
@@ -204,12 +211,15 @@ class Display(graphics.Display):
         """Updates the state of all sprites and redraws the screen."""
         self.sprites.update()
         bg = self.background()
-        self.sprites.clear(self.screen, bg)
-        changes = self.sprites.draw(self.screen)
+        #self.sprites.clear(self.screen, bg)
+        #changes = self.sprites.draw(self.screen)
+        self.screen.blit(self.background(),(0,0))
+        self.sprites.draw(self.screen)
         ## add a check for pygame input later
         self.process_events()
         #pygame.display.update(changes)
         self.console.draw(self.screen)
+        self.scores.draw(self.screen)
         pygame.display.flip()
 
     def background(self):
@@ -228,3 +238,4 @@ class Display(graphics.Display):
                 #pygame.draw.lines(bg, (255,255,255), 1, pts, 4)
             self._normal_background = self._background = bg
         return self._background
+

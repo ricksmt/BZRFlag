@@ -12,7 +12,7 @@ import pygame
 import constants
 import config
 from world import Base, Box
-from game import Tank, Shot, Flag, Base
+from game import Tank, Shot, Flag, Base, Score
 
 import os
 
@@ -94,6 +94,38 @@ class ImageCache(object):
         """Creates a surface of the given size tiled with the given surface."""
         raise Exception,'override this method'
 
+class TextSprite(pygame.sprite.Sprite):
+    def __init__(self, bzobject, display):
+        pygame.sprite.Sprite.__init__(self)
+        #super(pygame.sprite.Sprite, self).__init__()
+        self.bzobject = bzobject
+        self.display = display
+        self.rect = pygame.Rect((0,0), (0,0))
+        #pygame.Rect(self.display.pos_world_to_screen(self.bzobject.pos), (0,0))
+        self.refresh()
+
+    def refresh(self):
+        pass # override
+    
+    def reposition(self):
+        pass # override
+    
+    def update(self):
+        if self.text != self.bzobject.text():
+            self.refresh()
+        self.reposition()
+
+class Scores:
+    def __init__(self):
+        self.scores = []
+    def add(self,what):
+        self.scores.append(what)
+    def draw(self, screen):
+        x = screen.get_rect().height-10
+        for score in self.scores:
+            score.update()
+            x -= score.rect.height
+            screen.blit(score.image, (10,x))
 
 class BZSprite(pygame.sprite.Sprite):
     """Determines how a single object in the game will be drawn.
@@ -123,7 +155,6 @@ class BZSprite(pygame.sprite.Sprite):
 
     def _translate(self):
         """Translates the image to the bzobject's position."""
-
         self.rect.center = self.display.pos_world_to_screen(self.bzobject.pos)
 
     def _render_image(self, image, scale):
@@ -137,14 +168,6 @@ class BZSprite(pygame.sprite.Sprite):
         """
         rot = self.bzobject.rot
 
-        '''if force or (rot != self.prev_rot):
-            self.prev_rot = rot
-            self.image = self.orig_image
-            if rot:
-                self._rotate()
-                self._scale_rotated()
-            else:
-                self._scale_prerotated()'''
         self._render_image()
         self.rect = self.image.get_rect()
         self._translate()
@@ -156,6 +179,7 @@ class Display(object):
     def __init__(self, game, screen_size=(700,700)):
         self.game = game
         self.world = config.config.world
+        self.scores = Scores()
         self.screen_size = screen_size
         self.images = self._imagecache()
         self._background = None
@@ -219,7 +243,7 @@ class Display(object):
         return wscale, hscale
 
     def add_object(self, obj):
-        types = (Tank, 'tank'),(Shot,'shot'),(Flag,'flag'),(Base,'base')
+        types = (Tank, 'tank'),(Shot,'shot'),(Flag,'flag'),(Base,'base'),(Score,'score')
         otype = None
         for cls,name in types:
             if isinstance(obj,cls):
@@ -229,10 +253,14 @@ class Display(object):
             raise Exception,'invalid object added to display: %s'%obj
         #print 'adding',otype,'at pos',obj.pos,'translated to',self.pos_world_to_screen(obj.pos)
         #print self.world.size,self.screen_size
-        image = self.images.loadteam(otype, obj.team.color)
-        sprite = self._spriteclass(obj, image, self, otype)
-        self.add_sprite(sprite, otype)
-        self.spritemap[obj] = sprite
+        if otype == 'score':
+            sprite = self._textclass(obj, self)
+            self.scores.add(sprite)
+        else:
+            image = self.images.loadteam(otype, obj.team.color)
+            sprite = self._spriteclass(obj, image, self, otype)
+            self.add_sprite(sprite, otype)
+            self.spritemap[obj] = sprite
 
     def remove_object(self, obj):
         self.remove_sprite(self.spritemap[obj])
@@ -242,3 +270,4 @@ class Display(object):
 
     def remove_sprite(self, sprite):
         raise Exception,'remove_sprite must be overridden'
+
