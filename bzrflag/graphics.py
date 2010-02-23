@@ -271,3 +271,5 @@ class Display(object):
     def remove_sprite(self, sprite):
         raise Exception,'remove_sprite must be overridden'
 
+    def kill(self):
+        pass

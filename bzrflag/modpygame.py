@@ -69,7 +69,7 @@ class BZSprite(graphics.BZSprite):
 
     def _rescale_image(self, image, scale):
         size = image.get_rect().size
-        return pygame.transform.smoothscale(image,(size[0]*scale[0], size[1]*scale[1]))
+        return pygame.transform.smoothscale(image,(int(size[0]*scale[0]), int(size[1]*scale[1])))
 
     def _rotate_image(self, image, rotation):
         return pygame.transform.rotate(image, rotation)
@@ -209,12 +209,12 @@ class Display(graphics.Display):
 
     def update(self):
         """Updates the state of all sprites and redraws the screen."""
-        self.sprites.update()
         bg = self.background()
-        #self.sprites.clear(self.screen, bg)
-        #changes = self.sprites.draw(self.screen)
-        self.screen.blit(self.background(),(0,0))
-        self.sprites.draw(self.screen)
+        self.sprites.clear(self.screen, bg)
+        self.sprites.update()
+        changes = self.sprites.draw(self.screen)
+        #self.screen.blit(self.background(),(0,0))
+        #self.sprites.draw(self.screen)
         ## add a check for pygame input later
         self.process_events()
         #pygame.display.update(changes)
@@ -239,3 +239,5 @@ class Display(graphics.Display):
             self._normal_background = self._background = bg
         return self._background
 
+    def kill(self):
+        pygame.display.quit()

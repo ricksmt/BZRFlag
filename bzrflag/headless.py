@@ -11,7 +11,7 @@ import constants
 import config
 
 import logging
-logger = logging.getLogger('server.py')
+logger = logging.getLogger('headless.py')
 
 # A higher loop timeout decreases CPU usage but also decreases the frame rate.
 LOOP_TIMEOUT = 0.01
@@ -29,7 +29,9 @@ class Input:
         self.servers = {}
         for color,team in self.game.map.teams.items():
             self.servers[color] = server.Server(('0.0.0.0', config.config[color+'_port']),team)
-            logger.debug("Listening op port %s for team %s"%(self.servers[color].get_port(), color))
+            #logger.debug("Listening op port %s for team %s"%(self.servers[color].get_port(), color))
+            print 'python ../sync.py localhost %s &'%self.servers[color].get_port()
+        print
 
     def update(self):
         asyncore.loop(LOOP_TIMEOUT, count = 1)

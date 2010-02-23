@@ -157,7 +157,8 @@ def run():
             print >>sys.stderr, 'Socket error:', os.strerror(e.errno)
             sys.exit(1)
         host, port = bzrc.socket.getsockname()
-        print 'Listening on port %s for %s team.' % (port, team.color_name())
+        #print 'Listening on port %s for %s team.' % (port, team.color_name())
+        print '../sync.py localhost %s;'%port,
 
     display = graphics.Display(worldobj)
     display.setup()

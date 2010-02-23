@@ -15,13 +15,13 @@ config = None
 class Config:
     '''Config class:
     parses command line options and the --config file if given'''
-    def __init__(self):
+    def __init__(self, args=None):
         global config
         if config is not None:
             raise Exception,"there should only be one config instance"
-        config = self
-        self.options = self.parse_cli_args()
+        self.options = self.parse_cli_args(args)
         self.setup_world()
+        config = self
         #logger.debug("Options:\n"+"\n".join("%s :: %s"%(k,v) for k,v in self.options.items()))
 
     def get(self, key, default):
@@ -45,7 +45,7 @@ class Config:
             raise ParseError,'invalid world file: %s'%config['world']
         self.world = results[0]
 
-    def parse_cli_args(self):
+    def parse_cli_args(self, args):
         p = optparse.OptionParser()
 
         p.add_option('-d','--debug',
@@ -57,9 +57,6 @@ class Config:
         p.add_option('--world',
             dest='world',
             help='specify a world.bzw map to use')
-        p.add_option('--port',
-            dest='port',default=3012,
-            help='specify a port to use')
         p.add_option('--config',
             dest='config',
             help='set the config file')
@@ -130,7 +127,7 @@ class Config:
                 dest='%s_angnoise'%color,default=0,
                 help='specify the angnoise for the %s team'%color)
 
-        opts, args = p.parse_args()
+        opts, args = p.parse_args(args)
 
         if opts.config:
             configfile = ConfigParser.ConfigParser()
@@ -154,6 +151,7 @@ class Config:
         if args:
             p.parse_error('No positional arguments are allowed.')
         return vars(opts)
+
 
 def init():
     if not config:

@@ -32,7 +32,7 @@ class Server(asyncore.dispatcher):
         self.sock = sock
         self.bind(addr)
         self.listen(BACKLOG)
-        print self.sock,addr
+        ## print self.sock,addr
 
     def handle_accept(self):
         sock, addr = self.accept()
@@ -312,7 +312,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             possess = "none"
             flag = team.flag
             if flag.tank is not None:
-                possess = flag.tank.color
+                possess = flag.tank.team.color
             self.push('flag %s %s %s %s\n' % ((color, possess)+tuple(flag.pos)))
         self.push('end\n')
 

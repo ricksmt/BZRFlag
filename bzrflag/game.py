@@ -28,6 +28,17 @@ class Game:
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()
 
+    def remake(self):
+        '''for testing purposes'''
+        self.display.kill()
+        import modpygame
+        self.map = Map(self)
+        self.display = modpygame.Display(self)
+        self.running = False
+        self.gameover = False
+        self.timestamp = datetime.datetime.utcnow()
+
+
     def update(self):
         """updates the game world"""
 
@@ -59,6 +70,10 @@ class Game:
             self.update()
             self.update_sprites()
             self.display.update()
+
+    def kill(self):
+        self.running = False
+        self.display.kill()
 
 class Map(object):
     """manages the map data. populates
@@ -100,7 +115,6 @@ class Map(object):
             return
         for team in self.teams.values():
             team.update(dt)
-        self.handle_collisions(dt)
 
     def tanks(self):
         '''iterate through all tanks on the map'''
@@ -114,16 +128,15 @@ class Map(object):
             for shot in tank.shots:
                 yield shot
 
-    def handle_collisions(self, dt):
-        """Handles the collision detecting process for a given object.
+    def returnFlag(self, flag):
+        if flag.tank is not None:
+            flag.tank.flag = None
+        flag.tank = None
+        flag.pos = flag.team.base.pos
 
-        The obj parameter is the object, while the dt is the time elapsed
-        since collisions were last handled for this object. As a result of
-        calling this method, the object's new position and status (alive,
-        dead, etc.) are set.
-        """
-        collides = {}
-
+    def scoreFlag(self, flag):
+        flag.tank.team.score.setValue(1000)
+        self.returnFlag(flag)
 
 class Team(object):
     '''Team object:
@@ -137,12 +150,12 @@ class Team(object):
         base.team = self
         self.flag = Flag(self)
         # get rid of?
-        self.captured_flags = []
         self.posnoise = config.config[self.color+'_posnoise']
         self.angnoise = config.config[self.color+'_angnoise']
         self.velnoise = config.config[self.color+'_velnoise']
         self.score = Score(self)
         self._obstacles = []
+        self.setup()
         for item in self.tanks+[self.base, self.flag, self.score]:
             self.map.inbox.append(item)
 
@@ -223,7 +236,6 @@ class Team(object):
 class Tank(object):
     size = (constants.TANKRADIUS*2,) * 2
     radius = constants.TANKRADIUS
-## internally complete
     '''Tank object:
     handles the logic for dealing with a tank in the game'''
     def __init__(self, team, tankid):
@@ -268,6 +280,9 @@ class Tank(object):
         if self.flag:
             self.team.map.returnFlag(self.flag)
             self.flag = None
+        for shot in self.shots:
+            shot.kill()
+        self.shots = []
 
     def collision_at(self, pos):
         #return False
@@ -426,7 +441,16 @@ class Flag(object):
         x, y = self.pos
         if self.tank is not None:
             self.pos = self.tank.pos
-        # handle collide
+            if collide.rect2circle(self.tank.team.base.rect, (self.pos, constants.FLAGRADIUS)):
+                self.tank.team.map.scoreFlag(self)
+        else:
+            # handle collide
+            for tank in self.team.map.tanks():
+                if tank.team is self.team:continue
+                if collide.circle2circle((self.pos, constants.FLAGRADIUS), (tank.pos, constants.TANKRADIUS)):
+                    self.tank = tank
+                    tank.flag = self
+                    return
 
 def rotate_scale(p1, p2, angle, scale = 1.0):
     '''rotate p1 around p2 with an angle of angle'''
@@ -464,6 +488,7 @@ class Base(object):
         self.size = tuple(x*2 for x in item.size.asList())
         self.radius = math.sqrt((self.size[0]/2)**2 + (self.size[1]/2)**2)
         poly = tuple(convertBoxtoPoly(item.pos,self.size))
+        self.rect = (item.pos[0]-self.size[0]/2, item.pos[1]-self.size[1]/2) + self.size
         self.shape = scale_rotate_poly(poly, 1, item.rot)
         self.rot = item.rot
 
