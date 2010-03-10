@@ -111,19 +111,22 @@ class Config:
             help='set the time limit')
 
         for color in ['red','green','blue','purple']:
-            p.add_option('--%s-port'%color,
+            title = '%s Team Options' % color.capitalize()
+            g = optparse.OptionGroup(p, title)
+            p.add_option_group(g)
+            g.add_option('--%s-port'%color,
                 dest='%s_port'%color,type='int',default=0,
                 help='specify the port for the %s team'%color)
-            p.add_option('--%s-tanks'%color,
+            g.add_option('--%s-tanks'%color,
                 dest='%s_tanks'%color,type='int',default=10,
                 help='specify the number of tanks for the %s team'%color)
-            p.add_option('--%s-posnoise'%color,
+            g.add_option('--%s-posnoise'%color,
                 dest='%s_posnoise'%color,default=0,
                 help='specify the posnoise for the %s team'%color)
-            p.add_option('--%s-velnoise'%color,
+            g.add_option('--%s-velnoise'%color,
                 dest='%s_velnoise'%color,default=0,
                 help='specify the velnoise for the %s team'%color)
-            p.add_option('--%s-angnoise'%color,
+            g.add_option('--%s-angnoise'%color,
                 dest='%s_angnoise'%color,default=0,
                 help='specify the angnoise for the %s team'%color)
 
