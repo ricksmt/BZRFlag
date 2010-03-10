@@ -16,7 +16,7 @@ from game import Tank, Shot, Flag, Base, Score
 
 import os
 
-DEFAULT_SIZE = 700, 700
+DEFAULT_SIZE = 1200, 1200
 
 DATA_DIR = os.path.abspath(os.path.join(
         os.path.split(__file__)[0], '..', 'data'))
@@ -176,7 +176,7 @@ class Display(object):
     """Manages all graphics."""
     _imagecache = ImageCache
     _spriteclass = BZSprite
-    def __init__(self, game, screen_size=(700,700)):
+    def __init__(self, game, screen_size=DEFAULT_SIZE):
         self.game = game
         self.world = config.config.world
         self.scores = Scores()

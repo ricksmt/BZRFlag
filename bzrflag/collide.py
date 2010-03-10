@@ -34,6 +34,9 @@ poly2poly(poly,poly)
 
 '''
 import math
+#import scipy
+#from scipy.weave import converters
+#from scipy import weave
 
 import logging
 logger = logging.getLogger('collide.py')
@@ -308,8 +311,13 @@ def dist(point1, point2):
     >>> dist((0,0), (4,3))
     5.0
     '''
+    code = """
+    //double x1,x2,y1,y2;
+    return_val = sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+    """
     (x1,y1) = point1
     (x2,y2) = point2
+    #return weave.inline(code,['x1','x2','y1','y2'],type_converters=converters.blitz)
     return math.sqrt((x2-x1)**2+(y2-y1)**2)
 
 ditance = dist

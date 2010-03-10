@@ -98,7 +98,7 @@ class Config:
             dest='grab_own_flag',
             help='can you grab your own flag')
         p.add_option('--friendly-fire',
-            action='store_false',
+            action='store_true',
             dest='friendly_fire',
             help='allow friendly fire')
         p.add_option('--respawn-time',

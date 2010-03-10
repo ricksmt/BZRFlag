@@ -8,7 +8,7 @@ import math
 
 import pygameconsole
 
-DEFAULT_SIZE = 700, 700
+DEFAULT_SIZE = 1200, 1200
 
 DATA_DIR = os.path.abspath(os.path.join(
         os.path.split(__file__)[0], '..', 'data'))
@@ -205,7 +205,7 @@ class Display(graphics.Display):
             for sprite in self.sprites.get_sprites_from_layer(layer):
                 self.screen.blit(sprite.image,sprite.rect)
         self.console.draw(self.screen)
-        pygame.display.flip()
+        #pygame.display.flip()
 
     def update(self):
         """Updates the state of all sprites and redraws the screen."""
