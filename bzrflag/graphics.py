@@ -116,14 +116,25 @@ class TextSprite(pygame.sprite.Sprite):
 class Scores:
     def __init__(self):
         self.scores = []
+
     def add(self,what):
         self.scores.append(what)
+
     def draw(self, screen):
-        x = screen.get_rect().height-10
+        y = screen.get_rect().height-10
+        w = 0
         for score in self.scores:
             score.update()
-            x -= score.rect.height
-            screen.blit(score.image, (10,x))
+            y -= score.rect.height
+            if score.rect.width>w:
+                w = score.rect.width
+        fy = y
+        y = screen.get_rect().height-10
+        pygame.draw.rect(screen, (0,0,0), (10, fy, w, y-fy))
+
+        for score in self.scores:
+            y -= score.rect.height
+            screen.blit(score.image, (10,y))
 
 class BZSprite(pygame.sprite.Sprite):
     """Determines how a single object in the game will be drawn.

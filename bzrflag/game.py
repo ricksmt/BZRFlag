@@ -206,6 +206,7 @@ class Team(object):
         for tank in self.tanks:
             tank.update(dt)
         self.flag.update(dt)
+        self.score.update(dt)
 
     def tank(self, id):
         '''get a tank based on its ID'''
@@ -275,7 +276,7 @@ class Tank(object):
         '''destroy the tank'''
         self.status = constants.TANKDEAD
         self.dead_timer = config.config['respawn_time']
-        self.team.score.tank_died(self)
+        self.team.score.score_tank(self)
         self.pos = constants.DEADZONE
         if self.flag:
             self.team.map.returnFlag(self.flag)
@@ -519,12 +520,20 @@ class Score(object):
     def __init__(self, team):
         self.team = team
         self.value = 0
+        self.timer = 0
 
-    def tank_died(self, tank):
+    def update(self, dt):
+        self.timer += dt
+        if self.timer > 2:
+            self.timer = 0
+            for tank in self.team.tanks:
+                self.score_tank(tank)
+
+    def score_tank(self, tank):
         if tank.flag:
             distance_to = collide.dist(self.team.base.center,tank.flag.team.base.center)
             distance_back = collide.dist(tank.pos,self.team.base.center)
-            self.setValue(distance_to + distance_back)
+            self.setValue(distance_to + 50 + distance_back)
         else:
             closest = None
             for color,team in self.team.map.teams.items():
