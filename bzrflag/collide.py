@@ -280,10 +280,25 @@ def _rect2pts(rect):
     (x,y,w,h) = rect
     return (x,y),(x,y+h),(x+w,y+h),(x+w,y)
 
-def point_inside_polygon(self, x, y, poly):
+def poly2point(poly, (x, y)):
     """Determines if a point is inside a given polygon or not.
 
     Polygon is a list of (x,y) pairs.
+
+    >>> poly = (0,0),(10,0),(10,10),(0,10)
+    >>> poly2point(poly, (5,5))
+    True
+    >>> poly2point(poly, (.1,3))
+    True
+    >>> poly2point(poly, (2,0))
+    False
+    >>> poly2point(poly, (-1,4))
+    False
+    >>> poly = (0,0),(10,5),(0,10)
+    >>> poly2point(poly, (3,5))
+    True
+    >>> poly2point(poly, (3,1))
+    False
     """
     n = len(poly)
     inside = False
@@ -306,6 +321,10 @@ def point_inside_polygon(self, x, y, poly):
 def poly2line(pts,(p1,p2)):
     '''collide a polygon with a line
     *this is tested by other methods*'''
+    if poly2point(pts, p1):
+        return True
+    if poly2point(pts, p2):
+        return True
     for i,pt1 in enumerate(pts):
         pt2 = pts[i-1]
         if line2line((pt1,pt2),(p1,p2)):
@@ -314,7 +333,18 @@ def poly2line(pts,(p1,p2)):
 
 def poly2circle(pts, circle):
     '''collide a polygon with a circle
-    *this is tested by other methods*'''
+    *this is tested by other methods*
+    
+    >>> poly = (0,0),(10,5),(0,10)
+    >>> poly2circle(poly, ((0,0),1))
+    True
+    >>> poly2circle(poly, ((2,6),1))
+    True
+    >>> poly2circle(poly, ((-5,2), 2))
+    False
+    '''
+    if poly2point(pts, circle[0]):
+        return True
     for i,pt1 in enumerate(pts):
         if circle2line(circle,(pt1,pts[i-1])):
             return True
