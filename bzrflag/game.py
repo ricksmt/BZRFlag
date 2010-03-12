@@ -388,6 +388,7 @@ class Shot(object):
             if collide.poly2circle(obs.shape, ((self.pos),constants.SHOTRADIUS)):
                 return self.kill()
         for tank in self.team.map.tanks():
+            if self in tank.shots:continue
             if collide.circle2circle((tank.pos, constants.TANKRADIUS),
                                      (self.pos, constants.SHOTRADIUS)):
                 if tank.team == self.team and not config.config['friendly_fire']:
