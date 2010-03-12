@@ -16,7 +16,7 @@ from game import Tank, Shot, Flag, Base, Score
 
 import os
 
-DEFAULT_SIZE = 1200, 1200
+DEFAULT_SIZE = 900, 900
 
 DATA_DIR = os.path.abspath(os.path.join(
         os.path.split(__file__)[0], '..', 'data'))
@@ -140,14 +140,15 @@ class BZSprite(pygame.sprite.Sprite):
         self.bzobject = bzobject
         self.display = display
         self.orig_image = image
-        self.image = None
         self.type = otype
 
         self.rect = image.get_rect()
         self.prev_rot = None
         self.prev_scale = None
+        self._render_image()
 
         self.update(True)
+
 
     def object_size(self):
         """Finds the screen size of the original unrotated bzobject."""
@@ -157,7 +158,7 @@ class BZSprite(pygame.sprite.Sprite):
         """Translates the image to the bzobject's position."""
         self.rect.center = self.display.pos_world_to_screen(self.bzobject.pos)
 
-    def _render_image(self, image, scale):
+    def _render_image(self, force=False):
         raise Exception,'_scale_image must be overridden'
 
     def update(self, force=False):
@@ -168,7 +169,7 @@ class BZSprite(pygame.sprite.Sprite):
         """
         rot = self.bzobject.rot
 
-        self._render_image()
+        self._render_image(force)
         self.rect = self.image.get_rect()
         self._translate()
 

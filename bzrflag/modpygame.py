@@ -8,8 +8,6 @@ import math
 
 import pygameconsole
 
-DEFAULT_SIZE = 1200, 1200
-
 DATA_DIR = os.path.abspath(os.path.join(
         os.path.split(__file__)[0], '..', 'data'))
 GROUND = 'std_ground.png'
@@ -40,8 +38,8 @@ class ImageCache(graphics.ImageCache):
 
 class BZSprite(graphics.BZSprite):
 
-    def _render_image(self):
-        if self.display.scale == self.prev_scale and self.bzobject.rot == self.prev_rot:
+    def _render_image(self, force = False):
+        if not force and self.display.scale == self.prev_scale and self.bzobject.rot == self.prev_rot:
             return
 
         image = self._rotate_image(self.orig_image, self.bzobject.rot * 180/math.pi)
@@ -77,11 +75,13 @@ class BZSprite(graphics.BZSprite):
 class TiledBZSprite(BZSprite):
     """A BZSprite with a tiled image."""
 
-    def _render_image(self):
+    def _render_image(self, force=False):
 
         self.prev_rot = self.bzobject.rot
         image = self.orig_image
-        image = self.display.images.tile(image, self.bzobject.size)
+        w,h = self.bzobject.size
+        size = self.display.size_world_to_screen((w/2, h/2))
+        image = self.display.images.tile(image, size)
         image = self.display.images.rotate(image, self.bzobject.rot)
         self.image = image
         self._translate()
@@ -118,13 +118,25 @@ class Display(graphics.Display):
         """Initializes pygame and creates the screen surface."""
         pygame.init()
         pygame.key.set_repeat(50,50)
-        self.screen = pygame.display.set_mode(self.screen_size)
+        self.setup_screen()
+        self.sprites = pygame.sprite.LayeredUpdates()
+        self.console = pygameconsole.Console(self.game, (25,self.screen_size[1]*2/3-25,self.screen_size[0]-50,self.screen_size[1]/3))
+
+    def setup_screen(self):
+        self.screen = pygame.display.set_mode(self.screen_size,pygame.RESIZABLE)
         self._screen = pygame.Surface(self.screen_size)
+        self._background = None
         bg = self.background()
         self.screen.blit(bg, (0, 0))
         pygame.display.update()
-        self.sprites = pygame.sprite.LayeredUpdates()
-        self.console = pygameconsole.Console(self.game, (25,self.screen_size[1]*2/3-25,self.screen_size[0]-50,self.screen_size[1]/3))
+
+    def resize(self, w, h):
+        """resize the pygame surface"""
+        self.screen_size = w, h
+        self.setup_screen()
+        for sprite in self.sprites:
+            sprite.update(True)
+        self.redraw()
 
     def add_sprite(self, sprite, otype):
         self.sprites.add(sprite,layer = ['base','tank','flag','shot','score'].index(otype))
@@ -166,6 +178,10 @@ class Display(graphics.Display):
                     self.pos[0]+=e.rel[0]
                     self.pos[1]+=e.rel[1]
                     dirty = True
+            elif e.type == VIDEORESIZE:
+                w,h = e.size
+                x = min(w, h)
+                self.resize(x, x)
         if dirty:
             self.redraw()
 
@@ -181,10 +197,6 @@ class Display(graphics.Display):
         #realpos = (pos[0] - self.pos[0])/self.scale
         self.pos[0] = pos[0] - realpos[0]*self.scale
         self.pos[1] = pos[1] - realpos[1]*self.scale
-
-        #self.pos[0] -= scale * pos[0] - oscale * pos[0]
-        #self.pos[1] -= scale * pos[1] - oscale * pos[1]
-        #self.redraw()
 
     def redraw(self):
         size = self._normal_background.get_rect().size
@@ -213,11 +225,8 @@ class Display(graphics.Display):
         self.sprites.clear(self.screen, bg)
         self.sprites.update()
         changes = self.sprites.draw(self.screen)
-        #self.screen.blit(self.background(),(0,0))
-        #self.sprites.draw(self.screen)
         ## add a check for pygame input later
         self.process_events()
-        #pygame.display.update(changes)
         self.console.draw(self.screen)
         self.scores.draw(self.screen)
         pygame.display.flip()
@@ -233,9 +242,8 @@ class Display(graphics.Display):
             for box in self.game.map.obstacles:
                 s = TiledBZSprite(box, self.images.wall(), self)
                 bg.blit(s.image, s.rect.topleft)
-                #print box.shape
-                #pts = list(self.pos_world_to_screen(xy) for xy in box.shape)
-                #pygame.draw.lines(bg, (255,255,255), 1, pts, 4)
+                pts = list(self.pos_world_to_screen(xy) for xy in box.shape)
+                pygame.draw.lines(bg, (255,255,255), 1, pts, 2)
             self._normal_background = self._background = bg
         return self._background
 
