@@ -53,14 +53,14 @@ class Config:
             dest='debug',
             help='set the debug level')
 
-        ## world behavior
+        ## game behavior
         p.add_option('--world',
             dest='world',
             help='specify a world.bzw map to use')
         p.add_option('--config',
             dest='config',
             help='set the config file')
-        p.add_option('--freeze-tag',   ## redundandt w/ --goodrich
+        p.add_option('--freeze-tag',
             action='store_true',
             dest='freeze_tag',
             help='start a freeze tag game')
@@ -110,6 +110,20 @@ class Config:
             type='int',default=300000,
             dest='time_limit',
             help='set the time limit')
+        g = optparse.OptionGroup(p, 'Team Defaults')
+        p.add_option_group(g)
+        g.add_option('--default-tanks', 
+                dest='default_tanks',type='int',default=10,
+                help='specify the default number of tanks')
+        g.add_option('--default-posnoise', 
+                dest='default_posnoise',type='float',default=0,
+                help='specify the default positional noise')
+        g.add_option('--default-velnoise', 
+                dest='default_velnoise',type='float',default=0,
+                help='specify the default velocity noise')
+        g.add_option('--default-angnoise', 
+                dest='default_angnoise',type='float',default=0,
+                help='specify the default angular noise')
 
         for color in ['red','green','blue','purple']:
             title = '%s Team Options' % color.capitalize()
@@ -119,16 +133,16 @@ class Config:
                 dest='%s_port'%color,type='int',default=0,
                 help='specify the port for the %s team'%color)
             g.add_option('--%s-tanks'%color,
-                dest='%s_tanks'%color,type='int',default=10,
+                dest='%s_tanks'%color,type='int',
                 help='specify the number of tanks for the %s team'%color)
             g.add_option('--%s-posnoise'%color,
-                dest='%s_posnoise'%color,default=0,
+                dest='%s_posnoise'%color,type='float',
                 help='specify the posnoise for the %s team'%color)
             g.add_option('--%s-velnoise'%color,
-                dest='%s_velnoise'%color,default=0,
+                dest='%s_velnoise'%color,type='float',
                 help='specify the velnoise for the %s team'%color)
             g.add_option('--%s-angnoise'%color,
-                dest='%s_angnoise'%color,default=0,
+                dest='%s_angnoise'%color,type='float',
                 help='specify the angnoise for the %s team'%color)
 
         opts, args = p.parse_args(args)
