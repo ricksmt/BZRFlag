@@ -385,7 +385,7 @@ class Shot(object):
 
     def check_collisions(self):
         for obs in self.team.map.obstacles:
-            if collide.rect2circle(obs.rect, ((self.pos),constants.SHOTRADIUS)):
+            if collide.poly2circle(obs.shape, ((self.pos),constants.SHOTRADIUS)):
                 return self.kill()
         for tank in self.team.map.tanks():
             if collide.circle2circle((tank.pos, constants.TANKRADIUS),
