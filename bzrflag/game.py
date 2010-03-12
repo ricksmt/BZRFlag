@@ -6,6 +6,9 @@ import datetime
 import constants
 import config
 
+class GoodrichException(Exception):
+    pass
+
 class Game:
     """*Main control object. Contains the main loop.*
 
@@ -37,7 +40,6 @@ class Game:
         self.running = False
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()
-
 
     def update(self):
         """updates the game world"""
@@ -144,15 +146,28 @@ class Team(object):
     def __init__(self, map, color, base):
         self.color = color
         self.map = map
-        self.tanks = [Tank(self, i) for i in xrange(config.config[self.color+'_tanks'])]
-        self.tanks_radius = constants.TANKRADIUS * len(self.tanks) * 3/2.0
+        ntanks = config.config[self.color+'_tanks']
+        if ntanks is None:
+            ntanks = config.config['default_tanks']
+
+        self.tanks = [Tank(self, i) for i in xrange(ntanks)]
+        self.tanks_radius = constants.TANKRADIUS * ntanks * 3/2.0
         self.base = base
         base.team = self
         self.flag = Flag(self)
-        # get rid of?
+
         self.posnoise = config.config[self.color+'_posnoise']
+        if self.posnoise is None:
+            self.posnoise = config.config['default_posnoise']
+
         self.angnoise = config.config[self.color+'_angnoise']
+        if self.angnoise is None:
+            self.angnoise = config.config['default_angnoise']
+
         self.velnoise = config.config[self.color+'_velnoise']
+        if self.velnoise is None:
+            self.velnoise = config.config['default_velnoise']
+
         self.score = Score(self)
         self._obstacles = []
         self.setup()
@@ -167,8 +182,12 @@ class Team(object):
             (self.base.center, self.tanks_radius + constants.TANKRADIUS)):
                 self._obstacles.append(o)
 
-    def respawn(self, tank):
+    def respawn(self, tank, first=True):
         '''respawn a dead tank'''
+        tank.rot = random.uniform(0, 2*math.pi)
+        tank.status = constants.TANKALIVE
+        #if config.config['freeze_tag'] and not first:
+        #    return
         pos = self.spawn_position()
         for i in xrange(1000):
             if self.check_position(pos, constants.TANKRADIUS):
@@ -176,9 +195,7 @@ class Team(object):
             pos = self.spawn_position()
         else:
             raise Exception,"No workable spawning spots found for team %s"%self.color
-        tank.status = constants.TANKALIVE
         tank.pos = pos
-        tank.rot = random.uniform(0, 2*math.pi)
 
     def check_position(self, point, radius):
         '''check a position to see if it is safe to spawn a tank there'''
@@ -216,6 +233,8 @@ class Team(object):
 
     def shoot(self, tankid):
         '''tell a tank to shoot'''
+        if config.config['freeze_tag']:
+            raise GoodrichException,'No shooting in this game'
         return self.tank(tankid).shoot()
 
     def speed(self, tankid, value):
@@ -264,6 +283,8 @@ class Tank(object):
 
     def shoot(self):
         '''tell the tank to shoot'''
+        if config.config['freeze_tag']:
+            raise GoodrichException("No shooting in this game")
         if self.reloadtimer > 0 or \
                 len(self.shots) >= config.config['max_shots']:
             return False
@@ -277,7 +298,8 @@ class Tank(object):
         self.status = constants.TANKDEAD
         self.dead_timer = config.config['respawn_time']
         self.team.score.score_tank(self)
-        self.pos = constants.DEADZONE
+        if not config.config['freeze_tag']:
+            self.pos = constants.DEADZONE
         if self.flag:
             self.team.map.returnFlag(self.flag)
             self.flag = None
@@ -307,7 +329,7 @@ class Tank(object):
         if self.status == constants.TANKDEAD:
             self.dead_timer -= dt
             if self.dead_timer <= 0:
-                self.team.respawn(self)
+                self.team.respawn(self,False)
             return
 
         for shot in self.shots:

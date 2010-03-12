@@ -406,39 +406,26 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
                 data['shots_avail'] = 10-len(tank.shots)
                 data['reload'] = tank.reloadtimer
                 data['flag'] = tank.flag and tank.flag.team.color or '-'
-                data['x'],data['y'] = tank.pos
-                data['angle'] = tank.rot
-                data['vx'],data['vy'] = tank.velocity()
-                data['angvel'] = tank.angvel
 
-                self.push("othertank %(callsign)s %(color)s %(status)s %(flag)s %(x)s \
-%(y)s %(angle)s\n"%data)
-
-                ## TODO: implement noise
-
-                '''callsign = tank.callsign
-                color = constants.COLORNAME[tank.color]
-                status = tank.status
-                flag = None
-                if tank.flag != None:
-                    flag = constants.COLORNAME[tank.flag.color]
-                else:
-                    flag = '-'
                 x, y = tank.pos
                 x = random.gauss(x, self.team.posnoise)
                 y = random.gauss(y, self.team.posnoise)
-                angle = tank.rot
-                angle = random.gauss(angle, self.team.angnoise)
-                if abs(angle) > math.pi:
-                    pi_units = 0
-                    while abs(angle) > math.pi:
-                        pi_units = pi_units + 1
-                        angle = abs(angle) - math.pi
-                    if pi_units % 2 == 1:
-                        angle = math.pi - angle
-                        angle = angle * -1
-                self.push('othertank %s %s %s ' % (callsign, color, status))
-                self.push('%s %s %s %s\n' % (flag, x, y, angle))'''
+                data['x'],data['y'] = x, y
+                
+                angle = random.gauss(tank.rot, self.team.angnoise) % math.pi*2
+                if angle > math.pi:
+                    angle -= math.pi*2
+                data['angle'] = angle
+
+                vx,vy = tank.velocity()
+                vx = random.gauss(vx, self.team.velnoise)
+                vy = random.gauss(vy, self.team.velnoise)
+                data['vx'],data['vy'] = vx, vy
+
+                data['angvel'] = tank.angvel
+
+                self.push("othertank %(callsign)s %(color)s %(status)s " % data)
+                self.push("%(flag)s %(x)s %(y)s %(angle)s\n"%data)
         self.push('end\n')
 
     def bzrc_constants(self, args):

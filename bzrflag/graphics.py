@@ -67,7 +67,12 @@ class ImageCache(object):
         if not color in constants.COLORNAME:
             raise KeyError,"invalid color: %s"%color
         if not self._teamcache[type].has_key(color):
-            self._teamcache[type][color] = self.load_image('%s_%s.png'%(color,self.suffixes[type]))
+            if type != 'tank' or not config.config['freeze_tag']:
+                self._teamcache[type][color] = self.load_image('%s_%s.png'%(color,self.suffixes[type]))
+            else:
+                self._teamcache[type][color] = self.load_image('%s_%s_g.png'%(color,self.suffixes[type]))
+
+
         return self._teamcache[type][color]
 
     def scaled_size(self, size, scale):
