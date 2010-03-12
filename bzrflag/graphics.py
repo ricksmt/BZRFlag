@@ -97,11 +97,9 @@ class ImageCache(object):
 class TextSprite(pygame.sprite.Sprite):
     def __init__(self, bzobject, display):
         pygame.sprite.Sprite.__init__(self)
-        #super(pygame.sprite.Sprite, self).__init__()
         self.bzobject = bzobject
         self.display = display
         self.rect = pygame.Rect((0,0), (0,0))
-        #pygame.Rect(self.display.pos_world_to_screen(self.bzobject.pos), (0,0))
         self.refresh()
 
     def refresh(self):
@@ -252,8 +250,6 @@ class Display(object):
                 break
         else:
             raise Exception,'invalid object added to display: %s'%obj
-        #print 'adding',otype,'at pos',obj.pos,'translated to',self.pos_world_to_screen(obj.pos)
-        #print self.world.size,self.screen_size
         if otype == 'score':
             sprite = self._textclass(obj, self)
             self.scores.add(sprite)
