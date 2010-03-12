@@ -242,8 +242,8 @@ class Display(graphics.Display):
             for box in self.game.map.obstacles:
                 s = TiledBZSprite(box, self.images.wall(), self)
                 bg.blit(s.image, s.rect.topleft)
-                pts = list(self.pos_world_to_screen(xy) for xy in box.shape)
-                pygame.draw.lines(bg, (255,255,255), 1, pts, 2)
+                #pts = list(self.pos_world_to_screen(xy) for xy in box.shape)
+                #pygame.draw.lines(bg, (255,255,255), 1, pts, 2)
             self._normal_background = self._background = bg
         return self._background
 
