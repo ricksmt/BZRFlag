@@ -60,6 +60,14 @@ class Config:
         p.add_option('--config',
             dest='config',
             help='set the config file')
+        p.add_option('--python-console',
+            dest='python_console', default=False,
+            action='store_true',
+            help='use interactive python shell')
+        p.add_option('--tenlet-console',
+            dest='telnet_console', default=False,
+            action='store_true',
+            help='use interactive telnet shell (and log server response)')
         p.add_option('--freeze-tag',
             action='store_true',
             dest='freeze_tag',

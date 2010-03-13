@@ -3,7 +3,6 @@ L M trash talk
 H S legal matter
 *H M goodrich
 H B debug square, telnet interactive
-M S --default-noise option
 
 TEST TEST TEST
 
@@ -15,3 +14,4 @@ L S die friendly
 M S win resize
 *H M resized obstacle draw wrong
 M S update score
+M S --default-noise option

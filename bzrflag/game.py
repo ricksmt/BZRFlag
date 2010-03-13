@@ -186,8 +186,8 @@ class Team(object):
         '''respawn a dead tank'''
         tank.rot = random.uniform(0, 2*math.pi)
         tank.status = constants.TANKALIVE
-        #if config.config['freeze_tag'] and not first:
-        #    return
+        if config.config['freeze_tag'] and not first:
+            return
         pos = self.spawn_position()
         for i in xrange(1000):
             if self.check_position(pos, constants.TANKRADIUS):
@@ -272,13 +272,18 @@ class Tank(object):
         self.reloadtimer = 0
         self.dead_timer = -1
         self.flag = None
+        self.spawned = False
 
     def setspeed(self, speed):
         '''set the goal speed'''
+        if config.config['freeze_tag']:
+            raise GoodrichException('use h/v velocity')
         self.goal_speed = speed
 
     def setangvel(self, angvel):
         '''set the goal angular velocity'''
+        if config.config['freeze_tag']:
+            raise GoodrichException('use h/v velocity')
         self.goal_angvel = angvel
 
     def shoot(self):
@@ -329,7 +334,8 @@ class Tank(object):
         if self.status == constants.TANKDEAD:
             self.dead_timer -= dt
             if self.dead_timer <= 0:
-                self.team.respawn(self,False)
+                self.team.respawn(self,not self.spawned)
+                self.spawned = True
             return
 
         for shot in self.shots:

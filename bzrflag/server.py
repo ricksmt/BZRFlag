@@ -13,6 +13,7 @@ import logging
 logger = logging.getLogger('server')
 
 import constants
+import config
 
 BACKLOG = 5
 
@@ -81,13 +82,24 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         else:
             self.input_buffer = chunk
 
+    def push(self, text):
+        asynchat.async_chat.push(self, text)
+        if config.config['telnet_console']:
+            self.team.map.game.display.console.write(self.team.color + ' > ' + text)
+            logger.debug(self.team.color + ' > ' + text)
+        if text.startswith('fail '):
+            logger.error(self.team.color + ' > ' + text)
+        
+
     def found_terminator(self):
         """Called when Asynchat finds an end-of-line.
 
         Note that Asynchat ensures that our input buffer contains everything
         up to but not including the newline character.
         """
-        #self.team.map.world.display.log.log(self.team.colorname + ': ' + self.input_buffer)
+        if not config.config['python_console']:
+            self.team.map.game.display.console.write(self.team.color + ' : ' + self.input_buffer + '\n')
+        logger.debug(self.team.color + ' : ' + self.input_buffer + '\n')
         args = self.input_buffer.split()
         self.input_buffer = ''
         if args:

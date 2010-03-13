@@ -4,6 +4,7 @@ from pygame.locals import *
 
 import graphics
 import constants
+import config
 import math
 
 import pygameconsole
@@ -120,7 +121,11 @@ class Display(graphics.Display):
         pygame.key.set_repeat(50,50)
         self.setup_screen()
         self.sprites = pygame.sprite.LayeredUpdates()
-        self.console = pygameconsole.Console(self.game, (25,self.screen_size[1]*2/3-25,self.screen_size[0]-50,self.screen_size[1]/3))
+        if config.config['python_console']:
+            cons = pygameconsole.PyConsole
+        else:
+            cons = pygameconsole.TelnetConsole
+        self.console = cons(self.game, (25,self.screen_size[1]*2/3-25,self.screen_size[0]-50,self.screen_size[1]/3))
 
     def setup_screen(self):
         self.screen = pygame.display.set_mode(self.screen_size,pygame.RESIZABLE)

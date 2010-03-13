@@ -6,13 +6,11 @@ import string
 import sys
 import collide
 
-class Console:
+class Console(object):
     def __init__(self, game, rect):
-        self.console = IC({'game':game,'sys':sys,'pygame':pygame,'self':self,'purple':game.map.teams['purple'],'collide':collide})
         self.rect = pygame.Rect(rect)
         self.minrect = pygame.Rect(self.rect.bottom-30,self.rect.right-30,30,30)
         self.image = pygame.Surface(self.rect.size)
-        #self.image.set_alpha(100)
         self.dirty = True
         self.txt = ''
         self.game = game
@@ -20,21 +18,13 @@ class Console:
         self.font = pygame.font.Font(None,20)
         self.lineheight = 15
         self.maxlines = 14
-        self.history = []
         self.minimized = True
-        self.athistory = 0
         self.bgc = (0,110,7)
-        self.prompt()
 
     def write(self, text):
         self.txt = self.txt[:self.at] + text + self.txt[self.at:]
         self.at += len(text)
         self.dirty = True
-
-    def prompt(self):
-        self.txt += '>>> '
-        self.index = len(self.txt)
-        self.at = self.index
 
     def render(self):
         if not self.dirty:return
@@ -62,6 +52,41 @@ class Console:
         else:
             self.render()
             screen.blit(self.image, self.rect)
+    
+    def event(self, e):
+        if e.type == MOUSEBUTTONDOWN:
+            if self.minrect.collidepoint(e.pos):
+                self.minimized = not self.minimized
+                if self.minimized:
+                    self.game.display.redraw()
+                return True
+
+class TelnetConsole(Console):
+    def __init__(self, *a, **b):
+        super(TelnetConsole, self).__init__(*a, **b)
+        self.frozen = False
+    def render(self):
+        if self.frozen:return
+        super(TelnetConsole, self).render()
+    def event(self, e):
+        if super(TelnetConsole, self).event(e):
+            return
+        elif e.type == KEYDOWN and e.key == K_SPACE:
+            self.frozen = not self.frozen
+
+
+class PyConsole(Console):
+    def __init__(self, game, rect):
+        super(PyConsole, self).__init__(game, rect)
+        self.console = IC({'game':game,'sys':sys,'pygame':pygame,'self':self,'purple':game.map.teams['purple'],'collide':collide})
+        self.history = []
+        self.athistory = 0
+        self.prompt()
+
+    def prompt(self):
+        self.txt += '>>> '
+        self.index = len(self.txt)
+        self.at = self.index
 
     def execute(self):
         next = self.txt[self.index:]
@@ -90,7 +115,9 @@ class Console:
             self.at = len(self.txt)
 
     def event(self, e):
-        if e.type == KEYDOWN:
+        if super(PyConsole, self).event(e):
+            return
+        elif e.type == KEYDOWN:
             if self.minimized:return
             if e.key == 8:
                 if self.at>self.index:
@@ -115,8 +142,3 @@ class Console:
                 self.write(e.unicode)
             else:return
             self.dirty = True
-        elif e.type == MOUSEBUTTONDOWN:
-            if self.minrect.collidepoint(e.pos):
-                self.minimized = not self.minimized
-                if self.minimized:
-                    self.game.display.redraw()
