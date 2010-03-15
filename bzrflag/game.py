@@ -184,10 +184,11 @@ class Team(object):
 
     def respawn(self, tank, first=True):
         '''respawn a dead tank'''
-        tank.rot = random.uniform(0, 2*math.pi)
         tank.status = constants.TANKALIVE
         if config.config['freeze_tag'] and not first:
             return
+        if not config.config['freeze_tag']:
+            tank.rot = random.uniform(0, 2*math.pi)
         pos = self.spawn_position()
         for i in xrange(1000):
             if self.check_position(pos, constants.TANKRADIUS):
@@ -253,6 +254,22 @@ class Team(object):
             value = -1
         self.tank(tankid).setangvel(value)
 
+    def accelx(self, tankid, value):
+        '''set a tank's goal angular velocity'''
+        if value > 1:
+            value = 1
+        elif value < -1:
+            value = -1
+        self.tank(tankid).setaccelx(value)
+
+    def accely(self, tankid, value):
+        '''set a tank's goal angular velocity'''
+        if value > 1:
+            value = 1
+        elif value < -1:
+            value = -1
+        self.tank(tankid).setaccely(value)
+
 class Tank(object):
     size = (constants.TANKRADIUS*2,) * 2
     radius = constants.TANKRADIUS
@@ -262,10 +279,6 @@ class Tank(object):
         self.team = team
         self.pos = [0,0]
         self.rot = 0
-        self.speed = 0
-        self.angvel = 0
-        self.goal_speed = 0
-        self.goal_angvel = 0
         self.callsign = self.team.color + str(tankid)
         self.status = constants.TANKDEAD
         self.shots = []
@@ -275,36 +288,25 @@ class Tank(object):
         self.spawned = False
 
     def setspeed(self, speed):
-        '''set the goal speed'''
-        if config.config['freeze_tag']:
-            raise GoodrichException('use h/v velocity')
-        self.goal_speed = speed
+        raise NotImplementedError
 
     def setangvel(self, angvel):
-        '''set the goal angular velocity'''
-        if config.config['freeze_tag']:
-            raise GoodrichException('use h/v velocity')
-        self.goal_angvel = angvel
+        raise NotImplementedError
+
+    def setaccelx(self, value):
+        raise NotImplementedError
+
+    def setaccely(self, value):
+        raise NotImplementedError
 
     def shoot(self):
-        '''tell the tank to shoot'''
-        if config.config['freeze_tag']:
-            raise GoodrichException("No shooting in this game")
-        if self.reloadtimer > 0 or \
-                len(self.shots) >= config.config['max_shots']:
-            return False
-        shot = Shot(self)
-        self.shots.insert(0, shot)
-        self.team.map.inbox.append(shot)
-        self.reloadtimer = constants.RELOADTIME
+        raise NotImplementedError
 
     def kill(self):
         '''destroy the tank'''
         self.status = constants.TANKDEAD
         self.dead_timer = config.config['respawn_time']
         self.team.score.score_tank(self)
-        if not config.config['freeze_tag']:
-            self.pos = constants.DEADZONE
         if self.flag:
             self.team.map.returnFlag(self.flag)
             self.flag = None
@@ -313,7 +315,6 @@ class Tank(object):
         self.shots = []
 
     def collision_at(self, pos):
-        #return False
         for obs in self.team.map.obstacles:
             if collide.poly2circle(obs.shape, ((pos),constants.TANKRADIUS)):
                 return True
@@ -345,36 +346,101 @@ class Tank(object):
             self.reloadtimer -= dt
 
         self.update_goals(dt)
-        self.rot += self.angvel * constants.TANKANGVEL * dt
         dx,dy = self.velocity()
         if not self.collision_at((self.pos[0]+dx*dt, self.pos[1]+dy*dt)):
             self.pos[0] += dx*dt
             self.pos[1] += dy*dt
 
+    def update_goal(self, num, goal, by):
+        if num<goal:
+            num += by
+            if num > goal:
+                return goal
+            return num
+        elif num > goal:
+            num -= by
+            if num < goal:
+                return goal
+            return num
+
+    def update_goals(self, dt):
+        raise NotImplementedError
+
+    def velocity(self):
+        raise NotImplementedError
+
+class SeppiTank(Tank):
+    def __init__(self):
+        super(SeppiTank, self).__init__()
+
+        self.goal_speed = 0
+        self.goal_angvel = 0
+        self.speed = 0
+        self.angvel = 0
+
     def update_goals(self, dt):
         '''update the velocities to match the goals'''
-        if self.speed < self.goal_speed:
-            self.speed += constants.LINEARACCEL * dt
-            if self.speed > self.goal_speed:
-                self.speed = self.goal_speed
-        elif self.speed > self.goal_speed:
-            self.speed -= constants.LINEARACCEL * dt
-            if self.speed < self.goal_speed:
-                self.speed = self.goal_speed
+        self.speed = self.update_goal(self.speed, self.goal_speed, constants.LINEARACCEL * dt)
+        self.angvel = self.update_goal(self.angvel, self.goal_angvel, constants.ANGULARACCEL * dt)
+        self.rot += self.angvel * constants.TANKANGVEL * dt
 
-        if self.angvel < self.goal_angvel:
-            self.angvel += constants.ANGULARACCEL * dt
-            if self.angvel > self.goal_angvel:
-                self.angvel = self.goal_angvel
-        elif self.angvel > self.goal_angvel:
-            self.angvel -= constants.ANGULARACCEL * dt
-            if self.angvel < self.goal_angvel:
-                self.angvel = self.goal_angvel
+    def setspeed(self, speed):
+        '''set the goal speed'''
+        self.goal_speed = speed
+
+    def setangvel(self, angvel):
+        '''set the goal angular velocity'''
+        self.goal_angvel = angvel
+
+    def shoot(self):
+        '''tell the tank to shoot'''
+        if config.config['freeze_tag']:
+            raise GoodrichException("No shooting in this game")
+        if self.reloadtimer > 0 or \
+                len(self.shots) >= config.config['max_shots']:
+            return False
+        shot = Shot(self)
+        self.shots.insert(0, shot)
+        self.team.map.inbox.append(shot)
+        self.reloadtimer = constants.RELOADTIME
+
+    def kill(self):
+        super(SeppiTank, self).kill()
+        self.pos = constants.DEADZONE
 
     def velocity(self):
         '''calculate the tank's linear velocity'''
         return (self.speed * math.cos(self.rot) * constants.TANKSPEED,
             self.speed * math.sin(self.rot) * constants.TANKSPEED)
+
+class GoodrichTank(Tank):
+    def __init__(self):
+        super(GoodrichTank, self).__init__()
+        self.goal_accelx = 0
+        self.goal_accely = 0
+        self.accelx = 0
+        self.accely = 0
+        self.hspeed = 0
+        self.vspeed = 0
+
+    def update_goals(self, dt):
+        '''update the velocities to match the goals'''
+        self.accelx = self.update_goal(self.accelx, self.goal_accelx, constants.LINEARACCEL * dt)
+        self.accely = self.update_goal(self.accely, self.goal_accely, constants.LINEARACCEL * dt)
+        self.hspeed += self.goal_accelx
+        self.vspeed += self.goal_accely
+
+    def setaccely(self, speed):
+        '''set the goal speed'''
+        self.goal_accely = speed
+
+    def setaccelx(self, angvel):
+        '''set the goal angular velocity'''
+        self.goal_accelx = angvel
+
+    def velocity(self):
+        '''calculate the tank's linear velocity'''
+        return self.hspeed, self.vspeed
 
 class Shot(object):
     size = (constants.SHOTRADIUS*2,) * 2

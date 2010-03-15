@@ -226,14 +226,34 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
     def bzrc_accelx(self, args):
         """accelx [??]
         Used specifically for freezeTag.
-        currently not implemented"""
-        pass
+        """
+        try:
+            command, tankid, value = args
+            tankid = int(tankid)
+            value = float(value)
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            self.push('fail\n')
+            return
+        self.ack(command, tankid, value)
+        self.team.accelx(tankid, value)
+        self.push('ok\n')
 
     def bzrc_accely(self, args):
         """accely [??]
         Used specifically for freezeTag.
-        currently not implemented"""
-        pass
+        """
+        try:
+            command, tankid, value = args
+            tankid = int(tankid)
+            value = float(value)
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            self.push('fail\n')
+            return
+        self.ack(command, tankid, value)
+        self.team.accely(tankid, value)
+        self.push('ok\n')
 
     def bzrc_teams(self, args):
         """teams
