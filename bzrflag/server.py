@@ -112,7 +112,9 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
                 try:
                     command(args)
                 except Exception, e:
-                    self.push('fail '+str(e)+'\n')
+                    logger.error(self.team.color + ' : ERROR : %s : %s\n' % (args, e))
+                    self.team.map.game.display.console.write(self.team.color + ' : ERROR : %s : %s : %s\n' % (args, e.__class__.__name__, e))
+                    self.push('fail '+str(e)+'\n') 
                     return
             elif args == ['agent', '1']:
                 self.established = True

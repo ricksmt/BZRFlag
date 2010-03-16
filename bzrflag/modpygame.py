@@ -118,7 +118,7 @@ class Display(graphics.Display):
     def setup(self):
         """Initializes pygame and creates the screen surface."""
         pygame.init()
-        pygame.key.set_repeat(50,50)
+        pygame.key.set_repeat(200,50)
         self.setup_screen()
         self.sprites = pygame.sprite.LayeredUpdates()
         if config.config['python_console']:

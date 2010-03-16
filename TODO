@@ -2,6 +2,10 @@ H M test more agents
 L M trash talk
 H S legal matter
 *H M goodrich
+    *disable bad commands
+    *create good commands
+    freezing [collision]
+
 H B debug square, telnet interactive
 
 TEST TEST TEST

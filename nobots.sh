@@ -1,2 +1,2 @@
-./bin/bzrflag --world=maps/simple.bzw &
+./bin/bzrflag --world=maps/simple.bzw --freeze-tag &
 
