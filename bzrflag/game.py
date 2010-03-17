@@ -653,9 +653,12 @@ class Score(object):
 
     def score_tank(self, tank):
         if tank.flag:
+            ebase = tank.flag.team.base
             distance_to = collide.dist(self.team.base.center,tank.flag.team.base.center)
             distance_back = collide.dist(tank.pos,self.team.base.center)
-            self.setValue(distance_to + 50 + distance_back)
+            more = 200.0 * distance_back/distance_to
+            if more<0:more=0
+            self.setValue(200 + more)
         else:
             closest = None
             for color,team in self.team.map.teams.items():
@@ -667,7 +670,7 @@ class Score(object):
                 print "no closest found...",self,tank,self.team.map.teams.items()
                 return False
             distance_to = collide.dist(self.team.base.center,closest[1].center)
-            self.setValue(distance_to - collide.dist(tank.pos, closest[1].center))
+            self.setValue(200.0 * collide.dist(tank.pos, closest[1].center)/distance_to)
 
     def gotFlag(self):
         self.value += 500
