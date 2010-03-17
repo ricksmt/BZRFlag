@@ -218,6 +218,14 @@ def circle2circle(circle1, circle2):
     >>> circle2circle(((0,0),3), ((4.1,0),1))
     False
     '''
+    if circle1[0][0] + circle1[1] < circle2[0][0] - circle2[1]:
+        return False
+    if circle1[0][0] - circle1[1] > circle2[0][0] + circle2[1]:
+        return False
+    if circle1[0][1] + circle1[1] < circle2[0][1] - circle2[1]:
+        return False
+    if circle1[0][1] - circle1[1] > circle2[0][1] + circle2[1]:
+        return False
     return dist(circle1[0], circle2[0]) <= circle1[1] + circle2[1]
 
 def rect2point(rect, point):
@@ -343,6 +351,14 @@ def poly2circle(pts, circle):
     >>> poly2circle(poly, ((-5,2), 2))
     False
     '''
+    if min_y(pts) > circle[0][1]+circle[1]:
+        return False
+    if max_y(pts) < circle[0][1]-circle[1]:
+        return False
+    if min_x(pts) > circle[0][0]+circle[1]:
+        return False
+    if max_x(pts) < circle[0][0]-circle[1]:
+        return False
     if poly2point(pts, circle[0]):
         return True
     for i,pt1 in enumerate(pts):
@@ -358,6 +374,18 @@ def poly2poly(pts1,pts2):
         if poly2line(pts2,pt1,pt2):
             return True
     return False
+
+def max_x(pts):
+    return max([p[0] for p in pts])
+
+def max_y(pts):
+    return max([p[1] for p in pts])
+
+def min_x(pts):
+    return min([p[0] for p in pts])
+
+def min_y(pts):
+    return min([p[1] for p in pts])
 
 def dist(point1, point2):
     '''returns the pythagorean distance between two points
