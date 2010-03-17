@@ -350,6 +350,11 @@ class Tank(object):
         if not self.collision_at((self.pos[0]+dx*dt, self.pos[1]+dy*dt)):
             self.pos[0] += dx*dt
             self.pos[1] += dy*dt
+        elif not self.collision_at((self.pos[0], self.pos[1]+dy*dt)):
+            self.pos[1] += dy*dt
+        elif not self.collision_at((self.pos[0]+dx*dt, self.pos[1])):
+            self.pos[0] += dx*dt
+
 
     def update_goal(self, num, goal, by):
         if num < goal:
