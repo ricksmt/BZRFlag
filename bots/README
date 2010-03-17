@@ -1,0 +1,8 @@
+To compile bots to .pyc (to hide the code from students), run:
+
+python -m compileall -lf
+mv *.pyc compiled/
+
+Then to run a bot, use:
+
+./compiled/blind.py [bot_name] [host] [port]

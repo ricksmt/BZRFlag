@@ -399,63 +399,63 @@ def normalize_angle(angle):
         angle -= 2 * math.pi
     return angle
 
+def run():
+    ########################################################################
 
-########################################################################
+    # Process CLI arguments.
 
-# Process CLI arguments.
+    try:
+        execname, host, port = sys.argv
+    except ValueError:
+        execname = sys.argv[0]
+        print >>sys.stderr, '%s: incorrect number of arguments' % execname
+        print >>sys.stderr, 'usage: %s hostname port' % sys.argv[0]
+        sys.exit(-1)
 
-try:
-    execname, host, port = sys.argv
-except ValueError:
-    execname = sys.argv[0]
-    print >>sys.stderr, '%s: incorrect number of arguments' % execname
-    print >>sys.stderr, 'usage: %s hostname port' % sys.argv[0]
-    sys.exit(-1)
+    # Connect.
 
-# Connect.
+    #bzrc = BZRC(host, int(port), debug=True)
+    bzrc = BZRC(host, int(port))
 
-#bzrc = BZRC(host, int(port), debug=True)
-bzrc = BZRC(host, int(port))
+    constants = bzrc.get_constants()
 
-constants = bzrc.get_constants()
+    try:
+        while True:
+            mytanks, othertanks, flags, shots = bzrc.get_lots_o_stuff()
+            enemies = [tank for tank in othertanks if tank.color != constants['team']]
 
-try:
-    while True:
-        mytanks, othertanks, flags, shots = bzrc.get_lots_o_stuff()
-        enemies = [tank for tank in othertanks if tank.color != constants['team']]
+            commands = []
+            for bot in mytanks:
+                best_enemy = None
+                best_dist = 2 * float(constants['worldsize'])
+                for enemy in enemies:
+                    if enemy.status != 'alive':
+                        #print 'notnormal',enemy,enemy.status
+                        break
+                    dist = math.sqrt((enemy.x - bot.x)**2 + (enemy.y - bot.y)**2)
+                    if dist < best_dist:
+                        best_dist = dist
+                        best_enemy = enemy
 
-        commands = []
-        for bot in mytanks:
-            best_enemy = None
-            best_dist = 2 * float(constants['worldsize'])
-            for enemy in enemies:
-                if enemy.status != 'alive':
-                    #print 'notnormal',enemy,enemy.status
-                    break
-                dist = math.sqrt((enemy.x - bot.x)**2 + (enemy.y - bot.y)**2)
-                if dist < best_dist:
-                    best_dist = dist
-                    best_enemy = enemy
+                if best_enemy is None:
+                    command = Command(bot.index, 0, 0, False)
+                else:
+                    target_angle = math.atan2(best_enemy.y - bot.y,
+                            best_enemy.x - bot.x)
+                    relative_angle = normalize_angle(target_angle - bot.angle)
+                    command = Command(bot.index, 1, 2 * relative_angle, True)
+                    commands.append(command)
 
-            if best_enemy is None:
-                command = Command(bot.index, 0, 0, False)
-            else:
-                target_angle = math.atan2(best_enemy.y - bot.y,
-                        best_enemy.x - bot.x)
-                relative_angle = normalize_angle(target_angle - bot.angle)
-                command = Command(bot.index, 1, 2 * relative_angle, True)
-                commands.append(command)
-
-        results = bzrc.do_commands(commands)
-        for bot, result in zip(mytanks, results):
-            did_speed, did_angvel, did_shot = result
-            if did_shot:
-                print 'Shot fired by tank #%s (%s)' % (bot.index, bot.callsign)
+            results = bzrc.do_commands(commands)
+            for bot, result in zip(mytanks, results):
+                did_speed, did_angvel, did_shot = result
+                if did_shot:
+                    print 'Shot fired by tank #%s (%s)' % (bot.index, bot.callsign)
 
 
-except KeyboardInterrupt:
-    print "Exiting due to keyboard interrupt."
-    bzrc.close()
-
+    except KeyboardInterrupt:
+        print "Exiting due to keyboard interrupt."
+        bzrc.close()
+run()
 
 # vim: et sw=4 sts=4
