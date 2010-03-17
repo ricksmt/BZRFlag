@@ -6,13 +6,13 @@ H S legal matter
     *create good commands
     freezing [collision]
 
-H B debug square, telnet interactive
 
 TEST TEST TEST
 
 Done
 ----
 
+H B debug square, telnet interactive
 L S die friendly
 *H S point-to-polygon
 M S win resize

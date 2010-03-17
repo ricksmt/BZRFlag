@@ -186,7 +186,7 @@ class Team(object):
     def respawn(self, tank, first=True):
         '''respawn a dead tank'''
         tank.status = constants.TANKALIVE
-        if config.config['freeze_tag'] and not first:
+        if tank.pos != constants.DEADZONE:
             return
         if not config.config['freeze_tag']:
             tank.rot = random.uniform(0, 2*math.pi)
@@ -278,7 +278,7 @@ class Tank(object):
     handles the logic for dealing with a tank in the game'''
     def __init__(self, team, tankid):
         self.team = team
-        self.pos = [0,0]
+        self.pos = constants.DEADZONE
         self.rot = 0
         self.angvel = 0
         self.callsign = self.team.color + str(tankid)
@@ -288,6 +288,7 @@ class Tank(object):
         self.dead_timer = -1
         self.flag = None
         self.spawned = False
+
 
     def setspeed(self, speed):
         raise NotImplementedError
@@ -324,6 +325,7 @@ class Tank(object):
             if tank is self:continue
             if collide.circle2circle((tank.pos, constants.TANKRADIUS),
                                      (pos, constants.TANKRADIUS)):
+                self.collide_tank(tank)
                 return True
         if pos[0]<-config.config.world.size[0]/2 or\
          pos[1]<-config.config.world.size[1]/2 or\
@@ -331,22 +333,16 @@ class Tank(object):
          pos[1]>config.config.world.size[1]/2:
             return True
         return False
+    
+    def collide_tank(self, tank):
+        pass
 
     def update(self, dt):
         '''update the tank's position, status, velocities'''
+        if self.pos == constants.DEADZONE:
+            self.team.respawn(self)
         if self.status == constants.TANKDEAD:
-            self.dead_timer -= dt
-            if self.dead_timer <= 0:
-                self.team.respawn(self,not self.spawned)
-                self.spawned = True
             return
-
-        for shot in self.shots:
-            shot.update(dt)
-
-        if self.reloadtimer > 0:
-            self.reloadtimer -= dt
-
         self.update_goals(dt)
         dx,dy = self.velocity()
         if not self.collision_at((self.pos[0]+dx*dt, self.pos[1]+dy*dt)):
@@ -382,6 +378,23 @@ class SeppiTank(Tank):
         self.speed = 0
         self.angvel = 0
         self.rot = 0
+
+    def update(self, dt):
+        '''update tank's position, status, etc.'''
+
+        if self.status == constants.TANKDEAD:
+            self.dead_timer -= dt
+            if self.dead_timer <= 0:
+                self.team.respawn(self,not self.spawned)
+                self.spawned = True
+            return
+
+        for shot in self.shots:
+            shot.update(dt)
+
+        if self.reloadtimer > 0:
+            self.reloadtimer -= dt
+        super(SeppiTank, self).update(dt)
 
     def update_goals(self, dt):
         '''update the velocities to match the goals'''
@@ -433,6 +446,17 @@ class GoodrichTank(Tank):
             dr = math.atan2(self.vspeed, self.hspeed)
             self.hspeed = math.cos(dr) * max
             self.vspeed = math.sin(dr) * max
+
+    def collide_tank(self, tank):
+        if tank.team == self.team:
+            if tank.status == constants.TANKDEAD:
+                self.team.respawn_tank(tank)
+        else:
+            base = self.team.map.closest_base(self.pos)
+            if base.team == tank.team:
+                self.kill()
+            elif base.team == self.team:
+                tank.kill()
 
     def setaccely(self, speed):
         '''set the goal speed'''
@@ -644,6 +668,9 @@ class Score(object):
                 return False
             distance_to = collide.dist(self.team.base.center,closest[1].center)
             self.setValue(distance_to - collide.dist(tank.pos, closest[1].center))
+
+    def gotFlag(self):
+        self.value += 500
 
     def setValue(self,value):
         if value>self.value:
