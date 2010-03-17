@@ -97,7 +97,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         Note that Asynchat ensures that our input buffer contains everything
         up to but not including the newline character.
         """
-        if not config.config['python_console']:
+        if config.config['telnet_console']:
             self.team.map.game.display.console.write(self.team.color + ' : ' + self.input_buffer + '\n')
         logger.debug(self.team.color + ' : ' + self.input_buffer + '\n')
         args = self.input_buffer.split()

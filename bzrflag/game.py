@@ -355,7 +355,6 @@ class Tank(object):
         elif not self.collision_at((self.pos[0]+dx*dt, self.pos[1])):
             self.pos[0] += dx*dt
 
-
     def update_goal(self, num, goal, by):
         if num < goal:
             num += by
@@ -649,6 +648,7 @@ class Score(object):
     def __init__(self, team):
         self.team = team
         self.value = 0
+        self.flags = 0
         self.timer = 0
 
     def update(self, dt):
@@ -663,9 +663,10 @@ class Score(object):
             ebase = tank.flag.team.base
             distance_to = collide.dist(self.team.base.center,tank.flag.team.base.center)
             distance_back = collide.dist(tank.pos,self.team.base.center)
-            more = 200.0 * distance_back/distance_to
-            if more<0:more=0
-            self.setValue(200 + more)
+            more = 100.0 * (distance_to - distance_back)/distance_to
+            if distance_back > distance_to:
+                more = 0
+            self.setValue(500 + more)
         else:
             closest = None
             for color,team in self.team.map.teams.items():
@@ -676,16 +677,19 @@ class Score(object):
             if not closest:
                 print "no closest found...",self,tank,self.team.map.teams.items()
                 return False
-            distance_to = collide.dist(self.team.base.center,closest[1].center)
-            self.setValue(200.0 * collide.dist(tank.pos, closest[1].center)/distance_to)
+            total_dist = collide.dist(self.team.base.center,closest[1].center)
+            distance_to = collide.dist(tank.pos, closest[1].center)
+            if distance_to > total_dist:return
+            self.setValue(100.0 * (total_dist-distance_to)/total_dist)
 
     def gotFlag(self):
-        self.value += 500
+        self.value = 0
+        self.flags += 1
 
     def setValue(self,value):
         if value>self.value:
             self.value = value
 
     def text(self):
-        return "Team %s: %d"%(self.team.color, self.value)
+        return "Team %s: %d"%(self.team.color, 1000*self.flags + self.value)
 

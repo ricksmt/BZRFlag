@@ -72,10 +72,6 @@ class Config:
             action='store_true',
             dest='freeze_tag',
             help='start a freeze tag game')
-        p.add_option('--hoverbot',
-            action='store_false',
-            dest='hoverbot',
-            help='allow hoverbots')
         ## tank behavior
         p.add_option('--max-shots',
             type='int',
