@@ -5,6 +5,8 @@ from code import InteractiveConsole as IC
 import string
 import sys
 import collide
+import paths
+
 
 class Console(object):
     def __init__(self, game, rect):
@@ -15,7 +17,7 @@ class Console(object):
         self.txt = ''
         self.game = game
         self.at = 0
-        self.font = pygame.font.Font(None,20)
+        self.font = pygame.font.Font(paths.FONT_FILE,20)
         self.lineheight = 15
         self.maxlines = 14
         self.minimized = True

@@ -130,15 +130,17 @@ class Map(object):
             for shot in tank.shots:
                 yield shot
 
-    def returnFlag(self, flag):
+    def dropFlag(self, flag):
+        if flag.tank is not None:
+            flag.tank.flag = None
+        flag.tank = None
+
+    def scoreFlag(self, flag):
+        flag.tank.team.score.gotFlag()
         if flag.tank is not None:
             flag.tank.flag = None
         flag.tank = None
         flag.pos = flag.team.base.pos
-
-    def scoreFlag(self, flag):
-        flag.tank.team.score.gotFlag()
-        self.returnFlag(flag)
 
 class Team(object):
     '''Team object:
@@ -311,7 +313,7 @@ class Tank(object):
         self.dead_timer = config.config['respawn_time']
         self.team.score.score_tank(self)
         if self.flag:
-            self.team.map.returnFlag(self.flag)
+            self.team.map.dropFlag(self.flag)
             self.flag = None
         for shot in self.shots:
             shot.kill()

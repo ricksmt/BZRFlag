@@ -15,13 +15,10 @@ from world import Base, Box
 from game import Tank, Shot, Flag, Base, Score
 
 import os
+import paths
 
 DEFAULT_SIZE = 900, 900
 
-DATA_DIR = os.path.abspath(os.path.join(
-        os.path.split(__file__)[0], '..', 'data'))
-GROUND = 'std_ground.png'
-WALL = 'wall.png'
 BASE_PATTERN = '%s_basetop.png'
 SHOT_PATTERN = '%s_bolt.png'
 FLAG_PATTERN = '%s_flag.png'
@@ -47,7 +44,7 @@ class ImageCache(object):
         The surface is scaled down using the factor in TILESCALE.
         """
         if not self._cache.has_key('ground'):
-            ground = self.load_image(GROUND)
+            ground = self.load_image(paths.GROUND)
             self._ground = self.scaled_image(ground, TILESCALE)
         return self._ground
 
@@ -57,7 +54,7 @@ class ImageCache(object):
         The surface is scaled down using the factor in TILESCALE.
         """
         if not self._wall:
-            wall = self.load_image(WALL)
+            wall = self.load_image(paths.WALL)
             self._wall = self.scaled_image(wall, TILESCALE)
         return self._wall
 

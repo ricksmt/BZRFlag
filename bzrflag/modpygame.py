@@ -8,15 +8,12 @@ import config
 import math
 
 import pygameconsole
+import paths
 
-DATA_DIR = os.path.abspath(os.path.join(
-        os.path.split(__file__)[0], '..', 'data'))
-GROUND = 'std_ground.png'
-WALL = 'wall.png'
 
 class ImageCache(graphics.ImageCache):
     def load_image(self, filename):
-        path = os.path.join(DATA_DIR, filename)
+        path = os.path.join(paths.DATA_DIR, filename)
         image = pygame.image.load(path).convert_alpha()
         return image
 
@@ -92,7 +89,7 @@ class TextSprite(graphics.TextSprite):
     def refresh(self):
         self.text = self.bzobject.text()
         lines = self.text.split('\n')
-        font = pygame.font.Font(None, 25)
+        font = pygame.font.Font(paths.FONT_FILE, 25)
         mw = 0
         mh = 0
         for line in lines:
