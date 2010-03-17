@@ -438,6 +438,13 @@ try:
         attackers = mytanks[:int(numtanks/2)]
         flag_getters = mytanks[int(numtanks/2):]
         for bot in attackers:
+            if bot.flag != '-':
+                target_angle = math.atan2(my_base.y - bot.y,
+                        my_base.x - bot.x)
+                relative_angle = normalize_angle(target_angle - bot.angle)
+                command = Command(bot.index, 1, 2 * relative_angle, True)
+                commands.append(command)
+                continue
             best_enemy = None
             best_dist = 2 * float(constants['worldsize'])
             for enemy in enemies:
@@ -470,6 +477,8 @@ try:
             best_dist = 2 * float(constants['worldsize'])
             for flag in flags:
                 if flag.color == my_color:
+                    continue
+                if flag.poss_color != 'none':
                     continue
                 dist = math.sqrt((flag.x - bot.x)**2 + (flag.y - bot.y)**2)
                 if dist < best_dist:
