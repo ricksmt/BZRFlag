@@ -17,7 +17,7 @@ class Console(object):
         self.txt = ''
         self.game = game
         self.at = 0
-        self.font = pygame.font.Font(paths.FONT_FILE,20)
+        self.font = pygame.font.Font(paths.FONT_FILE,16)
         self.lineheight = 15
         self.maxlines = 14
         self.minimized = True

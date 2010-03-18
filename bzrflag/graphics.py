@@ -37,6 +37,7 @@ class ImageCache(object):
         ## curently lazy loading...is that good?
         self._teamcache = {'base':{},'shot':{},'flag':{},'tank':{}}
         self._cache = {}
+        self._tcache = {'scale':{},'rot':{}}
 
     def ground(self):
         """Creates a surface of the ground image.
@@ -87,10 +88,23 @@ class ImageCache(object):
     def load_image(self, filename):
         """Loads the image with the given filename from the DATA_DIR."""
         raise Exception,'override this method'
-
+    
     def scaled_image(self, image, scale):
+        scale = tuple(int(a) for a in scale)
+        if self._tcache['scale'].has_key((image,scale)):
+            self._tcache['scale'][(image,scale)] = self._scaled_image(image,scale)
+        return self._tcache['scale'][(image,scale)]
+
+    def _scaled_image(self, image, scale):
         """Scales the given image to the given size."""
         raise Exception,'override this method'
+    
+    def rotated_image(self, image, rot):
+        rot = int(rot)
+        if self._tcache['rot'].has_key((image,rot)):
+            self._tcache['rot'][(image,rot)] = self._rotated_image(image,rot)
+        return self._tcache['rot'][(image,rot)]
+
 
     def tile(self, tile, size):
         """Creates a surface of the given size tiled with the given surface."""

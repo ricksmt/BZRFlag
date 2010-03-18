@@ -89,7 +89,7 @@ class TextSprite(graphics.TextSprite):
     def refresh(self):
         self.text = self.bzobject.text()
         lines = self.text.split('\n')
-        font = pygame.font.Font(paths.FONT_FILE, 25)
+        font = pygame.font.Font(paths.FONT_FILE, 16)
         mw = 0
         mh = 0
         for line in lines:
@@ -99,7 +99,7 @@ class TextSprite(graphics.TextSprite):
         image = pygame.Surface((mw,mh))
         at = 0
         for line in lines:
-            image.blit(font.render(line, False, (255, 255, 255)), (0,at))
+            image.blit(font.render(line, True, (255, 255, 255)), (0,at))
         self.image = image
         image.set_colorkey((0,0,0))
         self.rect.size = image.get_rect().size
@@ -229,8 +229,8 @@ class Display(graphics.Display):
         changes = self.sprites.draw(self.screen)
         ## add a check for pygame input later
         self.process_events()
-        self.console.draw(self.screen)
         self.scores.draw(self.screen)
+        self.console.draw(self.screen)
         pygame.display.flip()
 
     def background(self):
