@@ -133,8 +133,9 @@ class Scores:
         fy = y
         y = screen.get_rect().height-10
         pygame.draw.rect(screen, (0,0,0), (10, fy, w, y-fy))
+        tosort = list(sorted((score.bzobject.total(),score) for score in self.scores))
 
-        for score in self.scores:
+        for num,score in tosort:
             y -= score.rect.height
             screen.blit(score.image, (10,y))
 

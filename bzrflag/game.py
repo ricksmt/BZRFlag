@@ -135,12 +135,15 @@ class Map(object):
             flag.tank.flag = None
         flag.tank = None
 
-    def scoreFlag(self, flag):
-        flag.tank.team.score.gotFlag()
+    def returnFlag(self, flag):
         if flag.tank is not None:
             flag.tank.flag = None
         flag.tank = None
         flag.pos = flag.team.base.pos
+
+    def scoreFlag(self, flag):
+        flag.tank.team.score.gotFlag()
+        self.returnFlag(flag)
 
 class Team(object):
     '''Team object:
@@ -576,10 +579,13 @@ class Flag(object):
         else:
             # handle collide
             for tank in self.team.map.tanks():
-                if tank.team is self.team:continue
+                #if tank.team is self.team:continue
                 if collide.circle2circle((self.pos, constants.FLAGRADIUS), (tank.pos, constants.TANKRADIUS)):
-                    self.tank = tank
-                    tank.flag = self
+                    if tank.team is self.team:
+                        self.team.map.returnFlag(self)
+                    else:
+                        self.tank = tank
+                        tank.flag = self
                     return
 
 def rotate_scale(p1, p2, angle, scale = 1.0):
@@ -691,5 +697,9 @@ class Score(object):
             self.value = value
 
     def text(self):
-        return "Team %s: %d"%(self.team.color, 1000*self.flags + self.value)
+        return "Team %s: %d"%(self.team.color, self.total())
+    
+    def total(self):
+        return 1000*self.flags + self.value
+
 
