@@ -217,6 +217,11 @@ class Team(object):
             if collide.circle2circle((point, radius),
                     (tank.pos, constants.TANKRADIUS)):
                 return False
+        if point[0]-radius<-config.config.world.size[0]/2 or\
+         point[1]-radius<-config.config.world.size[1]/2 or\
+         point[0]+radius>config.config.world.size[0]/2 or \
+         point[1]+radius>config.config.world.size[1]/2:
+            return False
         return True
 
     def spawn_position(self):
@@ -332,10 +337,11 @@ class Tank(object):
                                      (pos, constants.TANKRADIUS)):
                 self.collide_tank(tank)
                 return True
-        if pos[0]<-config.config.world.size[0]/2 or\
-         pos[1]<-config.config.world.size[1]/2 or\
-         pos[0]>config.config.world.size[0]/2 or \
-         pos[1]>config.config.world.size[1]/2:
+        radius = constants.TANKRADIUS
+        if pos[0]-radius<-config.config.world.size[0]/2 or\
+         pos[1]-radius<-config.config.world.size[1]/2 or\
+         pos[0]+radius>config.config.world.size[0]/2 or \
+         pos[1]+radius>config.config.world.size[1]/2:
             return True
         return False
     
