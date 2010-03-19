@@ -2,6 +2,17 @@
 
 # Control BZFlag tanks remotely with synchronous communication.
 
+####################################################################
+# NOTE TO STUDENTS:
+# You CAN and probably SHOULD modify this code.  Just because it is
+# in a separate file does not mean that you can ignore it or that
+# you have to leave it alone.  Treat it as your code.  You are
+# required to understand it enough to be able to modify it if you
+# find something wrong.  This is merely a help to get you started
+# on interacting with BZRC.  It is provided AS IS, with NO WARRANTY,
+# express or implied.
+####################################################################
+
 from __future__ import division
 import math, sys, socket, time
 
@@ -369,6 +380,7 @@ class Answer(object):
 
     pass
 
+
 class Command(object):
     '''Class for setting a command for a bot.'''
 
@@ -377,6 +389,7 @@ class Command(object):
         self.speed = speed
         self.angvel = angvel
         self.shoot = shoot
+
 
 class UnexpectedResponse(Exception):
     '''Exception raised when the BZRC gets confused by a bad response.'''
@@ -389,6 +402,7 @@ class UnexpectedResponse(Exception):
         return 'BZRC: Expected "%s".  Instead got "%s".' % (self.expected,
                 self.got)
 
+
 def normalize_angle(angle):
     '''Make any angle be between +/- pi.'''
 
@@ -398,64 +412,5 @@ def normalize_angle(angle):
     elif angle > math.pi:
         angle -= 2 * math.pi
     return angle
-
-def run():
-    ########################################################################
-
-    # Process CLI arguments.
-
-    try:
-        execname, host, port = sys.argv
-    except ValueError:
-        execname = sys.argv[0]
-        print >>sys.stderr, '%s: incorrect number of arguments' % execname
-        print >>sys.stderr, 'usage: %s hostname port' % sys.argv[0]
-        sys.exit(-1)
-
-    # Connect.
-
-    #bzrc = BZRC(host, int(port), debug=True)
-    bzrc = BZRC(host, int(port))
-
-    constants = bzrc.get_constants()
-
-    try:
-        while True:
-            mytanks, othertanks, flags, shots = bzrc.get_lots_o_stuff()
-            enemies = [tank for tank in othertanks if tank.color != constants['team']]
-
-            commands = []
-            for bot in mytanks:
-                best_enemy = None
-                best_dist = 2 * float(constants['worldsize'])
-                for enemy in enemies:
-                    if enemy.status != 'alive':
-                        #print 'notnormal',enemy,enemy.status
-                        break
-                    dist = math.sqrt((enemy.x - bot.x)**2 + (enemy.y - bot.y)**2)
-                    if dist < best_dist:
-                        best_dist = dist
-                        best_enemy = enemy
-
-                if best_enemy is None:
-                    command = Command(bot.index, 0, 0, False)
-                else:
-                    target_angle = math.atan2(best_enemy.y - bot.y,
-                            best_enemy.x - bot.x)
-                    relative_angle = normalize_angle(target_angle - bot.angle)
-                    command = Command(bot.index, 1, 2 * relative_angle, True)
-                    commands.append(command)
-
-            results = bzrc.do_commands(commands)
-            for bot, result in zip(mytanks, results):
-                did_speed, did_angvel, did_shot = result
-                if did_shot:
-                    print 'Shot fired by tank #%s (%s)' % (bot.index, bot.callsign)
-
-
-    except KeyboardInterrupt:
-        print "Exiting due to keyboard interrupt."
-        bzrc.close()
-run()
 
 # vim: et sw=4 sts=4
