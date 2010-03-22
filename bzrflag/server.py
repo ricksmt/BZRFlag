@@ -347,7 +347,10 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             flag = team.flag
             if flag.tank is not None:
                 possess = flag.tank.team.color
-            self.push('flag %s %s %s %s\n' % ((color, possess)+tuple(flag.pos)))
+            x,y = flag.pos
+            x = random.gauss(x,self.team.posnoise)
+            y = random.gauss(y,self.team.posnoise)
+            self.push('flag %s %s %s %s\n' % ((color, possess)+(x,y)))
         self.push('end\n')
 
     def bzrc_shots(self, args):

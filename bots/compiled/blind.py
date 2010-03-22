@@ -5,6 +5,6 @@ if not len(sys.argv)>1:
     sys.exit()
 name = sys.argv[1].split('.')[0]
 sys.argv.pop(0)
-__import__(name)
+__import__(name).main()
 
 # vim: et sw=4 sts=4
