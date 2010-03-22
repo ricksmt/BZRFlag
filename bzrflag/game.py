@@ -128,8 +128,12 @@ class Map(object):
 
     def obstacle_at(self, x, y):
         for obstacle in self.obstacles:
-            if collide.poly2point(obstacle.shape, (x, y)):
-                return True
+            if obstacle.rot == 0:
+                if collide.rect2point(obstacle.rect, (x, y)):
+                    return True
+            else:
+                if collide.poly2point(obstacle.shape, (x, y)):
+                    return True
         return False
 
     def tanks(self):
