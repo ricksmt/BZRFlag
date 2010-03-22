@@ -51,7 +51,10 @@ class Config:
         p.add_option('-d','--debug',
             action='store_true',
             dest='debug',
-            help='set the debug level')
+            help='turn on verbose debugging')
+        p.add_option('--debug-out',
+            dest='debug_out',
+            help='output filename for debug messages')
 
         ## game behavior
         p.add_option('--world',
@@ -64,7 +67,7 @@ class Config:
             dest='python_console', default=False,
             action='store_true',
             help='use interactive python shell')
-        p.add_option('--tenlet-console',
+        p.add_option('--telnet-console',
             dest='telnet_console', default=False,
             action='store_true',
             help='use interactive telnet shell (and log server response)')

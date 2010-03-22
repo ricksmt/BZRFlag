@@ -145,6 +145,12 @@ class Map(object):
         flag.tank.team.score.gotFlag()
         self.returnFlag(flag)
 
+    def closest_base(self, pos):
+        items = tuple(sorted((collide.dist(pos, base.center), base) for base in self.bases.values()))
+        if abs(items[0][0] - items[1][0]) < 50:
+            return None
+        return items[0][1]
+
 class Team(object):
     '''Team object:
     manages a BZRFlag team -- w/ a base, a flag, a score, and tanks.'''
@@ -465,9 +471,10 @@ class GoodrichTank(Tank):
     def collide_tank(self, tank):
         if tank.team == self.team:
             if tank.status == constants.TANKDEAD:
-                self.team.respawn_tank(tank)
+                self.team.respawn(tank)
         else:
             base = self.team.map.closest_base(self.pos)
+            if not base:return
             if base.team == tank.team:
                 self.kill()
             elif base.team == self.team:

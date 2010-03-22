@@ -76,7 +76,7 @@ def main():
             for bot, result in zip(mytanks, results):
                 did_speed, did_angvel, did_shot = result
                 if did_shot:
-                    print ',hot fired by tank #%s (%s)' % (bot.index,
+                    print 'shot fired by tank #%s (%s)' % (bot.index,
                             bot.callsign)
 
 
