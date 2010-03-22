@@ -222,6 +222,31 @@ class BZRC:
                 self.die_confused('othertank or end', line)
         return tanks
 
+    def read_bases(self):
+        bases = []
+        line = self.read_arr()
+        if line[0] != 'begin':
+            self.die_confused('begin', line)
+        while True:
+            line = self.read_arr()
+            if line[0] == 'base':
+                base = Answer()
+                base.color = line[1]
+                base.corner1_x = float(line[2])
+                base.corner1_y = float(line[3])
+                base.corner2_x = float(line[4])
+                base.corner2_y = float(line[5])
+                base.corner3_x = float(line[6])
+                base.corner3_y = float(line[7])
+                base.corner4_x = float(line[8])
+                base.corner4_y = float(line[9])
+                bases.append(base)
+            elif line[0] == 'end':
+                break
+            else:
+                self.die_confused('othertank or end', line)
+        return bases
+
     def read_constants(self):
         line = self.read_arr()
         if line[0] != 'begin':
@@ -303,6 +328,7 @@ class BZRC:
 
         self.sendline('shots')
         self.read_ack()
+        return self.read_shots()
 
     def get_mytanks(self):
         '''Request a list of our robots.'''
@@ -317,6 +343,13 @@ class BZRC:
         self.sendline('othertanks')
         self.read_ack()
         return self.read_othertanks()
+
+    def get_bases(self):
+        '''Request a list of bases.'''
+
+        self.sendline('bases')
+        self.read_ack()
+        return self.read_bases()
 
     def get_constants(self):
         '''Request a dictionary of game constants.'''
@@ -402,15 +435,5 @@ class UnexpectedResponse(Exception):
         return 'BZRC: Expected "%s".  Instead got "%s".' % (self.expected,
                 self.got)
 
-
-def normalize_angle(angle):
-    '''Make any angle be between +/- pi.'''
-
-    angle -= 2 * math.pi * int (angle / (2 * math.pi))
-    if angle <= -math.pi:
-        angle += 2 * math.pi
-    elif angle > math.pi:
-        angle -= 2 * math.pi
-    return angle
 
 # vim: et sw=4 sts=4
