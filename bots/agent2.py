@@ -34,13 +34,22 @@ class Agent(object):
         self.commands = []
 
         # Decide what to do with each of my tanks
-        numtanks = len(mytanks)
-        attackers = mytanks[:int(numtanks/2)]
-        flag_getters = mytanks[int(numtanks/2):]
+        attackers = []
+        flag_getters = []
+        defenders = []
+        for i, bot in enumerate(mytanks):
+            if i%3 == 0:
+                defenders.append(bot)
+            if i%3 == 1:
+                attackers.append(bot)
+            if i%3 == 2:
+                flag_getters.append(bot)
         for bot in attackers:
             self.attack_enemies(bot)
         for bot in flag_getters:
             self.get_flag(bot)
+        for bot in defenders:
+            self.defend(bot)
 
         # Send the commands to the server
         results = self.bzrc.do_commands(self.commands)
@@ -64,6 +73,39 @@ class Agent(object):
             self.commands.append(command)
         else:
             self.move_to_position(bot, best_enemy.x, best_enemy.y)
+
+    def defend(self, bot):
+        '''If an opponent has our flag, chase it.  If not, turn towards the
+        nearest enemy and shoot, without moving'''
+        if bot.flag != '-':
+            self.move_to_position(bot, self.base.x, self.base.y)
+            return
+        best_enemy = None
+        best_dist = 2 * float(self.constants['worldsize'])
+        enemy_has_flag = False
+        for enemy in self.enemies:
+            if enemy.status != 'alive':
+                continue
+            if enemy.flag == self.constants['team']:
+                best_enemy = enemy
+                enemy_has_flag = True
+                break
+            dist = math.sqrt((enemy.x - bot.x)**2 + (enemy.y - bot.y)**2)
+            if dist < best_dist:
+                best_dist = dist
+                best_enemy = enemy
+        if best_enemy is None:
+            command = Command(bot.index, 0, 0, False)
+            self.commands.append(command)
+        else:
+            if enemy_has_flag:
+                self.move_to_position(bot, best_enemy.x, best_enemy.y)
+            else:
+                target_angle = math.atan2(best_enemy.y - bot.y,
+                        best_enemy.x - bot.x)
+                relative_angle = self.normalize_angle(target_angle - bot.angle)
+                command = Command(bot.index, 0, 2 * relative_angle, True)
+                self.commands.append(command)
 
     def get_flag(self, bot):
         if bot.flag != '-':

@@ -38,7 +38,7 @@ class Agent(object):
         self.othertanks = othertanks
         self.flags = flags
         self.shots = shots
-        enemies = [tank for tank in othertanks if tank.color !=
+        self.enemies = [tank for tank in othertanks if tank.color !=
                 self.constants['team']]
 
         # Reset my set of commands (we don't want to run old commands)
