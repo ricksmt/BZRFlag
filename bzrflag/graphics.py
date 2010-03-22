@@ -10,7 +10,7 @@ NOTE:
 import math
 import pygame
 import constants
-import config
+from config import config
 from world import Base, Box
 from game import Tank, Shot, Flag, Base, Score
 
@@ -65,7 +65,7 @@ class ImageCache(object):
         if not color in constants.COLORNAME:
             raise KeyError,"invalid color: %s"%color
         if not self._teamcache[type].has_key(color):
-            if type != 'tank' or not config.config['freeze_tag']:
+            if type != 'tank' or not config['freeze_tag']:
                 self._teamcache[type][color] = self.load_image('%s_%s.png'%(color,self.suffixes[type]))
             else:
                 self._teamcache[type][color] = self.load_image('%s_%s_g.png'%(color,self.suffixes[type]))
@@ -205,7 +205,7 @@ class Display(object):
     _spriteclass = BZSprite
     def __init__(self, game, screen_size=DEFAULT_SIZE):
         self.game = game
-        self.world = config.config.world
+        self.world = config.world
         self.scores = Scores()
         self.screen_size = screen_size
         self.images = self._imagecache()
