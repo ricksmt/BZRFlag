@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger('server')
 
 import constants
-import config
+from config import config
 
 BACKLOG = 5
 
@@ -84,7 +84,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
 
     def push(self, text):
         asynchat.async_chat.push(self, text)
-        if config.config['telnet_console']:
+        if config['telnet_console']:
             self.team.map.game.display.console.write(self.team.color + ' > ' + text)
             logger.debug(self.team.color + ' > ' + text)
         if text.startswith('fail '):
@@ -97,7 +97,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         Note that Asynchat ensures that our input buffer contains everything
         up to but not including the newline character.
         """
-        if config.config['telnet_console']:
+        if config['telnet_console']:
             self.team.map.game.display.console.write(self.team.color + ' : ' + self.input_buffer + '\n')
         logger.debug(self.team.color + ' : ' + self.input_buffer + '\n')
         args = self.input_buffer.split()
@@ -295,10 +295,31 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         self.push('begin\n')
         for obstacle in self.team.map.obstacles:
             self.push('obstacle')
-            for point in obstacle.shape:
-                self.push(' %s %s' % tuple(point))
+            for x,y in obstacle.shape:
+                x = random.gauss(x, self.team.posnoise)
+                y = random.gauss(y, self.team.posnoise)
+                self.push(' %s %s' % (x, y))
             self.push('\n')
         self.push('end\n')
+
+    def bzrc_occgrid(self, args):
+        """occupancy grid
+        Request an occupancy grid.
+
+        Looks like:
+            100,430|20,20|####
+        #### = encoded 01 string
+        """
+        try:
+            command, tankid = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        tank = self.team.tank(tankid)
+        width = config['occgrid_width']
+        grid = [[0 for x in xrange(width)] for y in
+                xrange(width)]
+        spos = tank.pos[0]-width/2, tank.pos[1]-width/2
 
     def bzrc_bases(self, args):
         """bases

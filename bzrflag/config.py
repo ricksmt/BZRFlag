@@ -75,6 +75,11 @@ class Config:
             action='store_true',
             dest='freeze_tag',
             help='start a freeze tag game')
+        p.add_option('--report-obstacles',
+            action='store_false', default=True,
+            help='report obstacles? (turn off to force use of the occupancy grid)')
+        p.add_option('--occgrid-width', type='int',
+            default=50, help='width of reported occupancy grid')
         ## tank behavior
         p.add_option('--max-shots',
             type='int',
@@ -117,11 +122,13 @@ class Config:
             type='int',default=300000,
             dest='time_limit',
             help='set the time limit')
+        
         g = optparse.OptionGroup(p, 'Team Defaults')
         p.add_option_group(g)
         g.add_option('--default-tanks', 
                 dest='default_tanks',type='int',default=10,
                 help='specify the default number of tanks')
+        ## random sensor noise
         g.add_option('--default-posnoise', 
                 dest='default_posnoise',type='float',default=0,
                 help='specify the default positional noise')
@@ -131,6 +138,18 @@ class Config:
         g.add_option('--default-angnoise', 
                 dest='default_angnoise',type='float',default=0,
                 help='specify the default angular noise')
+        ## For the occupancy grid, the probabitities of sensor accuracy
+        # p(1|1) // true positive
+        # p(1|0) // false positive, easily obtainable from true positive; 
+        #           false positive = 1 - true positive
+        # p(0|0) // true negative
+        # p(0|1) // false negative = 1 - true negative
+        g.add_option('--default-true-positive',
+                dest='default_true_positive',type='float',default=1,
+                help='the true positive probability: p(1|1)')
+        g.add_option('--default-true-negative',
+                dest='default_true_negative',type='float',default=1,
+                help='the true negative probability: p(0|0)')
 
         for color in ['red','green','blue','purple']:
             title = '%s Team Options' % color.capitalize()
@@ -151,6 +170,13 @@ class Config:
             g.add_option('--%s-angnoise'%color,
                 dest='%s_angnoise'%color,type='float',
                 help='specify the angnoise for the %s team'%color)
+
+            g.add_option('--%s-true-positive' % color,
+                    dest='%s_true_positive' % color, type='float',
+                    help='the true positive probability for %s' % color)
+            g.add_option('--%s-true-negative' % color,
+                    dest='%s_true_negative' % color, type='float',
+                    help='the true negative probability for %s' % color)
 
         opts, args = p.parse_args(args)
 
