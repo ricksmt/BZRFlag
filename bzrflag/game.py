@@ -440,6 +440,7 @@ class SeppiTank(Tank):
         self.shots.insert(0, shot)
         self.team.map.inbox.append(shot)
         self.reloadtimer = constants.RELOADTIME
+        return True
 
     def kill(self):
         super(SeppiTank, self).kill()
