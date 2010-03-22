@@ -4,7 +4,7 @@ import random
 import datetime
 
 import constants
-import config
+from config import config
 
 class GoodrichException(Exception):
     pass
@@ -102,8 +102,9 @@ class Map(object):
         self.inertia_angular = 1
 
         # track objects on map
-        self.obstacles = [Box(item) for item in config.config.world.boxes]
-        self.bases = dict((item.color, Base(item)) for item in config.config.world.bases)
+        self.obstacles = [Box(item) for item in config.world.boxes]
+        self.build_truegrid()
+        self.bases = dict((item.color, Base(item)) for item in config.world.bases)
 
         self.teams = {}
         for color,base in self.bases.items():
@@ -112,11 +113,24 @@ class Map(object):
     def update(self, dt):
         '''update the teams'''
         self.timespent += dt
-        if self.timespent > config.config['time_limit']:
+        if self.timespent > config['time_limit']:
             self.end_game = True
             return
         for team in self.teams.values():
             team.update(dt)
+
+    def build_truegrid(self):
+        self.occgrid = []
+        for y in xrange(config.world.height):
+            self.occgrid.append([])
+            for x in xrange(config.world.width):
+                self.occgrid[y].append(self.obstacle_at(x,y))
+
+    def obstacle_at(self, x, y):
+        for obstacle in self.obstacles:
+            if collide.poly2point(obstacle.shape, (x, y)):
+                return True
+        return False
 
     def tanks(self):
         '''iterate through all tanks on the map'''
@@ -157,28 +171,28 @@ class Team(object):
     def __init__(self, map, color, base):
         self.color = color
         self.map = map
-        ntanks = config.config[self.color+'_tanks']
+        ntanks = config[self.color+'_tanks']
         if ntanks is None:
-            ntanks = config.config['default_tanks']
+            ntanks = config['default_tanks']
 
-        Tcls = (SeppiTank, GoodrichTank)[bool(config.config['freeze_tag'])]
+        Tcls = (SeppiTank, GoodrichTank)[bool(config['freeze_tag'])]
         self.tanks = [Tcls(self, i) for i in xrange(ntanks)]
         self.tanks_radius = constants.TANKRADIUS * ntanks * 3/2.0
         self.base = base
         base.team = self
         self.flag = Flag(self)
 
-        self.posnoise = config.config[self.color+'_posnoise']
+        self.posnoise = config[self.color+'_posnoise']
         if self.posnoise is None:
-            self.posnoise = config.config['default_posnoise']
+            self.posnoise = config['default_posnoise']
 
-        self.angnoise = config.config[self.color+'_angnoise']
+        self.angnoise = config[self.color+'_angnoise']
         if self.angnoise is None:
-            self.angnoise = config.config['default_angnoise']
+            self.angnoise = config['default_angnoise']
 
-        self.velnoise = config.config[self.color+'_velnoise']
+        self.velnoise = config[self.color+'_velnoise']
         if self.velnoise is None:
-            self.velnoise = config.config['default_velnoise']
+            self.velnoise = config['default_velnoise']
 
         self.score = Score(self)
         self._obstacles = []
@@ -199,7 +213,7 @@ class Team(object):
         tank.status = constants.TANKALIVE
         if tank.pos != constants.DEADZONE:
             return
-        if not config.config['freeze_tag']:
+        if not config['freeze_tag']:
             tank.rot = random.uniform(0, 2*math.pi)
         pos = self.spawn_position()
         for i in xrange(1000):
@@ -223,10 +237,10 @@ class Team(object):
             if collide.circle2circle((point, radius),
                     (tank.pos, constants.TANKRADIUS)):
                 return False
-        if point[0]-radius<-config.config.world.size[0]/2 or\
-         point[1]-radius<-config.config.world.size[1]/2 or\
-         point[0]+radius>config.config.world.size[0]/2 or \
-         point[1]+radius>config.config.world.size[1]/2:
+        if point[0]-radius<-config.world.size[0]/2 or\
+         point[1]-radius<-config.world.size[1]/2 or\
+         point[0]+radius>config.world.size[0]/2 or \
+         point[1]+radius>config.world.size[1]/2:
             return False
         return True
 
@@ -251,7 +265,7 @@ class Team(object):
 
     def shoot(self, tankid):
         '''tell a tank to shoot'''
-        if config.config['freeze_tag']:
+        if config['freeze_tag']:
             raise GoodrichException,'No shooting in this game'
         return self.tank(tankid).shoot()
 
@@ -324,7 +338,7 @@ class Tank(object):
     def kill(self):
         '''destroy the tank'''
         self.status = constants.TANKDEAD
-        self.dead_timer = config.config['respawn_time']
+        self.dead_timer = config['respawn_time']
         self.team.score.score_tank(self)
         if self.flag:
             self.team.map.dropFlag(self.flag)
@@ -344,10 +358,10 @@ class Tank(object):
                 self.collide_tank(tank)
                 return True
         radius = constants.TANKRADIUS
-        if pos[0]-radius<-config.config.world.size[0]/2 or\
-         pos[1]-radius<-config.config.world.size[1]/2 or\
-         pos[0]+radius>config.config.world.size[0]/2 or \
-         pos[1]+radius>config.config.world.size[1]/2:
+        if pos[0]-radius<-config.world.size[0]/2 or\
+         pos[1]-radius<-config.world.size[1]/2 or\
+         pos[0]+radius>config.world.size[0]/2 or \
+         pos[1]+radius>config.world.size[1]/2:
             return True
         return False
     
@@ -434,7 +448,7 @@ class SeppiTank(Tank):
     def shoot(self):
         '''tell the tank to shoot'''
         if self.reloadtimer > 0 or \
-                len(self.shots) >= config.config['max_shots']:
+                len(self.shots) >= config['max_shots']:
             return False
         shot = Shot(self)
         self.shots.insert(0, shot)
@@ -537,14 +551,14 @@ class Shot(object):
             if self in tank.shots:continue
             if collide.circle2circle((tank.pos, constants.TANKRADIUS),
                                      (self.pos, constants.SHOTRADIUS)):
-                if tank.team == self.team and not config.config['friendly_fire']:
+                if tank.team == self.team and not config['friendly_fire']:
                     continue
                 tank.kill()
                 return self.kill()
-        if self.pos[0]<-config.config.world.size[0]/2 or\
-         self.pos[1]<-config.config.world.size[1]/2 or\
-         self.pos[0]>config.config.world.size[0]/2 or \
-         self.pos[1]>config.config.world.size[1]/2:
+        if self.pos[0]<-config.world.size[0]/2 or\
+         self.pos[1]<-config.world.size[1]/2 or\
+         self.pos[0]>config.world.size[0]/2 or \
+         self.pos[1]>config.world.size[1]/2:
             return self.kill()
 
     def check_line(self, p1, p2):
@@ -554,14 +568,14 @@ class Shot(object):
         for tank in self.team.map.tanks():
             if collide.circle2line((tank.pos, constants.TANKRADIUS + constants.SHOTRADIUS),
                                      (p1,p2)):
-                if tank.team == self.team and not config.config['friendly_fire']:
+                if tank.team == self.team and not config['friendly_fire']:
                     continue
                 tank.kill()
                 return self.kill()
-        if self.pos[0]<-config.config.world.size[0]/2 or\
-         self.pos[1]<-config.config.world.size[1]/2 or\
-         self.pos[0]>config.config.world.size[0]/2 or \
-         self.pos[1]>config.config.world.size[1]/2:
+        if self.pos[0]<-config.world.size[0]/2 or\
+         self.pos[1]<-config.world.size[1]/2 or\
+         self.pos[0]>config.world.size[0]/2 or \
+         self.pos[1]>config.world.size[1]/2:
             return self.kill()
 
     def kill(self):
@@ -639,7 +653,7 @@ class Base(object):
         self.radius = math.sqrt((self.size[0]/2)**2 + (self.size[1]/2)**2)
         poly = tuple(convertBoxtoPoly(item.pos,self.size))
         self.rect = (item.pos[0]-self.size[0]/2, item.pos[1]-self.size[1]/2) + self.size
-        self.shape = scale_rotate_poly(poly, 1, item.rot)
+        self.shape = list(scale_rotate_poly(poly, 1, item.rot))
         self.rot = item.rot
 
 class Obstacle(object):
@@ -652,7 +666,7 @@ class Obstacle(object):
         self.radius = 0
 
     def pad(self, padding):
-        self.shape = scale_rotate_poly(self.shape, (self.radius + padding)/float(self.radius), 0)
+        self.shape = list(scale_rotate_poly(self.shape, (self.radius + padding)/float(self.radius), 0))
 
 class Box(Obstacle):
     '''a Box Obstacle'''
