@@ -86,7 +86,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         asynchat.async_chat.push(self, text)
         if config['telnet_console']:
             self.team.map.game.display.console.write(self.team.color + ' > ' + text)
-            logger.debug(self.team.color + ' > ' + text)
+        logger.debug(self.team.color + ' > ' + text)
         if text.startswith('fail '):
             logger.error(self.team.color + ' > ' + text)
         
