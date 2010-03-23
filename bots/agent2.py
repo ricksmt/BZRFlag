@@ -3,8 +3,9 @@
 from bzrc import BZRC, Command, Answer
 import sys, math, time
 
-# In this agent, half of the tanks behave exactly as in agent0, and half of the
-# tanks find the nearest flag and try to capture it.
+# In this agent, a two thirds of the tanks seek the nearest flag (or try to
+# attack, though we found that to be less helpful), and a third stay behind to
+# defend
 
 class Agent(object):
 
