@@ -120,11 +120,15 @@ class Map(object):
             team.update(dt)
 
     def build_truegrid(self):
-        self.occgrid = []
-        for y in xrange(config.world.height):
-            self.occgrid.append([])
-            for x in xrange(config.world.width):
-                self.occgrid[y].append(self.obstacle_at(x,y))
+        self.occgrid = [[0 for x in xrange(config.world.width)] for y in xrange(config.world.height)]
+        for obstacle in self.obstacles:
+            if obstacle.rot == 0:
+                lx = obstacle.pos
+                for x in xrange(obstacle.size[0]):
+                    for y in xrange(obstacle.size[1]):
+                        self.occgrid[y+lx[1]][x+lx[0]] = 1
+            else:
+                raise Exception, "occ grid not implemented for rotated obstacles"
 
     def obstacle_at(self, x, y):
         for obstacle in self.obstacles:
