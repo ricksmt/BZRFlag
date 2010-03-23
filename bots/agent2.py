@@ -48,8 +48,8 @@ class Agent(object):
             self.attack_enemies(bot)
         for bot in flag_getters:
             self.get_flag(bot)
-        for bot in defenders:
-            self.defend(bot)
+        for i, bot in enumerate(defenders):
+            self.defend(bot, i)
 
         # Send the commands to the server
         results = self.bzrc.do_commands(self.commands)
@@ -74,22 +74,41 @@ class Agent(object):
         else:
             self.move_to_position(bot, best_enemy.x, best_enemy.y)
 
-    def defend(self, bot):
-        '''If an opponent has our flag, chase it.  If not, turn towards the
-        nearest enemy and shoot, without moving'''
+    def defend(self, bot, i):
+        '''If an opponent has our flag, chase it.  If not, get into a good
+        defense position, then turn towards the nearest enemy and shoot.'''
+        # First, if you somehow have the flag, bring it back to the base
         if bot.flag != '-':
             self.move_to_position(bot, self.base.x, self.base.y)
             return
+        # Next, if an enemy has my flag, chase it
+        for enemy in self.enemies:
+            if enemy.flag == self.constants['team']:
+                self.move_to_position(bot, enemy.x, enemy.y)
+                return
+        # Next, if my flag is not at home base, go tag it to get it back
+        for flag in self.flags:
+            if flag.color == self.constants['team']:
+                if flag.x != self.base.x or flag.y != self.base.y:
+                    self.move_to_position(bot, flag.x, flag.y)
+                    return
+        # Next, get back to a defense position if I'm far away from it
+        if int(self.base.x) == 0:
+            target_pos = (15*(1+int(i/2))*((-1)**(i%2)), self.base.y)
+        else:
+            target_pos = (self.base.x, 15*(1+int(i/2))*((-1)**(i%2)))
+        dist = math.sqrt((target_pos[0] - bot.x)**2 +
+                (target_pos[1] - bot.y)**2)
+        if dist > 25:
+            self.move_to_position(bot, target_pos[0], target_pos[1])
+            return
+        # Now, turn towards the closest enemy and fire
         best_enemy = None
         best_dist = 2 * float(self.constants['worldsize'])
         enemy_has_flag = False
         for enemy in self.enemies:
             if enemy.status != 'alive':
                 continue
-            if enemy.flag == self.constants['team']:
-                best_enemy = enemy
-                enemy_has_flag = True
-                break
             dist = math.sqrt((enemy.x - bot.x)**2 + (enemy.y - bot.y)**2)
             if dist < best_dist:
                 best_dist = dist
@@ -98,14 +117,11 @@ class Agent(object):
             command = Command(bot.index, 0, 0, False)
             self.commands.append(command)
         else:
-            if enemy_has_flag:
-                self.move_to_position(bot, best_enemy.x, best_enemy.y)
-            else:
-                target_angle = math.atan2(best_enemy.y - bot.y,
-                        best_enemy.x - bot.x)
-                relative_angle = self.normalize_angle(target_angle - bot.angle)
-                command = Command(bot.index, 0, 2 * relative_angle, True)
-                self.commands.append(command)
+            target_angle = math.atan2(best_enemy.y - bot.y,
+                    best_enemy.x - bot.x)
+            relative_angle = self.normalize_angle(target_angle - bot.angle)
+            command = Command(bot.index, 0, 2 * relative_angle, True)
+            self.commands.append(command)
 
     def get_flag(self, bot):
         if bot.flag != '-':
