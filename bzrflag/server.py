@@ -340,11 +340,12 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
                 if number >= 128:
                     occgrid += ord(number)
                     number = 0
+        if number != 0:
+            occgrid += ord(number)
         #number = biny.frombinary(occgrid)
         #string = biny.encodechar(number)
         if len(occgrid) != (width*width)/8:
             print 'invalid length:',len(occgrid),width,(width*width)/8,[occgrid]
-
 
     def bzrc_bases(self, args):
         """bases
