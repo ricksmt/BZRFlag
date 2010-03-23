@@ -41,7 +41,8 @@ class Agent(object):
             if i%3 == 0:
                 defenders.append(bot)
             if i%3 == 1:
-                attackers.append(bot)
+                #attackers.append(bot)
+                flag_getters.append(bot)
             if i%3 == 2:
                 flag_getters.append(bot)
         for bot in attackers:
