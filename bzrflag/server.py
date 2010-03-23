@@ -320,6 +320,31 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         grid = [[0 for x in xrange(width)] for y in
                 xrange(width)]
         spos = tank.pos[0]-width/2, tank.pos[1]-width/2
+        true_positive = config['%s_true_positive' % self.team.color]
+        if true_positive is None:
+            true_positive = config['default_true_positive']
+        true_negative = config['%s_true_negative' % self.team.color]
+        if true_negative is None:
+            true_negative = config['default_true_negative']
+        occgrid = ''
+        number = 0
+        for y in xrange(width):
+            for x in xrange(width):
+                occ = self.team.map.occgrid[y+spos[1]][x+spos[0]]
+                r = random.uniform(0, 1)
+                number <<= 1
+                if occ:
+                    number += (int(r < true_positive))
+                else:
+                    number += (int(r > true_negative))
+                if number >= 128:
+                    occgrid += ord(number)
+                    number = 0
+        #number = biny.frombinary(occgrid)
+        #string = biny.encodechar(number)
+        if len(occgrid) != (width*width)/8:
+            print 'invalid length:',len(occgrid),width,(width*width)/8,[occgrid]
+
 
     def bzrc_bases(self, args):
         """bases
