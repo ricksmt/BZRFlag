@@ -165,6 +165,7 @@ class Map(object):
 
     def scoreFlag(self, flag):
         flag.tank.team.score.gotFlag()
+        flag.team.score.lostFlag()
         self.returnFlag(flag)
 
     def closest_base(self, pos):
@@ -269,7 +270,7 @@ class Team(object):
         '''get a tank based on its ID'''
         if 0<=id<len(self.tanks):
             return self.tanks[id]
-        raise Exception,"Invalid tank ID: %s"%id
+        raise ValueError,"Invalid tank ID: %s"%id
 
     def shoot(self, tankid):
         '''tell a tank to shoot'''
@@ -727,6 +728,9 @@ class Score(object):
     def gotFlag(self):
         self.value = 0
         self.flags += 1
+
+    def lostFlag(self):
+        self.flags -= 1
 
     def setValue(self,value):
         if value>self.value:
