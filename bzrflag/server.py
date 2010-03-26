@@ -312,40 +312,53 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         """
         try:
             command, tankid = args
+            tank = self.team.tank(int(tankid))
         except ValueError, TypeError:
             self.invalid_args(args)
             return
-        tank = self.team.tank(tankid)
+        self.ack(command)
         width = config['occgrid_width']
         grid = [[0 for x in xrange(width)] for y in
                 xrange(width)]
-        spos = tank.pos[0]-width/2, tank.pos[1]-width/2
+        spos = int(tank.pos[0]-width/2), int(tank.pos[1]-width/2)
+
         true_positive = config['%s_true_positive' % self.team.color]
         if true_positive is None:
             true_positive = config['default_true_positive']
         true_negative = config['%s_true_negative' % self.team.color]
         if true_negative is None:
             true_negative = config['default_true_negative']
+
+        self.push('at %d,%d\n' % spos)
+        self.push('size %dx%d\n' % (width, width))
         occgrid = ''
         number = 0
+        count = 0
+        grid = []
         for y in xrange(width):
+            grid.append([])
             for x in xrange(width):
                 occ = self.team.map.occgrid[y+spos[1]][x+spos[0]]
                 r = random.uniform(0, 1)
                 number <<= 1
-                if occ:
+                count += 1
+                if occ or x == y:
                     number += (int(r < true_positive))
+                    grid[-1].append(int(r < true_positive))
                 else:
                     number += (int(r > true_negative))
-                if number >= 128:
-                    occgrid += ord(number)
-                    number = 0
-        if number != 0:
-            occgrid += ord(number)
-        #number = biny.frombinary(occgrid)
-        #string = biny.encodechar(number)
-        if len(occgrid) != (width*width)/8:
+                    grid[-1].append(int(r > true_negative))
+                if count == 8:
+                    occgrid += chr(number)
+                    number = count = 0
+
+        if count != 0:
+            occgrid += chr(number)
+
+        if len(occgrid) != math.ceil((width*width)/8.0):
             print 'invalid length:',len(occgrid),width,(width*width)/8,[occgrid]
+        self.push(occgrid+'\n')
+        self.push('end\n')
 
     def bzrc_bases(self, args):
         """bases
