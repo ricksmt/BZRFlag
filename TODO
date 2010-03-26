@@ -1,10 +1,6 @@
 H M test more agents
 L M trash talk
 H S legal matter
-*H M goodrich
-    *disable bad commands
-    *create good commands
-    freezing [collision]
 
 
 TEST TEST TEST
@@ -19,3 +15,8 @@ M S win resize
 *H M resized obstacle draw wrong
 M S update score
 M S --default-noise option
+*H M goodrich
+    *disable bad commands
+    *create good commands
+    *freezing [collision]
+    *occ grid
