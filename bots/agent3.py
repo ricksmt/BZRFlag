@@ -178,9 +178,7 @@ class Agent(object):
         prev_diff = self.normalize_angle(target_angle -
                 self.prev_tanks[bot.index].angvel)
         derivative = (relative_angle - prev_diff) / self.time_diff
-        print 'old angvel:', 2 * relative_angle
         angvel = self.k_p * relative_angle + self.k_d * derivative
-        print 'new angvel:', angvel
         return angvel
 
     def stop(self, bot):
