@@ -57,12 +57,46 @@ class BZRC:
 
         raise UnexpectedResponse(expected, ' '.join(got_arr))
 
+    def expect(self, expected, full=False):
+        if type(expected) == str:
+            expected = (expected,)
+        line = self.read_arr()
+        good = True
+        if full and len(expected) != len(line):
+            good = False
+        else:
+            for a,b in zip(expected,line):
+                if a!=b:
+                    good = False
+                    break
+        if not good:
+            self.die_confused(' '.join(expected), line)
+        if full:
+            return True
+        return line[len(expected):]
+    
+    def expect_multi(self, *expecteds, **kwds):
+        '''Verify the server's response looks like one of
+        several possible responses. Return the index of the matched response,
+        and the server's line response'''
+
+        line = self.read_arr()
+        for i,expected in enumerate(expecteds):
+            for a,b in zip(expected, line):
+                if a!=b:
+                    break
+            else:
+                if not kwds.get('full',False) or len(expected) == len(line):
+                    break
+        else:
+            self.die_confused(' or '.join(' '.join(one) for one in expecteds),
+                    line)
+        return i, line[len(expected):]
+
     def handshake(self):
         '''Perform the handshake with the remote bots.'''
 
-        line = self.read_arr()
-        if line != ['bzrobots', '1']:
-            self.die_confused('bzrobots 1', line)
+        self.expect(('bzrobots', '1'), True)
         print >>self.conn, 'agent 1'
 
     def read_ack(self):
@@ -70,9 +104,7 @@ class BZRC:
 
         Raise an UnexpectedResponse exception if we get something else.'''
 
-        line = self.read_arr()
-        if line[0] != 'ack':
-            self.die_confused('ack', line)
+        self.expect('ack')
 
     def read_bool(self):
         '''Expect a boolean response from the remote tanks.
@@ -80,52 +112,76 @@ class BZRC:
         Return True or False in accordance with the response.  Raise an
         UnexpectedResponse exception if we get something else.'''
 
-        line = self.read_arr()
-        if line[0] == 'ok':
-            return True
-        elif line[0] == 'fail':
-            return False
-        else:
-            self.die_confused('ok or fail', line)
+        i, rest = self.expect_multi(('ok',),('fail',))
+        return (True, False)[i]
 
     def read_teams(self):
-        line = self.read_arr()
-        if line[0] != 'begin':
-            self.die_confused('begin', line)
+        self.expect('begin')
 
         teams = []
         while True:
-            line = self.read_arr()
-            if line[0] == 'team':
-                team = Answer()
-                team.color = line[1]
-                team.count = float(line[2])
-                team.base = [(float(x), float(y)) for (x, y) in
-                        zip(line[3:11:2], line[4:11:2])]
-                teams.append(team)
-            elif line[0] == 'end':
+            i, rest = self.expect_multi(('team',),('end',))
+            if i == 1:
                 break
-            else:
-                self.die_confused('team or end', line)
+            team = Answer()
+            team.color = rest[0]
+            team.count = float(rest[1])
+            team.base = [(float(x), float(y)) for (x, y) in
+                    zip(line[2:10:2], line[3:10:2])]
+            teams.append(team)
         return teams
 
     def read_obstacles(self):
-        line = self.read_arr()
-        if line[0] != 'begin':
-            self.die_confused('begin', line)
+        self.expect('begin')
 
         obstacles = []
         while True:
-            line = self.read_arr()
-            if line[0] == 'obstacle':
-                obstacle = [(float(x), float(y)) for (x, y) in
-                        zip(line[1::2], line[2::2])]
-                obstacles.append(obstacle)
-            elif line[0] == 'end':
+            i, rest = self.expect_multi(('obstacle',),('end',))
+            if i == 1:
                 break
-            else:
-                self.die_confused('obstacle or end', line)
+            obstacle = [(float(x), float(y)) for (x, y) in
+                    zip(line[::2], line[1::2])]
+            obstacles.append(obstacle)
         return obstacles
+    
+    def rebuild_grid(self, occgrid, width):
+        count = -1
+        i = 0
+        number = 0
+        grid = []
+        sub = []
+        items = []
+        for y in range(width):
+            grid.append([])
+            for x in range(width):
+                if count == 8 or count < 0:
+                    count = 0
+                    number = ord(occgrid[i])
+                    i += 1
+                    items += sub
+                    sub = []
+                at = number % 2
+                number >>=1
+                sub.insert(0,at)
+                count += 1
+        items += sub
+        i = 0
+        grid = []
+        for y in range(width):
+            grid.append(items[i:i+width])
+            i += width
+        return grid
+
+    def read_occgrid(self):
+        pos = tuple(int(a) for a in self.expect('at')[0].split(','))
+        size = tuple(int(a) for a in self.expect('size')[0].split('x'))
+
+        grid_length = int(math.ceil((size[0]*size[0])/8.0))
+        grid = self.conn.read(grid_length+1)[:-1] # to get the \n at the end
+        occgrid = self.rebuild_grid(grid, size[0])
+
+        self.expect('end', True)
+        return occgrid
 
     def read_flags(self):
         line = self.read_arr()
@@ -315,6 +371,13 @@ class BZRC:
         self.sendline('obstacles')
         self.read_ack()
         return self.read_obstacles()
+    
+    def get_occgrid(self, tankid):
+        '''Request an occupancy grid for a tank'''
+
+        self.sendline('occgrid %d' % tankid)
+        self.read_ack()
+        return self.read_occgrid()
 
     def get_flags(self):
         '''Request a list of flags.'''
