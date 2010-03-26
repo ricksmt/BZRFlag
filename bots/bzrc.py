@@ -40,7 +40,11 @@ class BZRC:
         '''Read a response from the RC tanks as an array split on
         whitespace.'''
 
-        line = self.conn.readline()
+        try:
+            line = self.conn.readline()
+        except socket.error:
+            print 'Server Shut down. Aborting'
+            sys.exit(1)
         if self.debug:
             print 'Received: %s' % line.split()
         return line.split()
