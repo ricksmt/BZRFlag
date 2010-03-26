@@ -379,10 +379,16 @@ class Tank(object):
 
     def update(self, dt):
         '''update the tank's position, status, velocities'''
+
         if self.pos == constants.DEADZONE:
             self.team.respawn(self)
         if self.status == constants.TANKDEAD:
+            self.dead_timer -= dt
+            if self.dead_timer <= 0:
+                self.team.respawn(self,not self.spawned)
+                self.spawned = True
             return
+
         self.update_goals(dt)
         dx,dy = self.velocity()
         if not self.collision_at((self.pos[0]+dx*dt, self.pos[1]+dy*dt)):
@@ -425,13 +431,6 @@ class SeppiTank(Tank):
 
     def update(self, dt):
         '''update tank's position, status, etc.'''
-
-        if self.status == constants.TANKDEAD:
-            self.dead_timer -= dt
-            if self.dead_timer <= 0:
-                self.team.respawn(self,not self.spawned)
-                self.spawned = True
-            return
 
         for shot in self.shots:
             shot.update(dt)
