@@ -45,20 +45,15 @@ class Agent(object):
         # Reset my set of commands (we don't want to run old commands)
         self.commands = []
 
-        # Decide what to do with each of my tanks
-        attackers = []
+        # Decide what to do with each of my tanks - set one third as defenders
         flag_getters = []
         defenders = []
         for i, bot in enumerate(mytanks):
             if i%3 == 0:
                 defenders.append(bot)
-            if i%3 == 1:
-                #attackers.append(bot)
+            else:
                 flag_getters.append(bot)
-            if i%3 == 2:
-                flag_getters.append(bot)
-        for bot in attackers:
-            self.attack_enemies(bot)
+
         for bot in flag_getters:
             self.get_flag(bot)
         for i, bot in enumerate(defenders):
@@ -70,7 +65,8 @@ class Agent(object):
         self.prev_tanks = mytanks
 
     def attack_enemies(self, bot):
-        '''Find the closest enemy and chase it, shooting as you go'''
+        '''Find the closest enemy and chase it, shooting as you go
+        (currently unused)'''
         if bot.flag != '-':
             self.move_to_position(bot, self.base.x, self.base.y)
             return
@@ -113,7 +109,7 @@ class Agent(object):
             target_pos = (self.base.x, 25*(1+int(i/2))*((-1)**(i%2)))
         dist = math.sqrt((target_pos[0] - bot.x)**2 +
                 (target_pos[1] - bot.y)**2)
-        if dist > 20:
+        if dist > 1:
             self.move_to_position(bot, target_pos[0], target_pos[1])
             return
         # Now, turn towards the closest enemy and fire
