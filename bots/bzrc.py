@@ -452,25 +452,35 @@ class BZRC:
         '''Send commands for a bunch of tanks in a network-optimized way.'''
 
         for cmd in commands:
-            self.sendline('speed %s %s' % (cmd.index, cmd.speed))
-            self.sendline('angvel %s %s' % (cmd.index, cmd.angvel))
-            if cmd.shoot:
-                self.sendline('shoot %s' % cmd.index)
+            if isinstance(cmd, GoodrichCommand):
+                self.sendline('accelx %d %s' % (cmd.index, cmd.accelx))
+                self.sendline('accely %d %s' % (cmd.index, cmd.accely))
+            else:
+                self.sendline('speed %s %s' % (cmd.index, cmd.speed))
+                self.sendline('angvel %s %s' % (cmd.index, cmd.angvel))
+                if cmd.shoot:
+                    self.sendline('shoot %s' % cmd.index)
 
         results = []
         for cmd in commands:
-            self.read_ack()
-            result_speed = self.read_bool()
-            self.read_ack()
-            result_angvel = self.read_bool()
-            if cmd.shoot:
+            if isinstance(cmd, GoodrichCommand):
                 self.read_ack()
-                result_shoot = self.read_bool()
+                accelx = self.read_bool()
+                self.read_ack()
+                accely = self.read_bool()
+                results.append((accelx, accely))
             else:
-                result_shoot = False
-            results.append( (result_speed, result_angvel, result_shoot) )
+                self.read_ack()
+                result_speed = self.read_bool()
+                self.read_ack()
+                result_angvel = self.read_bool()
+                if cmd.shoot:
+                    self.read_ack()
+                    result_shoot = self.read_bool()
+                else:
+                    result_shoot = False
+                results.append( (result_speed, result_angvel, result_shoot) )
         return results
-
 
 class Answer(object):
     '''BZRC returns an Answer for things like tanks, obstacles, etc.
@@ -490,6 +500,11 @@ class Command(object):
         self.angvel = angvel
         self.shoot = shoot
 
+class GoodrichCommand(object):
+    def __init__(self, index, accelx, accely):
+        self.index = index
+        self.accelx = accelx
+        self.accely = accely
 
 class UnexpectedResponse(Exception):
     '''Exception raised when the BZRC gets confused by a bad response.'''
