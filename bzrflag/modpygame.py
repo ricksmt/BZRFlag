@@ -96,7 +96,9 @@ class TextSprite(graphics.TextSprite):
             w,h = font.size(line)
             if w>mw:mw=w
             mh += h
-        image = pygame.Surface((mw,mh))
+        if mw > self.maxwidth:
+            self.maxwidth = mw
+        image = pygame.Surface((self.maxwidth,mh))
         at = 0
         for line in lines:
             image.blit(font.render(line, True, (255, 255, 255)), (0,at))
