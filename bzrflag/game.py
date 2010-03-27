@@ -246,6 +246,9 @@ class Team(object):
             if collide.circle2circle((point, radius),
                     (tank.pos, constants.TANKRADIUS)):
                 return False
+        if config['freeze_tag']:
+            if collide.dist(point, self.base.center) < self.base.radius:
+                return False
         if point[0]-radius<-config.world.size[0]/2 or\
          point[1]-radius<-config.world.size[1]/2 or\
          point[0]+radius>config.world.size[0]/2 or \
@@ -483,6 +486,8 @@ class GoodrichTank(Tank):
 
     def update_goals(self, dt):
         '''update the velocities to match the goals'''
+        if not self.flag and collide.dist(self.pos, self.team.base.center) < self.team.base.radius:
+            self.pos[0] += 1
         self.hspeed += self.accelx
         self.vspeed += self.accely
         max = 30
@@ -490,6 +495,13 @@ class GoodrichTank(Tank):
             dr = math.atan2(self.vspeed, self.hspeed)
             self.hspeed = math.cos(dr) * max
             self.vspeed = math.sin(dr) * max
+
+    def collision_at(self, pos):
+        if super(GoodrichTank, self).collision_at(pos):
+            return True
+        if not self.flag and collide.dist(pos, self.team.base.center) < self.team.base.radius:
+            return True
+        return False
 
     def collide_tank(self, tank):
         if tank.team == self.team:
