@@ -353,7 +353,7 @@ class Tank(object):
         self.dead_timer = config['respawn_time']
         self.team.score.score_tank(self)
         if self.flag:
-            self.team.map.dropFlag(self.flag)
+            self.team.map.returnFlag(self.flag)
             self.flag = None
         for shot in self.shots:
             shot.kill()
@@ -486,8 +486,16 @@ class GoodrichTank(Tank):
 
     def update_goals(self, dt):
         '''update the velocities to match the goals'''
-        if not self.flag and collide.dist(self.pos, self.team.base.center) < self.team.base.radius:
-            self.pos[0] += 1
+        basedist = collide.dist(self.pos, self.team.base.center)
+        if basedist < self.team.base.radius:
+            angle = math.atan2(self.team.base.center[1]-self.pos[1],
+                    self.team.base.center[0]-self.pos[0]) + math.pi
+            self.pos = [math.cos(angle) * self.team.base.radius +
+                    self.team.base.pos[0], math.sin(angle) *
+                    self.team.base.radius + self.team.base.pos[1]]
+        if self.flag and self.team.map.closest_base(self.pos) == self.team.base:
+            self.team.map.scoreFlag(self.flag)
+
         self.hspeed += self.accelx
         self.vspeed += self.accely
         max = 30
@@ -507,7 +515,7 @@ class GoodrichTank(Tank):
         if tank.team == self.team:
             if tank.status == constants.TANKDEAD:
                 self.team.respawn(tank)
-        else:
+        elif tank.status != constants.TANKDEAD and self.status != constants.TANKDEAD:
             base = self.team.map.closest_base(self.pos)
             if not base:return
             if base.team == tank.team:
@@ -515,13 +523,13 @@ class GoodrichTank(Tank):
             elif base.team == self.team:
                 tank.kill()
 
-    def setaccely(self, speed):
-        '''set the goal speed'''
-        self.accely = speed
+    def setaccelx(self, accelx):
+        '''set the goal x accelleration'''
+        self.accelx = accelx
 
-    def setaccelx(self, angvel):
-        '''set the goal angular velocity'''
-        self.accelx = angvel
+    def setaccely(self, accely):
+        '''set the goal y accelleration'''
+        self.accely = accely
 
     def velocity(self):
         '''calculate the tank's linear velocity'''
