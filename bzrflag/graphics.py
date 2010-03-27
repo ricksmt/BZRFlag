@@ -116,6 +116,7 @@ class TextSprite(pygame.sprite.Sprite):
         self.bzobject = bzobject
         self.display = display
         self.rect = pygame.Rect((0,0), (0,0))
+        self.maxwidth = 0
         self.refresh()
 
     def refresh(self):

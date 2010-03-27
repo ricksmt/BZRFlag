@@ -90,7 +90,7 @@ class Agent(object):
         dx = x - bot.x
         dy = y - bot.y
         dist = math.sqrt(dx**2 + dy**2)
-        if dist < 5:
+        if dist < 10:
             self.goals[bot.index] = None
             return
         self.commands.append(GoodrichCommand(bot.index, dx/5, dy/5))
