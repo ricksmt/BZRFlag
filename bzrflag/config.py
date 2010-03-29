@@ -75,6 +75,9 @@ class Config:
             action='store_true',
             dest='freeze_tag',
             help='start a freeze tag game')
+        p.add_option('--puppy-guard-zone',
+            type='int', default=30, dest='puppy_guard_zone',
+            help='radius of the puppy-guard zone')
         p.add_option('--report-obstacles',
             action='store_false', default=True,
             help='report obstacles? (turn off to force use of the occupancy grid)')

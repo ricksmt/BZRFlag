@@ -4,8 +4,6 @@ H S legal matter
 
 goodrich:
     L S images happy
-    M M make a bot
-    H M puppy guard
 
 
 TEST TEST TEST
@@ -21,6 +19,8 @@ M S win resize
 M S update score
 M S --default-noise option
 *H M goodrich
+    H M puppy guard
+    M M make a bot
     *disable bad commands
     *create good commands
     *freezing [collision]

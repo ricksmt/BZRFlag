@@ -467,7 +467,8 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             data['shots_avail'] = 10-len(tank.shots)
             data['reload'] = tank.reloadtimer
             data['flag'] = tank.flag and tank.flag.team.color or '-'
-            data['x'],data['y'] = tank.pos
+            data['x'] = int(tank.pos[0])
+            data['y'] = int(tank.pos[1])
             data['angle'] = tank.rot
             data['vx'],data['vy'] = tank.velocity()
             data['angvel'] = tank.angvel
@@ -548,6 +549,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         self.push('constant team %s\n' % (self.team.color))
         self.push('constant worldsize %s\n' % (constants.WORLDSIZE))
         self.push('constant hoverbot %s\n' % (0))
+        self.push('constant puppyzone %s\n' % (config['puppy_guard_zone']))
         self.push('constant tankangvel %s\n' % (constants.TANKANGVEL))
         self.push('constant tanklength %s\n' % (constants.TANKLENGTH))
         self.push('constant tankradius %s\n' % (constants.TANKRADIUS))
