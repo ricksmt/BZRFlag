@@ -220,6 +220,7 @@ class Team(object):
     def respawn(self, tank, first=True):
         '''respawn a dead tank'''
         tank.status = constants.TANKALIVE
+        tank.reset_speed()
         if tank.pos != constants.DEADZONE:
             return
         if not config['freeze_tag']:
@@ -331,6 +332,8 @@ class Tank(object):
         self.flag = None
         self.spawned = False
 
+    def reset_speed(self):
+        raise NotImplementedError
 
     def setspeed(self, speed):
         raise NotImplementedError
@@ -448,6 +451,13 @@ class SeppiTank(Tank):
         self.angvel = self.update_goal(self.angvel, self.goal_angvel, constants.ANGULARACCEL * dt)
         self.rot += self.angvel * constants.TANKANGVEL * dt
 
+    def reset_speed(self):
+        self.goal_speed = 0
+        self.goal_angvel = 0
+        self.speed = 0
+        self.angvel = 0
+        self.rot = 0
+
     def setspeed(self, speed):
         '''set the goal speed'''
         self.goal_speed = speed
@@ -486,13 +496,13 @@ class GoodrichTank(Tank):
 
     def update_goals(self, dt):
         '''update the velocities to match the goals'''
-        basedist = collide.dist(self.pos, self.team.base.center)
-        if basedist < self.team.base.radius:
-            angle = math.atan2(self.team.base.center[1]-self.pos[1],
-                    self.team.base.center[0]-self.pos[0]) + math.pi
-            self.pos = [math.cos(angle) * self.team.base.radius +
-                    self.team.base.pos[0], math.sin(angle) *
-                    self.team.base.radius + self.team.base.pos[1]]
+        flagdist = collide.dist(self.pos, self.team.flag.pos)
+        if self.team.flag.tank is None and flagdist < config['puppy_guard_zone']:
+            x,y = self.team.flag.pos
+            rad = 1 # config['puppy_guard_zone']
+            angle = math.atan2(self.pos[1]-y, self.pos[0]-x)
+            self.pos = [math.cos(angle) * rad + self.pos[0], math.sin(angle) * rad + self.pos[1]]
+
         if self.flag and self.team.map.closest_base(self.pos) == self.team.base:
             self.team.map.scoreFlag(self.flag)
 
@@ -507,7 +517,8 @@ class GoodrichTank(Tank):
     def collision_at(self, pos):
         if super(GoodrichTank, self).collision_at(pos):
             return True
-        if not self.flag and collide.dist(pos, self.team.base.center) < self.team.base.radius:
+        if not self.flag and self.team.flag.tank is None and\
+                collide.dist(pos, self.team.flag.pos) < config['puppy_guard_zone']:
             return True
         return False
 
@@ -522,6 +533,12 @@ class GoodrichTank(Tank):
                 self.kill()
             elif base.team == self.team:
                 tank.kill()
+
+    def reset_speed(self):
+        self.accelx = 0
+        self.accely = 0
+        self.hspeed = 0
+        self.vspeed = 0
 
     def setaccelx(self, accelx):
         '''set the goal x accelleration'''
