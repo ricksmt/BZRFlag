@@ -50,6 +50,7 @@ class Agent(object):
         self.mytanks = mytanks
         self.othertanks = othertanks
         self.flags = flags
+        #occg = list(self.bzrc.get_occgrid(i.index) for i in self.mytanks)
 
     def set_flag_goals(self):
         for tank in self.mytanks:
