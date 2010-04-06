@@ -288,6 +288,8 @@ class Team(object):
             value = 1
         elif value < -1:
             value = -1
+        if not (1 >= value >= -1):
+            raise Exception, "not a number"
         self.tank(tankid).setspeed(value)
 
     def angvel(self, tankid, value):
@@ -296,6 +298,8 @@ class Team(object):
             value = 1
         elif value < -1:
             value = -1
+        if not (1 >= value >= -1):
+            raise Exception, "not a number"
         self.tank(tankid).setangvel(value)
 
     def accelx(self, tankid, value):
@@ -304,6 +308,8 @@ class Team(object):
             value = 1
         elif value < -1:
             value = -1
+        if not (1 >= value >= -1):
+            raise Exception, "not a number"
         self.tank(tankid).setaccelx(value)
 
     def accely(self, tankid, value):
@@ -312,6 +318,8 @@ class Team(object):
             value = 1
         elif value < -1:
             value = -1
+        if not (1 >= value >= -1):
+            raise Exception, "not a number"
         self.tank(tankid).setaccely(value)
 
 class Tank(object):
@@ -497,14 +505,18 @@ class GoodrichTank(Tank):
     def update_goals(self, dt):
         '''update the velocities to match the goals'''
         flagdist = collide.dist(self.pos, self.team.flag.pos)
-        if self.team.flag.tank is None and flagdist < config['puppy_guard_zone']:
+        if self.flag and collide.rect2circle(self.team.base.rect, (self.pos, constants.TANKRADIUS)):
+            self.team.map.scoreFlag(self.flag)
+        if not self.flag and self.team.flag.tank is None and flagdist < config['puppy_guard_zone']:
             x,y = self.team.flag.pos
             rad = 1 # config['puppy_guard_zone']
             angle = math.atan2(self.pos[1]-y, self.pos[0]-x)
             self.pos = [math.cos(angle) * rad + self.pos[0], math.sin(angle) * rad + self.pos[1]]
+        
 
-        if self.flag and self.team.map.closest_base(self.pos) == self.team.base:
-            self.team.map.scoreFlag(self.flag)
+        ## return the flag once you get on "your side"
+        # if self.flag and self.team.map.closest_base(self.pos) == self.team.base:
+        #     self.team.map.scoreFlag(self.flag)
 
         self.hspeed += self.accelx
         self.vspeed += self.accely
