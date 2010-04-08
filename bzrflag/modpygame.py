@@ -109,10 +109,29 @@ class TextSprite(graphics.TextSprite):
     def reposition(self):
         self.rect.center = (0,0)#self.display.pos_world_to_screen(self.bzobject.pos)
 
+class Taunt(graphics.Taunt):
+    def refresh(self):
+        font = pygame.font.Font(paths.FONT_FILE, 32)
+        colors = {'red':(255,0,0),'green':(0,255,0),
+                  'blue':(0,0,255),'purple':(255,0,255)}
+        text = font.render(self.text, True, colors[self.map.taunt_color])
+        bg = font.render(self.text, True, (255,255,255))
+        self.img = font.render(self.text, True, (0,0,0))
+        self.img.blit(bg, (1,1))
+        self.img.blit(text, (0,0))
+
+    def draw(self, screen):
+        if self.img and self.text:
+            w, h = screen.get_rect().size
+            mw, mh = self.img.get_rect().size
+            screen.blit(self.img, (w/2-mw/2, h/2-mh/2))
+
+
 class Display(graphics.Display):
     _imagecache = ImageCache
     _spriteclass = BZSprite
     _textclass = TextSprite
+    _taunt = Taunt
     
     def setup(self):
         """Initializes pygame and creates the screen surface."""
@@ -124,7 +143,9 @@ class Display(graphics.Display):
             cons = pygameconsole.PyConsole
         else:
             cons = pygameconsole.TelnetConsole
-        self.console = cons(self.game, (25,self.screen_size[1]*2/3-25,self.screen_size[0]-50,self.screen_size[1]/3))
+        self.console = cons(self.game, 
+                (25,self.screen_size[1]*2/3-25, 
+                 self.screen_size[0]-50,self.screen_size[1]/3))
 
     def setup_screen(self):
         self.screen = pygame.display.set_mode(self.screen_size,pygame.RESIZABLE)
@@ -221,6 +242,7 @@ class Display(graphics.Display):
             for sprite in self.sprites.get_sprites_from_layer(layer):
                 self.screen.blit(sprite.image,sprite.rect)
         self.console.draw(self.screen)
+        self.taunt.draw(self.screen)
         #pygame.display.flip()
 
     def update(self):
@@ -233,6 +255,8 @@ class Display(graphics.Display):
         self.process_events()
         self.scores.draw(self.screen)
         self.console.draw(self.screen)
+        self.taunt.update()
+        self.taunt.draw(self.screen)
         pygame.display.flip()
 
     def background(self):

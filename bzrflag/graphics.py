@@ -130,6 +130,24 @@ class TextSprite(pygame.sprite.Sprite):
             self.refresh()
         self.reposition()
 
+class Taunt(object):
+    def __init__(self, map):
+        self.map = map
+        self.text = None
+        self.img = None
+        self.update()
+
+    def update(self):
+        if self.text != self.map.taunt_msg:
+            self.text = self.map.taunt_msg
+            self.refresh()
+
+    def refresh(self):
+        raise Exception, 'not implemented'
+    
+    def draw(self, screen):
+        pass
+
 class Scores:
     def __init__(self):
         self.scores = []
@@ -204,10 +222,12 @@ class Display(object):
     """Manages all graphics."""
     _imagecache = ImageCache
     _spriteclass = BZSprite
+    _taunt = Taunt
     def __init__(self, game, screen_size=DEFAULT_SIZE):
         self.game = game
         self.world = config.world
         self.scores = Scores()
+        self.taunt = self._taunt(self.game.map)
         self.screen_size = screen_size
         self.images = self._imagecache()
         self._background = None
