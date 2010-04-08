@@ -23,8 +23,8 @@ class Game:
         import headless
         import modpygame
 
-        self.display = modpygame.Display(self)
         self.map = Map(self)
+        self.display = modpygame.Display(self)
         self.input = headless.Input(self)
         
         self.running = False
@@ -100,6 +100,10 @@ class Map(object):
         ## these should be set elsewhere
         self.inertia_linear = 1
         self.inertia_angular = 1
+        self.taunt_timer = 0
+        # self.display = modpygame.Display(self)
+        self.taunt_msg = None
+        self.taunt_color = None
 
         # track objects on map
         self.obstacles = [Box(item) for item in config.world.boxes]
@@ -113,6 +117,12 @@ class Map(object):
     def update(self, dt):
         '''update the teams'''
         self.timespent += dt
+        if self.taunt_msg:
+            self.taunt_timer -= dt
+            if self.taunt_timer <= 0:
+                self.taunt_msg = None
+                self.game.display.taunt.update()
+                self.game.display.redraw()
         if self.timespent > config['time_limit']:
             self.end_game = True
             return
@@ -173,6 +183,14 @@ class Map(object):
         if abs(items[0][0] - items[1][0]) < 50:
             return None
         return items[0][1]
+    
+    def taunt(self, message, color):
+        if self.taunt_msg is None:
+            self.taunt_msg = message
+            self.taunt_timer = 3
+            self.taunt_color = color
+            return True
+        return False
 
 class Team(object):
     '''Team object:
@@ -507,11 +525,14 @@ class GoodrichTank(Tank):
         flagdist = collide.dist(self.pos, self.team.flag.pos)
         if self.flag and collide.rect2circle(self.team.base.rect, (self.pos, constants.TANKRADIUS)):
             self.team.map.scoreFlag(self.flag)
+
         if not self.flag and self.team.flag.tank is None and flagdist < config['puppy_guard_zone']:
             x,y = self.team.flag.pos
             rad = 1 # config['puppy_guard_zone']
             angle = math.atan2(self.pos[1]-y, self.pos[0]-x)
-            self.pos = [math.cos(angle) * rad + self.pos[0], math.sin(angle) * rad + self.pos[1]]
+            npos = [math.cos(angle) * rad + self.pos[0], math.sin(angle) * rad + self.pos[1]]
+            if not self.collision_at(npos, True):
+                self.pos = npos
         
 
         ## return the flag once you get on "your side"
@@ -526,10 +547,10 @@ class GoodrichTank(Tank):
             self.hspeed = math.cos(dr) * max
             self.vspeed = math.sin(dr) * max
 
-    def collision_at(self, pos):
+    def collision_at(self, pos, ignore_base=False):
         if super(GoodrichTank, self).collision_at(pos):
             return True
-        if not self.flag and self.team.flag.tank is None and\
+        if not ignore_base and not self.flag and self.team.flag.tank is None and\
                 collide.dist(pos, self.team.flag.pos) < config['puppy_guard_zone']:
             return True
         return False

@@ -107,7 +107,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
                 try:
                     command = getattr(self, 'bzrc_%s' % args[0])
                 except AttributeError:
-                    self.push('fail Invalid command\n')
+                    self.push('fail invalid command\n')
                     return
                 try:
                     command(args)
@@ -138,6 +138,22 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         timestamp = time.time() - self.init_timestamp
         arg_string = ' '.join(str(arg) for arg in args)
         self.push('ack %s %s\n' % (timestamp, arg_string))
+
+    def bzrc_taunt(self, args):
+        ## purposely undocumented
+        try:
+            command = args[0]
+            msg = args[1:]
+            if not len(msg) or msg[0] != 'please' or msg[-1] != 'thanks':
+                raise ValueError
+        except ValueError, IndexError:
+            self.push('fail invalid command\n')
+            return
+        self.ack(*args)
+        if self.team.map.taunt(' '.join(msg[1:-1]), self.team.color):
+            self.push('ok\n')
+        else:
+            self.push('fail\n')
 
     def bzrc_help(self, args):
         """help [command]

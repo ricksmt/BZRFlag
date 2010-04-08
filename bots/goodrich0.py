@@ -78,6 +78,9 @@ class Agent(object):
     def update_goal(self, bot):
         if bot.flag != '-':
             self.goals[bot.index] = self.base.x, self.base.y
+            self.bzrc.sendline('taunt please I have the flag!!! thanks')
+            self.bzrc.read_ack()
+            self.bzrc.expect_multi(('ok',), ('fail',))
         if not self.goals[bot.index]:
             flag = self.closest_flag(bot)
             if flag:
