@@ -382,7 +382,7 @@ class Tank(object):
         self.dead_timer = config['respawn_time']
         self.team.score.score_tank(self)
         if self.flag:
-            self.team.map.returnFlag(self.flag)
+            self.team.map.dropFlag(self.flag)
             self.flag = None
         for shot in self.shots:
             shot.kill()
@@ -566,6 +566,12 @@ class GoodrichTank(Tank):
                 self.kill()
             elif base.team == self.team:
                 tank.kill()
+
+    def kill(self):
+        flag = self.flag
+        super(GoodrichTank, self).kill()
+        if flag:
+            self.team.map.returnFlag(flag)
 
     def reset_speed(self):
         self.accelx = 0
