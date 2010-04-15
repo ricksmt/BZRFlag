@@ -333,6 +333,9 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             self.invalid_args(args)
             return
         self.ack(command)
+        if not self.team.map.occgrid:
+            raise Exception('occgrid not currently compatible with rotated '
+                    'obstacles')
         width = config['occgrid_width']
         grid = [[0 for x in xrange(width)] for y in
                 xrange(width)]
