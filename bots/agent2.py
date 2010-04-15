@@ -38,7 +38,10 @@ class Agent(object):
         attackers = []
         flag_getters = []
         defenders = []
+        have_flag = False
         for i, bot in enumerate(mytanks):
+            if bot.flag != '-':
+                have_flag = True
             if i%3 == 0:
                 defenders.append(bot)
             if i%3 == 1:
@@ -52,6 +55,11 @@ class Agent(object):
             self.get_flag(bot)
         for i, bot in enumerate(defenders):
             self.defend(bot, i)
+
+        if have_flag:
+            self.bzrc.sendline('taunt please I got your flag! thanks')
+            self.bzrc.read_ack()
+            self.bzrc.expect_multi(('ok',), ('fail',))
 
         # Send the commands to the server
         results = self.bzrc.do_commands(self.commands)
