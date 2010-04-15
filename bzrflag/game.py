@@ -138,7 +138,13 @@ class Map(object):
                     for y in xrange(obstacle.size[1]):
                         self.occgrid[y+lx[1]][x+lx[0]] = 1
             else:
-                raise Exception, "occ grid not implemented for rotated obstacles"
+                # We didn't have enough time to implement occupancy grids with
+                # rotated obstalces; we figured it was low priority anyway
+                # because it would be really difficult for students to deal 
+                # with.  If someone implements it sometime, great.  Until then,
+                # this is our workaround - the server returns a fail on a
+                # request for the occupancy grid if there are rotated obstacles.
+                self.occgrid = None
 
     def obstacle_at(self, x, y):
         for obstacle in self.obstacles:
