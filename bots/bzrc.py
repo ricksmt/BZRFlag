@@ -149,27 +149,38 @@ class BZRC:
         return obstacles
     
     def rebuild_grid(self, occgrid, width):
+        # WARNING: this code assumes a square occgrid.  At the moment that is
+        # just fine, because we only give square occgrids.  But beware if the
+        # occgrid ever changes!
         count = -1
         i = 0
         number = 0
-        grid = []
         sub = []
         items = []
+        # Go through the occgrid, row by row
         for y in range(width):
-            grid.append([])
             for x in range(width):
                 if count == 8 or count < 0:
+                    # We finished a character, so start another one
                     count = 0
+                    # Get the ordinal value of the character
                     number = ord(occgrid[i])
                     i += 1
+                    # Add the values we just unpacked to our list
                     items += sub
                     sub = []
-                at = number % 2
+                # Check the value of the lowest bit
+                value = number % 2
+                # Prepend the value to our list of values, so they stay in order
+                sub.insert(0,value)
+                # Bit shift our number so we can check the next bit
                 number >>=1
-                sub.insert(0,at)
+                # Make sure we don't go over 8 bits per character
                 count += 1
         items += sub
         i = 0
+        # Take the list of items we have and put them into a matrix (actually
+        # just a list of lists - you probably want to use numpy's matrix)
         grid = []
         for y in range(width):
             grid.append(items[i:i+width])
@@ -180,12 +191,12 @@ class BZRC:
         pos = tuple(int(a) for a in self.expect('at')[0].split(','))
         size = tuple(int(a) for a in self.expect('size')[0].split('x'))
 
-        grid_length = int(math.ceil((size[0]*size[0])/8.0))
+        grid_length = int(math.ceil((size[0]*size[1])/8.0))
         grid = self.conn.read(grid_length+1)[:-1] # to get the \n at the end
         occgrid = self.rebuild_grid(grid, size[0])
 
         self.expect('end', True)
-        return occgrid
+        return pos, occgrid
 
     def read_flags(self):
         line = self.read_arr()
