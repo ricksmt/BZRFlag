@@ -96,6 +96,10 @@ class Config:
             dest='inertia_angular',
             type='int',default=1,
             help='set the angular inertia')
+        p.add_option('--seed',
+            type='int',default=-1,
+            dest='random_seed',
+            help='set the random seed for world initialization')
         p.add_option('--angular-velocity',
             type='float',
             dest='angular_velocity',
