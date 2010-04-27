@@ -11,7 +11,7 @@ import config
 def run():
     config.init()
     from game import Game
-    level = logging.CRITICAL
+    level = logging.WARNING
     if config.config['debug']:
         level = logging.DEBUG
     fname = config.config.get('debug_out', None)
