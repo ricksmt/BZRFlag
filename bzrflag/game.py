@@ -22,8 +22,13 @@ class Game:
 
         import headless
         import modpygame
+        
+        if config['random_seed'] != -1:
+            random.seed(config['random_seed'])
 
         self.map = Map(self)
+
+        
         self.display = modpygame.Display(self)
         self.input = headless.Input(self)
         
