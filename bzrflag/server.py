@@ -337,8 +337,6 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             raise Exception('occgrid not currently compatible with rotated '
                     'obstacles')
         width = config['occgrid_width']
-        grid = [[0 for x in xrange(width)] for y in
-                xrange(width)]
         spos = int(tank.pos[0]-width/2), int(tank.pos[1]-width/2)
 
         true_positive = config['%s_true_positive' % self.team.color]
@@ -353,9 +351,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         occgrid = ''
         number = 0
         count = 0
-        grid = []
         for y in xrange(width):
-            grid.append([])
             for x in xrange(width):
                 occ = self.team.map.occgrid[y+spos[1]][x+spos[0]]
                 r = random.uniform(0, 1)
@@ -363,10 +359,8 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
                 count += 1
                 if occ or x == y:
                     number += (int(r < true_positive))
-                    grid[-1].append(int(r < true_positive))
                 else:
                     number += (int(r > true_negative))
-                    grid[-1].append(int(r > true_negative))
                 if count == 8:
                     occgrid += chr(number)
                     number = count = 0

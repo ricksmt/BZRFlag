@@ -145,6 +145,7 @@ class Map(object):
                 # this is our workaround - the server returns a fail on a
                 # request for the occupancy grid if there are rotated obstacles.
                 self.occgrid = None
+                break
 
     def obstacle_at(self, x, y):
         for obstacle in self.obstacles:
