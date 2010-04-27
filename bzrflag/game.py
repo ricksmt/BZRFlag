@@ -2,6 +2,7 @@ import collide
 import math
 import random
 import datetime
+import numpy
 
 import constants
 from config import config
@@ -135,13 +136,16 @@ class Map(object):
             team.update(dt)
 
     def build_truegrid(self):
-        self.occgrid = [[0 for x in xrange(config.world.width)] for y in xrange(config.world.height)]
+        self.occgrid = numpy.zeros((config.world.width, config.world.height))
+        offset_x = config.world.width/2
+        offset_y = config.world.height/2
         for obstacle in self.obstacles:
             if obstacle.rot == 0:
-                lx = obstacle.pos
+                lx = (obstacle.pos[0] - obstacle.size[0]/2,
+                        obstacle.pos[1] - obstacle.size[1]/2)
                 for x in xrange(obstacle.size[0]):
                     for y in xrange(obstacle.size[1]):
-                        self.occgrid[y+lx[1]][x+lx[0]] = 1
+                        self.occgrid[x+lx[0]+offset_x][y+lx[1]+offset_y] = 1
             else:
                 # We didn't have enough time to implement occupancy grids with
                 # rotated obstalces; we figured it was low priority anyway

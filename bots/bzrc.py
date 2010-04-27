@@ -14,7 +14,7 @@
 ####################################################################
 
 from __future__ import division
-import math, sys, socket, time
+import math, sys, socket, time, numpy
 
 class BZRC:
     '''Class which handles queries and responses with remote control bots.'''
@@ -148,55 +148,20 @@ class BZRC:
             obstacles.append(obstacle)
         return obstacles
     
-    def rebuild_grid(self, occgrid, width):
-        # WARNING: this code assumes a square occgrid.  At the moment that is
-        # just fine, because we only give square occgrids.  But beware if the
-        # occgrid ever changes!
-        count = -1
-        i = 0
-        number = 0
-        sub = []
-        items = []
-        # Go through the occgrid, row by row
-        for y in range(width):
-            for x in range(width):
-                if count == 8 or count < 0:
-                    # We finished a character, so start another one
-                    count = 0
-                    # Get the ordinal value of the character
-                    number = ord(occgrid[i])
-                    i += 1
-                    # Add the values we just unpacked to our list
-                    items += sub
-                    sub = []
-                # Check the value of the lowest bit
-                value = number % 2
-                # Prepend the value to our list of values, so they stay in order
-                sub.insert(0,value)
-                # Bit shift our number so we can check the next bit
-                number >>=1
-                # Make sure we don't go over 8 bits per character
-                count += 1
-        items += sub
-        i = 0
-        # Take the list of items we have and put them into a matrix (actually
-        # just a list of lists - you probably want to use numpy's matrix)
-        grid = []
-        for y in range(width):
-            grid.append(items[i:i+width])
-            i += width
-        return grid
-
     def read_occgrid(self):
         pos = tuple(int(a) for a in self.expect('at')[0].split(','))
         size = tuple(int(a) for a in self.expect('size')[0].split('x'))
-
-        grid_length = int(math.ceil((size[0]*size[1])/8.0))
-        grid = self.conn.read(grid_length+1)[:-1] # to get the \n at the end
-        occgrid = self.rebuild_grid(grid, size[0])
+        if size[0] < 0 or size[1] < 0:
+            print pos, size
+        grid = numpy.zeros(size)
+        for x in range(size[0]):
+            line = self.read_arr()
+            for y in range(size[1]):
+                if line[0] == '1':
+                    grid[x, y] = 1
 
         self.expect('end', True)
-        return pos, occgrid
+        return pos, grid
 
     def read_flags(self):
         line = self.read_arr()
