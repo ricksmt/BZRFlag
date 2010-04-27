@@ -10,6 +10,7 @@ import socket
 import time
 import random
 import logging
+import numpy
 logger = logging.getLogger('server')
 
 import constants
@@ -333,11 +334,28 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             self.invalid_args(args)
             return
         self.ack(command)
-        if not self.team.map.occgrid:
+        if self.team.map.occgrid is None:
             raise Exception('occgrid not currently compatible with rotated '
                     'obstacles')
+        if tank.status == 'DEAD':
+            raise Exception('dead tanks can not request occupancy grids')
+        offset_x = int(config.world.width/2)
+        offset_y = int(config.world.height/2)
         width = config['occgrid_width']
-        spos = int(tank.pos[0]-width/2), int(tank.pos[1]-width/2)
+        world_spos = [int(tank.pos[0]-width/2), int(tank.pos[1]-width/2)]
+        world_spos[0] = max(-offset_x, world_spos[0])
+        world_spos[1] = max(-offset_y, world_spos[1])
+        spos = [int(tank.pos[0]+offset_x-width/2),
+                int(tank.pos[1]+offset_y-width/2)]
+        epos = [spos[0]+width, spos[1]+width]
+        spos[0] = max(0, spos[0])
+        spos[1] = max(0, spos[1])
+        epos[0] = min(config.world.width, epos[0])
+        epos[1] = min(config.world.height, epos[1])
+        width = epos[0]-spos[0]
+        height = epos[1]-spos[1]
+        true_grid = self.team.map.occgrid[spos[0]:epos[0],
+                spos[1]:epos[1]]
 
         true_positive = config['%s_true_positive' % self.team.color]
         if true_positive is None:
@@ -346,30 +364,21 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         if true_negative is None:
             true_negative = config['default_true_negative']
 
-        self.push('at %d,%d\n' % spos)
-        self.push('size %dx%d\n' % (width, width))
+        self.push('at %d,%d\n' % tuple(world_spos))
+        self.push('size %dx%d\n' % (width, height))
         occgrid = ''
-        number = 0
-        count = 0
-        for y in xrange(width):
-            for x in xrange(width):
-                occ = self.team.map.occgrid[y+spos[1]][x+spos[0]]
-                r = random.uniform(0, 1)
-                number <<= 1
-                count += 1
-                if occ or x == y:
-                    number += (int(r < true_positive))
+        grid = numpy.zeros((width, height))
+        r_array = numpy.random.uniform(low=0, high=1, size=(width, height))
+        for x in xrange(width):
+            for y in xrange(height):
+                occ = true_grid[x, y]
+                r = r_array[x, y]
+                if int(occ):
+                    grid[x, y] = int(r < true_positive)
                 else:
-                    number += (int(r > true_negative))
-                if count == 8:
-                    occgrid += chr(number)
-                    number = count = 0
+                    grid[x, y] = int(r > true_negative)
 
-        if count != 0:
-            occgrid += chr(number)
-
-        if len(occgrid) != math.ceil((width*width)/8.0):
-            print 'invalid length:',len(occgrid),width,(width*width)/8,[occgrid]
+        occgrid = '\n'.join([''.join([str(int(c)) for c in r]) for r in grid])
         self.push(occgrid+'\n')
         self.push('end\n')
 

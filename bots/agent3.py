@@ -8,6 +8,9 @@ import sys, math, time
 # defend.  The only update to this from agent2.py is a PD controller.  A Kalman
 # Filter, grid filter, or better path planning would probably be next.
 
+# This agent also asks for the occupancy grid, though it does not currently do
+# anything with it.  It was just to test the performance with the grid.
+
 class Agent(object):
 
     def __init__(self, bzrc):
@@ -23,10 +26,12 @@ class Agent(object):
                 self.base = Answer()
                 self.base.x = (base.corner1_x+base.corner3_x)/2
                 self.base.y = (base.corner1_y+base.corner3_y)/2
+        self.count = 0
 
     def tick(self, time_diff):
         '''Some time has passed; decide what to do next'''
         # Get information from the BZRC server
+        self.count += 1
         mytanks, othertanks, flags, shots = self.bzrc.get_lots_o_stuff()
         self.mytanks = mytanks
         self.othertanks = othertanks
@@ -44,6 +49,12 @@ class Agent(object):
 
         # Reset my set of commands (we don't want to run old commands)
         self.commands = []
+
+        if self.count%10 == 1:
+            for tank in mytanks:
+                if tank.index%2 == 0:
+                    continue
+                self.bzrc.get_occgrid(tank.index)
 
         # Decide what to do with each of my tanks - set one third as defenders
         flag_getters = []
