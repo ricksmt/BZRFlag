@@ -63,6 +63,7 @@ class Config:
         ## game behavior
         p.add_option('--world',
             dest='world',
+            default='maps/four_ls.bzw',
             help='specify a world.bzw map to use')
         p.add_option('--config',
             dest='config',
