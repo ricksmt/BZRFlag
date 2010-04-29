@@ -17,7 +17,7 @@ from game import Tank, Shot, Flag, Base, Score
 import os
 import paths
 
-DEFAULT_SIZE = 900, 900
+DEFAULT_SIZE = map(int, config['window_size'].split('x'))
 
 BASE_PATTERN = '%s_basetop.png'
 SHOT_PATTERN = '%s_bolt.png'
