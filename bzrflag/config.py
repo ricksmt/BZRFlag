@@ -55,6 +55,10 @@ class Config:
         p.add_option('--debug-out',
             dest='debug_out',
             help='output filename for debug messages')
+        p.add_option('--window-size',
+            dest='window_size',
+            default='800x800',
+            help='size of the window to use, ex. 800x800')
 
         ## game behavior
         p.add_option('--world',
