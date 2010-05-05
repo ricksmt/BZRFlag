@@ -14,9 +14,6 @@ logger = logging.getLogger('constants')
 # Colors
 COLORNAME = ('rogue', 'red', 'green', 'blue', 'purple')
 
-# World
-WORLDSIZE = 800
-
 # Tanks
 TANKANGVEL = math.pi / 4
 TANKLENGTH = 6

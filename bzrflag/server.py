@@ -569,7 +569,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         ## is this the best way to do this? hard coding it in?
         self.push('begin\n')
         self.push('constant team %s\n' % (self.team.color))
-        self.push('constant worldsize %s\n' % (constants.WORLDSIZE))
+        self.push('constant worldsize %s\n' % (config['world_size']))
         self.push('constant hoverbot %s\n' % (0))
         self.push('constant puppyzone %s\n' % (config['puppy_guard_zone']))
         self.push('constant tankangvel %s\n' % (constants.TANKANGVEL))

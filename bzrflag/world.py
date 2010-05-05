@@ -14,8 +14,6 @@ import logging
 import constants
 logger = logging.getLogger('world')
 
-WIDTH = HEIGHT = 800
-
 import math
 from pyparsing import alphas, nums, Word, Keyword, LineEnd, \
         Each, ZeroOrMore, Combine, Optional, Dict, SkipTo, Group
@@ -97,7 +95,7 @@ class World(object):
     """encompassing class which parses the entire file. Returns a World
     object that is used by the classes in :mod:`game` to populate the
     game"""
-    def __init__(self, items=None):
+    def __init__(self, WIDTH, HEIGHT, items=None):
         self.size = (WIDTH, HEIGHT)
         self.width = WIDTH
         self.height = HEIGHT
@@ -113,14 +111,14 @@ class World(object):
                     raise NotImplementedError('Unhandled world element.')
 
     @classmethod
-    def parser(cls):
+    def parser(cls, width, height):
         """Parse a BZW file.
 
         For now, we're only supporting a subset of BZW's allobjects.
         """
         comment = '#' + SkipTo(LineEnd())
         bzw = ZeroOrMore(Box.parser() | Base.parser()).ignore(comment)
-        bzw.setParseAction(lambda toks: cls(toks))
+        bzw.setParseAction(lambda toks: cls(width, height, toks))
         return bzw
 
 
