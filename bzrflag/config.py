@@ -39,8 +39,8 @@ class Config:
         if not os.path.isfile(self.options['world']):
             raise ArgumentError, 'world file not found: %s'%self.options['world']
         text = open(self.options['world']).read()
-        parser = world.World.parser()
-        results = world.World.parser().parseString(text)
+        size = int(self.options['world_size'])
+        results = world.World.parser(size, size).parseString(text)
         if not results:
             raise ParseError,'invalid world file: %s'%config['world']
         self.world = results[0]
@@ -65,6 +65,10 @@ class Config:
             dest='world',
             default='maps/four_ls.bzw',
             help='specify a world.bzw map to use')
+        p.add_option('--world-size',
+            dest='world_size',
+            default='800',
+            help='specify the world size (it is always square)')
         p.add_option('--config',
             dest='config',
             help='set the config file')
