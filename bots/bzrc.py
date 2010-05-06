@@ -151,15 +151,12 @@ class BZRC:
     def read_occgrid(self):
         pos = tuple(int(a) for a in self.expect('at')[0].split(','))
         size = tuple(int(a) for a in self.expect('size')[0].split('x'))
-        if size[0] < 0 or size[1] < 0:
-            print pos, size
         grid = numpy.zeros(size)
         for x in range(size[0]):
-            line = self.read_arr()
+            line = self.read_arr()[0]
             for y in range(size[1]):
-                if line[0] == '1':
+                if line[y] == '1':
                     grid[x, y] = 1
-
         self.expect('end', True)
         return pos, grid
 
