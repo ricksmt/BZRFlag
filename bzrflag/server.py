@@ -339,6 +339,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
                     'obstacles')
         if tank.status == 'DEAD':
             raise Exception('dead tanks can not request occupancy grids')
+        self.push('begin\n')
         offset_x = int(config.world.width/2)
         offset_y = int(config.world.height/2)
         width = config['occgrid_width']

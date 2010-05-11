@@ -149,6 +149,7 @@ class BZRC:
         return obstacles
     
     def read_occgrid(self):
+        self.expect('begin')
         pos = tuple(int(a) for a in self.expect('at')[0].split(','))
         size = tuple(int(a) for a in self.expect('size')[0].split('x'))
         grid = numpy.zeros(size)
