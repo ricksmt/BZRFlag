@@ -131,7 +131,7 @@ class BZRC:
             team.color = rest[0]
             team.count = float(rest[1])
             team.base = [(float(x), float(y)) for (x, y) in
-                    zip(line[2:10:2], line[3:10:2])]
+                    zip(rest[2:10:2], rest[3:10:2])]
             teams.append(team)
         return teams
 
@@ -144,7 +144,7 @@ class BZRC:
             if i == 1:
                 break
             obstacle = [(float(x), float(y)) for (x, y) in
-                    zip(line[::2], line[1::2])]
+                    zip(rest[::2], rest[1::2])]
             obstacles.append(obstacle)
         return obstacles
     
