@@ -566,6 +566,12 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         except ValueError, TypeError:
             self.invalid_args(args)
             return
+        true_positive = config['%s_true_positive' % self.team.color]
+        if true_positive is None:
+            true_positive = config['default_true_positive']
+        true_negative = config['%s_true_negative' % self.team.color]
+        if true_negative is None:
+            true_negative = config['default_true_negative']
         self.ack(command)
         ## is this the best way to do this? hard coding it in?
         self.push('begin\n')
@@ -586,6 +592,8 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         self.push('constant shotrange %s\n' % (constants.SHOTRANGE))
         self.push('constant flagradius %s\n' % (constants.FLAGRADIUS))
         self.push('constant explodetime %s\n' % (constants.EXPLODETIME))
+        self.push('constant truepositive %s\n' % (true_positive))
+        self.push('constant truenegative %s\n' % (true_negative))
         self.push('end\n')
 
     def bzrc_scores(self, args):
