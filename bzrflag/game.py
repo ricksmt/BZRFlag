@@ -428,7 +428,8 @@ class Tank(object):
     def update(self, dt):
         '''update the tank's position, status, velocities'''
 
-        if self.pos == constants.DEADZONE:
+        if (self.pos == constants.DEADZONE and
+                self.status != constants.TANKDEAD):
             self.team.respawn(self)
         if self.status == constants.TANKDEAD:
             self.dead_timer -= dt
