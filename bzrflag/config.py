@@ -87,8 +87,9 @@ class Config:
         p.add_option('--puppy-guard-zone',
             type='int', default=30, dest='puppy_guard_zone',
             help='radius of the puppy-guard zone')
-        p.add_option('--report-obstacles',
-            action='store_false', default=True,
+        p.add_option('--no-report-obstacles',
+            action='store_true', default=False,
+            dest='no_report_obstacles',
             help='report obstacles? (turn off to force use of the occupancy grid)')
         p.add_option('--occgrid-width', type='int',
             default=50, help='width of reported occupancy grid')

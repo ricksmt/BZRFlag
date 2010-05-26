@@ -309,6 +309,9 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             self.invalid_args(args)
             return
         self.ack(command)
+        if config['no_report_obstacles']:
+            self.push('fail\n')
+            return
         self.push('begin\n')
         for obstacle in self.team.map.obstacles:
             self.push('obstacle')
@@ -338,7 +341,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
             raise Exception('occgrid not currently compatible with rotated '
                     'obstacles')
         if tank.status == constants.TANKDEAD:
-            self.push('fail dead tanks can not request occupancy grids\n')
+            self.push('fail\n')
             return
         self.push('begin\n')
         offset_x = int(config.world.width/2)

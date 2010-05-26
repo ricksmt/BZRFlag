@@ -3,6 +3,8 @@ import math
 import random
 import datetime
 import numpy
+import logging
+logger = logging.getLogger('game')
 
 import constants
 from config import config
@@ -810,7 +812,7 @@ class Score(object):
                 if closest is None or dst < closest[0]:
                     closest = dst, team.base
             if not closest:
-                print "no closest found...",self,tank,self.team.map.teams.items()
+                logger.warning("no closest found... %s" % self.team.color)
                 return False
             total_dist = collide.dist(self.team.base.center,closest[1].center)
             distance_to = collide.dist(tank.pos, closest[1].center)
