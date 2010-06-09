@@ -594,6 +594,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         self.push('constant tankwidth %s\n' % (constants.TANKWIDTH))
         self.push('constant shotradius %s\n' % (constants.SHOTRADIUS))
         self.push('constant shotrange %s\n' % (constants.SHOTRANGE))
+        self.push('constant shotspeed %s\n' % (constants.SHOTSPEED))
         self.push('constant flagradius %s\n' % (constants.FLAGRADIUS))
         self.push('constant explodetime %s\n' % (constants.EXPLODETIME))
         self.push('constant truepositive %s\n' % (true_positive))
