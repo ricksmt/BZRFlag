@@ -125,12 +125,12 @@ class Config:
         p.add_option('--grab-own-flag',
             action='store_false',
             dest='grab_own_flag',
-            help='can you grab your own flag')
+            help='enables grabbing your own flag')
         p.add_option('--friendly-fire',
             action='store_false',
             default='true',
             dest='friendly_fire',
-            help='allow friendly fire')
+            help="don't die on friendly fire")
         p.add_option('--respawn-time',
             type='int',default=10,
             dest='respawn_time',

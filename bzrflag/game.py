@@ -72,14 +72,23 @@ class Game:
         and draws to the screen until the pygame window is closed."""
         self.running = True
         self.display.setup()
-        while self.running:
-            if self.map.end_game:
-                # do something else here?
-                break
-            self.input.update()
-            self.update()
-            self.update_sprites()
-            self.display.update()
+        try:
+            while self.running:
+                if self.map.end_game:
+                    # do something else here?
+                    break
+                self.input.update()
+                self.update()
+                self.update_sprites()
+                self.display.update()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            final_score = 'Final Score\n'
+            for team in self.map.teams:
+                final_score += 'Team %s: %d\n' % (team,
+                             self.map.teams[team].score.total())
+            print final_score
 
     def kill(self):
         self.running = False
