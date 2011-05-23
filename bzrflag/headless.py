@@ -16,11 +16,13 @@ logger = logging.getLogger('headless.py')
 # A higher loop timeout decreases CPU usage but also decreases the frame rate.
 LOOP_TIMEOUT = 0.01
 
+
 class Display(graphics.Display):
     def update(self):
         pass
     def setup(self):
         pass
+
 
 class Input:
     '''The server input class'''

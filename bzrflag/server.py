@@ -95,7 +95,6 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         logger.debug(self.team.color + ' > ' + text)
         if text.startswith('fail '):
             logger.error(self.team.color + ' > ' + text)
-        
 
     def found_terminator(self):
         """Called when Asynchat finds an end-of-line.
@@ -120,7 +119,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
                 except Exception, e:
                     logger.error(self.team.color + ' : ERROR : %s : %s\n' % (args, e))
                     self.team.map.game.display.console.write(self.team.color + ' : ERROR : %s : %s : %s\n' % (args, e.__class__.__name__, e))
-                    self.push('fail '+str(e)+'\n') 
+                    self.push('fail '+str(e)+'\n')
                     return
             elif args == ['agent', '1']:
                 self.established = True
@@ -245,7 +244,6 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
         self.ack(command, tankid, value)
         self.team.angvel(tankid, value)
         self.push('ok\n')
-
 
     def bzrc_accelx(self, args):
         """accelx [??]
@@ -541,7 +539,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
                 x = random.gauss(x, self.team.posnoise)
                 y = random.gauss(y, self.team.posnoise)
                 data['x'],data['y'] = x, y
-                
+
                 angle = random.gauss(tank.rot, self.team.angnoise) % math.pi*2
                 if angle > math.pi:
                     angle -= math.pi*2

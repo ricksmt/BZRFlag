@@ -12,6 +12,7 @@ from config import config
 class GoodrichException(Exception):
     pass
 
+
 class Game:
     """*Main control object. Contains the main loop.*
 
@@ -25,16 +26,15 @@ class Game:
 
         import headless
         import modpygame
-        
+
         if config['random_seed'] != -1:
             random.seed(config['random_seed'])
 
         self.map = Map(self)
 
-        
         self.display = modpygame.Display(self)
         self.input = headless.Input(self)
-        
+
         self.running = False
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()
@@ -93,6 +93,7 @@ class Game:
     def kill(self):
         self.running = False
         self.display.kill()
+
 
 class Map(object):
     """manages the map data. populates
@@ -160,7 +161,7 @@ class Map(object):
             else:
                 # We didn't have enough time to implement occupancy grids with
                 # rotated obstalces; we figured it was low priority anyway
-                # because it would be really difficult for students to deal 
+                # because it would be really difficult for students to deal
                 # with.  If someone implements it sometime, great.  Until then,
                 # this is our workaround - the server returns a fail on a
                 # request for the occupancy grid if there are rotated obstacles.
@@ -210,7 +211,7 @@ class Map(object):
         if abs(items[0][0] - items[1][0]) < 50:
             return None
         return items[0][1]
-    
+
     def taunt(self, message, color):
         if self.taunt_msg is None:
             self.taunt_msg = message
@@ -218,6 +219,7 @@ class Map(object):
             self.taunt_color = color
             return True
         return False
+
 
 class Team(object):
     '''Team object:
@@ -367,6 +369,7 @@ class Team(object):
             raise Exception, "not a number"
         self.tank(tankid).setaccely(value)
 
+
 class Tank(object):
     size = (constants.TANKRADIUS*2,) * 2
     radius = constants.TANKRADIUS
@@ -432,7 +435,7 @@ class Tank(object):
          pos[1]+radius>config.world.size[1]/2:
             return True
         return False
-    
+
     def collide_tank(self, tank):
         pass
 
@@ -478,6 +481,7 @@ class Tank(object):
 
     def velocity(self):
         raise NotImplementedError
+
 
 class SeppiTank(Tank):
     def __init__(self, team, tankid):
@@ -540,6 +544,7 @@ class SeppiTank(Tank):
         return (self.speed * math.cos(self.rot) * constants.TANKSPEED,
             self.speed * math.sin(self.rot) * constants.TANKSPEED)
 
+
 class GoodrichTank(Tank):
     def __init__(self, team, tankid):
         super(GoodrichTank, self).__init__(team, tankid)
@@ -561,7 +566,6 @@ class GoodrichTank(Tank):
             npos = [math.cos(angle) * rad + self.pos[0], math.sin(angle) * rad + self.pos[1]]
             if not self.collision_at(npos, True):
                 self.pos = npos
-        
 
         ## return the flag once you get on "your side"
         # if self.flag and self.team.map.closest_base(self.pos) == self.team.base:
@@ -618,6 +622,7 @@ class GoodrichTank(Tank):
     def velocity(self):
         '''calculate the tank's linear velocity'''
         return self.hspeed, self.vspeed
+
 
 class Shot(object):
     size = (constants.SHOTRADIUS*2,) * 2
@@ -697,6 +702,7 @@ class Shot(object):
         if self in self.tank.shots:
             self.tank.shots.remove(self)
 
+
 class Flag(object):
     size = (constants.FLAGRADIUS*2,) * 2
     '''Flag object:
@@ -755,6 +761,7 @@ def polygon_center(points):
     cy = sum(p[1] for p in points)/len(points)
     return cx,cy
 
+
 class Base(object):
     '''Base object:
     contains the logic & data for a team's Base on a map'''
@@ -768,6 +775,7 @@ class Base(object):
         self.shape = list(scale_rotate_poly(poly, 1, item.rot))
         self.rot = item.rot
 
+
 class Obstacle(object):
     '''Obstacle object:
     contains the logic and data for an obstacle on the map'''
@@ -780,6 +788,7 @@ class Obstacle(object):
     def pad(self, padding):
         self.shape = list(scale_rotate_poly(self.shape, (self.radius + padding)/float(self.radius), 0))
 
+
 class Box(Obstacle):
     '''a Box Obstacle'''
     def __init__(self, item):
@@ -788,6 +797,7 @@ class Box(Obstacle):
         self.size = tuple(x*2 for x in item.size.asList())
         self.shape = list(scale_rotate_poly((convertBoxtoPoly(item.pos,self.size,item.rot)), 1, item.rot))
         self.rect = (tuple(self.pos)+self.size)
+
 
 class Score(object):
     '''Score object: keeps track of a team's score'''
@@ -841,7 +851,7 @@ class Score(object):
 
     def text(self):
         return "Team %s: %d"%(self.team.color, self.total())
-    
+
     def total(self):
         return 1000*self.flags + self.value
 

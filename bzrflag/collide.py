@@ -342,7 +342,7 @@ def poly2line(pts,(p1,p2)):
 def poly2circle(pts, circle):
     '''collide a polygon with a circle
     *this is tested by other methods*
-    
+
     >>> poly = (0,0),(10,5),(0,10)
     >>> poly2circle(poly, ((0,0),1))
     True

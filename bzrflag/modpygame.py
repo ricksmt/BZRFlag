@@ -34,6 +34,7 @@ class ImageCache(graphics.ImageCache):
                 surface.blit(tile, (i * tile_width, j * tile_height))
         return surface
 
+
 class BZSprite(graphics.BZSprite):
 
     def _render_image(self, force = False):
@@ -70,6 +71,7 @@ class BZSprite(graphics.BZSprite):
     def _rotate_image(self, image, rotation):
         return pygame.transform.rotate(image, rotation)
 
+
 class TiledBZSprite(BZSprite):
     """A BZSprite with a tiled image."""
 
@@ -83,6 +85,7 @@ class TiledBZSprite(BZSprite):
         image = self.display.images.rotate(image, self.bzobject.rot)
         self.image = image
         self._translate()
+
 
 class TextSprite(graphics.TextSprite):
 
@@ -109,6 +112,7 @@ class TextSprite(graphics.TextSprite):
     def reposition(self):
         self.rect.center = (0,0)#self.display.pos_world_to_screen(self.bzobject.pos)
 
+
 class Taunt(graphics.Taunt):
     def refresh(self):
         font = pygame.font.Font(paths.FONT_FILE, 32)
@@ -132,7 +136,7 @@ class Display(graphics.Display):
     _spriteclass = BZSprite
     _textclass = TextSprite
     _taunt = Taunt
-    
+
     def setup(self):
         """Initializes pygame and creates the screen surface."""
         pygame.init()
@@ -143,8 +147,8 @@ class Display(graphics.Display):
             cons = pygameconsole.PyConsole
         else:
             cons = pygameconsole.TelnetConsole
-        self.console = cons(self.game, 
-                (25,self.screen_size[1]*2/3-25, 
+        self.console = cons(self.game,
+                (25,self.screen_size[1]*2/3-25,
                  self.screen_size[0]-50,self.screen_size[1]/3))
 
     def setup_screen(self):

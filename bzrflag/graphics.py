@@ -28,6 +28,7 @@ SHOTSCALE = 2
 FLAGSCALE = 3
 TANKSCALE = 1.2
 
+
 class ImageCache(object):
     def __init__(self):
         self._ground = None
@@ -88,7 +89,7 @@ class ImageCache(object):
     def load_image(self, filename):
         """Loads the image with the given filename from the DATA_DIR."""
         raise Exception,'override this method'
-    
+
     def scaled_image(self, image, scale):
         scale = tuple(int(a) for a in scale)
         if self._tcache['scale'].has_key((image,scale)):
@@ -98,17 +99,17 @@ class ImageCache(object):
     def _scaled_image(self, image, scale):
         """Scales the given image to the given size."""
         raise Exception,'override this method'
-    
+
     def rotated_image(self, image, rot):
         rot = int(rot)
         if self._tcache['rot'].has_key((image,rot)):
             self._tcache['rot'][(image,rot)] = self._rotated_image(image,rot)
         return self._tcache['rot'][(image,rot)]
 
-
     def tile(self, tile, size):
         """Creates a surface of the given size tiled with the given surface."""
         raise Exception,'override this method'
+
 
 class TextSprite(pygame.sprite.Sprite):
     def __init__(self, bzobject, display):
@@ -121,14 +122,15 @@ class TextSprite(pygame.sprite.Sprite):
 
     def refresh(self):
         pass # override
-    
+
     def reposition(self):
         pass # override
-    
+
     def update(self):
         if self.text != self.bzobject.text():
             self.refresh()
         self.reposition()
+
 
 class Taunt(object):
     def __init__(self, map):
@@ -144,9 +146,10 @@ class Taunt(object):
 
     def refresh(self):
         raise Exception, 'not implemented'
-    
+
     def draw(self, screen):
         pass
+
 
 class Scores:
     def __init__(self):
@@ -171,6 +174,7 @@ class Scores:
         for num,score in tosort:
             y -= score.rect.height
             screen.blit(score.image, (10,y))
+
 
 class BZSprite(pygame.sprite.Sprite):
     """Determines how a single object in the game will be drawn.
@@ -217,6 +221,7 @@ class BZSprite(pygame.sprite.Sprite):
         self._render_image(force)
         self.rect = self.image.get_rect()
         self._translate()
+
 
 class Display(object):
     """Manages all graphics."""

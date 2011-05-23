@@ -12,6 +12,7 @@ logger = logging.getLogger("config.py")
 
 config = None
 
+
 class Config:
     '''Config class:
     parses command line options and the --config file if given'''
@@ -139,25 +140,25 @@ class Config:
             type='int',default=300000,
             dest='time_limit',
             help='set the time limit')
-        
+
         g = optparse.OptionGroup(p, 'Team Defaults')
         p.add_option_group(g)
-        g.add_option('--default-tanks', 
+        g.add_option('--default-tanks',
                 dest='default_tanks',type='int',default=10,
                 help='specify the default number of tanks')
         ## random sensor noise
-        g.add_option('--default-posnoise', 
+        g.add_option('--default-posnoise',
                 dest='default_posnoise',type='float',default=0,
                 help='specify the default positional noise')
-        g.add_option('--default-velnoise', 
+        g.add_option('--default-velnoise',
                 dest='default_velnoise',type='float',default=0,
                 help='specify the default velocity noise')
-        g.add_option('--default-angnoise', 
+        g.add_option('--default-angnoise',
                 dest='default_angnoise',type='float',default=0,
                 help='specify the default angular noise')
         ## For the occupancy grid, the probabitities of sensor accuracy
         # p(1|1) // true positive
-        # p(1|0) // false positive, easily obtainable from true positive; 
+        # p(1|0) // false positive, easily obtainable from true positive;
         #           false positive = 1 - true positive
         # p(0|0) // true negative
         # p(0|1) // false negative = 1 - true negative

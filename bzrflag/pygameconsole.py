@@ -54,7 +54,7 @@ class Console(object):
         else:
             self.render()
             screen.blit(self.image, self.rect)
-    
+
     def event(self, e):
         if e.type == MOUSEBUTTONDOWN:
             if self.minrect.collidepoint(e.pos):
@@ -62,6 +62,7 @@ class Console(object):
                 if self.minimized:
                     self.game.display.redraw()
                 return True
+
 
 class TelnetConsole(Console):
     def __init__(self, *a, **b):
