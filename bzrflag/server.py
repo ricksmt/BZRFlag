@@ -719,46 +719,6 @@ class Handler(asynchat.async_chat):
         self.push('ok\n')
         self.close()
 
-    def bzrc_fireatwill(self, args):
-        """fireatwill
-
-        All tanks shoot (cheat).
-        """
-        try:
-            command, = args
-        except ValueError, TypeError:
-            self.invalid_args(args)
-            return
-        self.ack(command)
-
-        result = True
-        for team in self.team.map.teams.values():
-            for i in xrange(len(team.tanks)):
-                if not team.shoot(i):
-                    result = False
-        if result:
-            self.push('ok\n')
-        else:
-            self.push('fail\n')
-
-    def bzrc_hammertime(self, args):
-        """hammertime
-
-        All tanks move (cheat).
-        """
-        try:
-            command, = args
-        except ValueError, TypeError:
-            self.invalid_args(args)
-            return
-        self.ack(command)
-
-        for team in self.team.map.teams.values():
-            for tank in team.tanks:
-                tank.givenspeed = random.uniform(-1, 1)
-                tank.angvel = random.uniform(-1, 1)
-        self.push('ok\n')
-
 
 if __name__ == "__main__":
     import doctest
