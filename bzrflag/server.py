@@ -32,6 +32,11 @@ class Server(asyncore.dispatcher):
         sock = socket.socket()
         asyncore.dispatcher.__init__(self, sock)
         self.sock = sock
+
+        # Disable Nagle's algorithm because this is a latency-sensitive
+        # low-bandwidth application.
+        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
         self.bind(addr)
         self.listen(BACKLOG)
         ## print self.sock,addr
