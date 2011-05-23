@@ -119,7 +119,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
                 except Exception, e:
                     logger.error(self.team.color + ' : ERROR : %s : %s\n' % (args, e))
                     self.team.map.game.display.console.write(self.team.color + ' : ERROR : %s : %s : %s\n' % (args, e.__class__.__name__, e))
-                    self.push('fail '+str(e)+'\n')
+                    self.push('fail %s\n' % e)
                     return
             elif args == ['agent', '1']:
                 self.established = True
@@ -162,20 +162,30 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
 
     def bzrc_help(self, args):
         """help [command]
-        if not command is given, list the commands
-        otherwise, return specific help for a command"""
+
+        If no command is given, list the commands.  Otherwise, return specific
+        help for a command.
+        """
         if len(args)==1:
-            res = '\n'.join(':'+getattr(self,i).__doc__.split('\n')[0] for i in dir(self) if i.startswith('bzrc_'))
-            self.push(res+'\n')
+            help_lines = []
+            for name in dir(self):
+                if name.startswith('bzrc_'):
+                    attr = getattr(self, name)
+                    doc = ':%s\n' % attr.__doc__.split('\n')[0]
+                    help_lines.append(doc)
+            self.push(''.join(help_lines))
         else:
-            func = getattr(self,'bzrc_'+args[1],None)
+            name = args[1]
+            func = getattr(self, 'bzrc_' + name, None)
             if func:
-                self.push(':'+func.__doc__.strip()+'\n')
+                doc = ':%s\n' % func.__doc__.strip()
+                self.push(doc)
             else:
-                self.push('fail invalid command "%s"\n'%args[1])
+                self.push('fail invalid command "%s"\n' % name)
 
     def bzrc_shoot(self, args):
         """shoot [tankid]
+
         Request the tank indexed by the given parameter to fire a shot.
 
         Returns either:
@@ -199,6 +209,7 @@ sends an "xyz" request.  You don't have to add it to a table or anything.
 
     def bzrc_speed(self, args):
         """speed [tankid] [speed]
+
         Request the tank to accelerate as quickly as possible to the
         specified speed.
 
