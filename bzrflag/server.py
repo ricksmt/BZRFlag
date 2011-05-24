@@ -563,7 +563,7 @@ class Handler(asynchat.async_chat):
         self.ack(command)
 
         response = ['begin\n']
-        entry_template = ('othertank %(callsign)s %(color)s %(status)s '
+        entry_template = ('othertank %(callsign)s %(color)s %(status)s'
                 ' %(flag)s %(x)s %(y)s %(angle)s\n')
         for color,team in self.team.map.teams.items():
             if team == self.team:
