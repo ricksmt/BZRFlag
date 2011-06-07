@@ -718,7 +718,7 @@ class Handler(asynchat.async_chat):
         self.close()
 
     @staticmethod
-    def normalize_angle(self, angle):
+    def normalize_angle(angle):
         """Normalize angles to be in the interval (-pi, pi].
 
         The protocol specification guarantees that angles are in this range,
