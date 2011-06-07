@@ -50,6 +50,7 @@ class Box(object):
     """a basic obstacle type"""
     def __init__(self, pos=None, position=None, rot=None, rotation=None,
             size=None):
+        # TODO: use "if" instead of unreadable "or" expressions.
         self.pos = pos or position
         self.rot = rot or rotation
         if self.rot:
@@ -71,6 +72,7 @@ class Base(object):
     def __init__(self, color=None, pos=None, position=None, rot=None,
             rotation=None, size=None):
         self.color = constants.COLORNAME[color]
+        # TODO: use "if" instead of unreadable "or" expressions.
         self.pos = pos or position
         self.rot = rot or rotation
         if self.rot:
