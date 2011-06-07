@@ -537,7 +537,7 @@ class Handler(asynchat.async_chat):
             data['flag'] = tank.flag and tank.flag.team.color or '-'
             data['x'] = int(tank.pos[0])
             data['y'] = int(tank.pos[1])
-            data['angle'] = tank.rot
+            data['angle'] = self.normalize_angle(tank.rot)
             data['vx'],data['vy'] = tank.velocity()
             data['angvel'] = tank.angvel
             response.append(entry_template % data)
@@ -582,10 +582,8 @@ class Handler(asynchat.async_chat):
                 data['x'] = random.gauss(x, self.team.posnoise)
                 data['y'] = random.gauss(y, self.team.posnoise)
 
-                angle = random.gauss(tank.rot, self.team.angnoise) % math.pi*2
-                if angle > math.pi:
-                    angle -= math.pi*2
-                data['angle'] = angle
+                angle = random.gauss(tank.rot, self.team.angnoise)
+                data['angle'] = self.normalize_angle(angle)
 
                 vx,vy = tank.velocity()
                 data['vx'] = random.gauss(vx, self.team.velnoise)
@@ -718,6 +716,19 @@ class Handler(asynchat.async_chat):
         self.ack(command)
         self.push('ok\n')
         self.close()
+
+    @staticmethod
+    def normalize_angle(self, angle):
+        """Normalize angles to be in the interval (-pi, pi].
+
+        The protocol specification guarantees that angles are in this range,
+        so all angles should be passed through this method before being sent
+        across the wire.
+        """
+        angle %= 2 * math.pi
+        if angle > math.pi:
+            angle -= math.pi*2
+        return angle
 
 
 if __name__ == "__main__":

@@ -371,6 +371,11 @@ class Team(object):
 
 
 class Tank(object):
+    """BZFlag Tank
+
+    Attributes:
+        rot: angular rotation in radians; always between 0 and 2*pi
+    """
     size = (constants.TANKRADIUS*2,) * 2
     radius = constants.TANKRADIUS
     '''Tank object:
@@ -508,6 +513,8 @@ class SeppiTank(Tank):
         self.speed = self.update_goal(self.speed, self.goal_speed, constants.LINEARACCEL * dt)
         self.angvel = self.update_goal(self.angvel, self.goal_angvel, constants.ANGULARACCEL * dt)
         self.rot += self.angvel * constants.TANKANGVEL * dt
+        # Normalize the angle to be between 0 and 2*pi
+        self.rot = self.rot % (2 * math.pi)
 
     def reset_speed(self):
         self.goal_speed = 0
