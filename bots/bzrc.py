@@ -23,7 +23,7 @@ from __future__ import division
 
 
 class BZRC:
-    """Class which handles queries and responses with remote control bots."""
+    """Class handles queries and responses with remote control bots."""
 
     def __init__(self, host, port, debug=False):
         """Given a hostname and port number, connect to the RC tanks."""
@@ -43,8 +43,10 @@ class BZRC:
         self.conn.close()
 
     def read_arr(self):
-        """Read a response from the RC tanks as an array split on
-        whitespace."""
+        """Read a response from the RC tanks as an array split on 
+        whitespace.
+        
+        """
 
         try:
             line = self.conn.readline()
@@ -63,7 +65,9 @@ class BZRC:
     def die_confused(self, expected, got_arr):
         """When we think the RC bots should have responded differently, call
         this method with a string explaining what should have been sent and
-        with the array containing what was actually sent."""
+        with the array containing what was actually sent.
+        
+        """
 
         raise UnexpectedResponse(expected, ' '.join(got_arr))
 
@@ -87,8 +91,10 @@ class BZRC:
     
     def expect_multi(self, *expecteds, **kwds):
         """Verify the server's response looks like one of
-        several possible responses. Return the index of the matched response,
-        and the server's line response"""
+        several possible responses.  Return the index of the matched response,
+        and the server's line response.
+        
+        """
 
         line = self.read_arr()
         for i,expected in enumerate(expecteds):
@@ -112,7 +118,9 @@ class BZRC:
     def read_ack(self):
         """Expect an "ack" line from the remote tanks.
 
-        Raise an UnexpectedResponse exception if we get something else."""
+        Raise an UnexpectedResponse exception if we get something else.
+        
+        """
 
         self.expect('ack')
 
@@ -120,7 +128,9 @@ class BZRC:
         """Expect a boolean response from the remote tanks.
 
         Return True or False in accordance with the response.  Raise an
-        UnexpectedResponse exception if we get something else."""
+        UnexpectedResponse exception if we get something else.
+        
+        """
 
         i, rest = self.expect_multi(('ok',),('fail',))
         return (True, False)[i]
@@ -412,7 +422,9 @@ class BZRC:
     def get_lots_o_stuff(self):
         """Network-optimized request for mytanks, othertanks, flags, and shots.
 
-        Returns a tuple with the four results."""
+        Returns a tuple with the four results.
+        
+        """
 
         self.sendline('mytanks')
         self.sendline('othertanks')
@@ -468,7 +480,9 @@ class Answer(object):
     """BZRC returns an Answer for things like tanks, obstacles, etc.
 
     You should probably write your own code for this sort of stuff.  We
-    created this class just to keep things short and sweet."""
+    created this class just to keep things short and sweet.
+    
+    """
 
     pass
 
