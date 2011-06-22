@@ -1,8 +1,5 @@
 #!/usr/bin/python -tt
 
-from bzrc import BZRC, GoodrichCommand, Answer
-import sys, math, time, random
-
 # An incredibly simple agent.  All we do is find the closest enemy tank, drive
 # towards it, and shoot.  Note that if friendly fire is allowed, you will very
 # often kill your own tanks with this code.
@@ -22,6 +19,13 @@ import sys, math, time, random
 # port name being printed out by the bzrflag server):
 # python agent0.py localhost 49857
 #################################################################
+
+import sys
+import math
+import time
+import random
+
+from bzrc import BZRC, GoodrichCommand, Answer
 
 class Agent(object):
 
