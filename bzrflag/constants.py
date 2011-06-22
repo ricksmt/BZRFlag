@@ -3,6 +3,7 @@
 These constants are originally defined in src/common/global.cxx in the BZFlag
 repository.  There are more than a hundred BZFlag constants that are in
 global.cxx but are not included in the list of BSFlag constants.
+
 """
 
 from __future__ import division

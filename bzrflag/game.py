@@ -1,13 +1,16 @@
-import collide
+
 import math
 import random
 import datetime
 import numpy
 import logging
-logger = logging.getLogger('game')
 
+import collide
 import constants
 from config import config
+
+logger = logging.getLogger('game')
+
 
 class GoodrichException(Exception):
     pass
@@ -21,7 +24,9 @@ class Game:
     * map => :class:`game.Map`
     * input => :class:`headless.Input`
     * display => :class:`modpygame.Display`
+    
     """
+    
     def __init__(self):
 
         import headless
@@ -40,7 +45,7 @@ class Game:
         self.timestamp = datetime.datetime.utcnow()
 
     def remake(self):
-        '''for testing purposes'''
+        """For testing purposes."""
         self.display.kill()
         import modpygame
         self.map = Map(self)
@@ -50,7 +55,7 @@ class Game:
         self.timestamp = datetime.datetime.utcnow()
 
     def update(self):
-        """updates the game world"""
+        """Updates the game world."""
 
         now = datetime.datetime.utcnow()
         delta = now - self.timestamp
@@ -61,15 +66,17 @@ class Game:
         self.map.update(dt)
 
     def update_sprites(self):
-        """adds and removes sprites from the display"""
+        """Adds and removes sprites from the display."""
         while len(self.map.inbox) > 0:
             self.display.add_object(self.map.inbox.pop())
         while len(self.map.trash) > 0:
             self.display.remove_object(self.map.trash.pop())
 
     def loop(self):
-        """the main loop of bzflag. checks events, updates positions,
-        and draws to the screen until the pygame window is closed."""
+        """The main loop of bzflag. checks events, updates positions,
+        and draws to the screen until the pygame window is closed.
+        
+        """
         self.running = True
         self.display.setup()
         try:
@@ -96,8 +103,12 @@ class Game:
 
 
 class Map(object):
-    """manages the map data. populates
-    the current map with bases, obstacles, teams and tanks."""
+    """Manages the map data. 
+    
+    Populates the current map with bases, obstacles, teams and tanks.
+    
+    """
+    
     def __init__(self, game):
         self.game = game
 
@@ -133,7 +144,7 @@ class Map(object):
             self.teams[color] = Team(self, color, base)
 
     def update(self, dt):
-        '''update the teams'''
+        """Update the teams."""
         self.timespent += dt
         if self.taunt_msg:
             self.taunt_timer -= dt
@@ -179,13 +190,13 @@ class Map(object):
         return False
 
     def tanks(self):
-        '''iterate through all tanks on the map'''
+        """Iterate through all tanks on the map."""
         for team in self.teams.values():
             for tank in team.tanks:
                 yield tank
 
     def shots(self):
-        '''iterate through all shots on the map'''
+        """Iterate through all shots on the map."""
         for tank in self.tanks():
             for shot in tank.shots:
                 yield shot
@@ -222,8 +233,12 @@ class Map(object):
 
 
 class Team(object):
-    '''Team object:
-    manages a BZRFlag team -- w/ a base, a flag, a score, and tanks.'''
+    """Team object:
+    
+    Manages a BZRFlag team -- w/ a base, a flag, a score, and tanks.
+    
+    """
+    
     def __init__(self, map, color, base):
         self.color = color
         self.map = map
@@ -257,7 +272,7 @@ class Team(object):
             self.map.inbox.append(item)
 
     def setup(self):
-        '''initialize the cache of obstacles near the base'''
+        """Initialize the cache of obstacles near the base."""
         self._obstacles = []
         for o in self.map.obstacles:
             if collide.circle2circle((o.center,o.radius),\
@@ -265,7 +280,7 @@ class Team(object):
                 self._obstacles.append(o)
 
     def respawn(self, tank, first=True):
-        '''respawn a dead tank'''
+        """Respawn a dead tank."""
         tank.status = constants.TANKALIVE
         tank.reset_speed()
         if tank.pos != constants.DEADZONE:
@@ -282,7 +297,7 @@ class Team(object):
         tank.pos = pos
 
     def check_position(self, point, radius):
-        '''check a position to see if it is safe to spawn a tank there'''
+        """Check a position to see if it is safe to spawn a tank there."""
         for o in self._obstacles:
             if collide.poly2circle(o.shape, (point, radius)):
                 return False
@@ -305,32 +320,32 @@ class Team(object):
         return True
 
     def spawn_position(self):
-        '''generate a random spawning position around the base'''
+        """Generate a random spawning position around the base."""
         angle = random.uniform(0, 2*math.pi)
         dist = random.uniform(0,1) * self.tanks_radius
         return [self.base.center[0] + dist*math.cos(angle), self.base.center[1] + dist*math.sin(angle)]
 
     def update(self, dt):
-        '''update the tanks and flag'''
+        """Update the tanks and flag."""
         for tank in self.tanks:
             tank.update(dt)
         self.flag.update(dt)
         self.score.update(dt)
 
     def tank(self, id):
-        '''get a tank based on its ID'''
+        """Get a tank based on its ID."""
         if 0<=id<len(self.tanks):
             return self.tanks[id]
         raise ValueError,"Invalid tank ID: %s"%id
 
     def shoot(self, tankid):
-        '''tell a tank to shoot'''
+        """Tell a tank to shoot."""
         if config['freeze_tag']:
             raise GoodrichException,'No shooting in this game'
         return self.tank(tankid).shoot()
 
     def speed(self, tankid, value):
-        '''set a tank's goal speed'''
+        """Set a tank's goal speed."""
         if value > 1:
             value = 1
         elif value < -1:
@@ -340,7 +355,7 @@ class Team(object):
         self.tank(tankid).setspeed(value)
 
     def angvel(self, tankid, value):
-        '''set a tank's goal angular velocity'''
+        """Set a tank's goal angular velocity."""
         if value > 1:
             value = 1
         elif value < -1:
@@ -350,7 +365,7 @@ class Team(object):
         self.tank(tankid).setangvel(value)
 
     def accelx(self, tankid, value):
-        '''set a tank's goal angular velocity'''
+        """Set a tank's goal angular velocity."""
         if value > 1:
             value = 1
         elif value < -1:
@@ -360,7 +375,7 @@ class Team(object):
         self.tank(tankid).setaccelx(value)
 
     def accely(self, tankid, value):
-        '''set a tank's goal angular velocity'''
+        """Set a tank's goal angular velocity."""
         if value > 1:
             value = 1
         elif value < -1:
@@ -372,14 +387,16 @@ class Team(object):
 
 class Tank(object):
     """BZFlag Tank
+    
+    Handles the logic for dealing with a tank in the game.
 
     Attributes:
         rot: angular rotation in radians; always between 0 and 2*pi
+        
     """
     size = (constants.TANKRADIUS*2,) * 2
     radius = constants.TANKRADIUS
-    '''Tank object:
-    handles the logic for dealing with a tank in the game'''
+
     def __init__(self, team, tankid):
         self.team = team
         self.pos = constants.DEADZONE
@@ -412,7 +429,7 @@ class Tank(object):
         raise NotImplementedError
 
     def kill(self):
-        '''destroy the tank'''
+        """Destroy the tank."""
         self.status = constants.TANKDEAD
         self.dead_timer = config['respawn_time']
         self.team.score.score_tank(self)
@@ -445,7 +462,7 @@ class Tank(object):
         pass
 
     def update(self, dt):
-        '''update the tank's position, status, velocities'''
+        """Update the tank's position, status, velocities."""
 
         if (self.pos == constants.DEADZONE and
                 self.status != constants.TANKDEAD):
@@ -489,6 +506,7 @@ class Tank(object):
 
 
 class SeppiTank(Tank):
+
     def __init__(self, team, tankid):
         super(SeppiTank, self).__init__(team, tankid)
 
@@ -499,8 +517,7 @@ class SeppiTank(Tank):
         self.rot = 0
 
     def update(self, dt):
-        '''update tank's position, status, etc.'''
-
+        """Update tank's position, status, etc."""
         for shot in self.shots:
             shot.update(dt)
 
@@ -509,7 +526,7 @@ class SeppiTank(Tank):
         super(SeppiTank, self).update(dt)
 
     def update_goals(self, dt):
-        '''update the velocities to match the goals'''
+        """Update the velocities to match the goals."""
         self.speed = self.update_goal(self.speed, self.goal_speed, constants.LINEARACCEL * dt)
         self.angvel = self.update_goal(self.angvel, self.goal_angvel, constants.ANGULARACCEL * dt)
         self.rot += self.angvel * constants.TANKANGVEL * dt
@@ -524,15 +541,15 @@ class SeppiTank(Tank):
         self.rot = 0
 
     def setspeed(self, speed):
-        '''set the goal speed'''
+        """Set the goal speed."""
         self.goal_speed = speed
 
     def setangvel(self, angvel):
-        '''set the goal angular velocity'''
+        """Set the goal angular velocity."""
         self.goal_angvel = angvel
 
     def shoot(self):
-        '''tell the tank to shoot'''
+        """Tell the tank to shoot."""
         if self.reloadtimer > 0 or \
                 len(self.shots) >= config['max_shots']:
             return False
@@ -547,12 +564,13 @@ class SeppiTank(Tank):
         self.pos = constants.DEADZONE
 
     def velocity(self):
-        '''calculate the tank's linear velocity'''
+        """Calculate the tank's linear velocity."""
         return (self.speed * math.cos(self.rot) * constants.TANKSPEED,
             self.speed * math.sin(self.rot) * constants.TANKSPEED)
 
 
 class GoodrichTank(Tank):
+
     def __init__(self, team, tankid):
         super(GoodrichTank, self).__init__(team, tankid)
         self.accelx = 0
@@ -561,7 +579,7 @@ class GoodrichTank(Tank):
         self.vspeed = 0
 
     def update_goals(self, dt):
-        '''update the velocities to match the goals'''
+        """Update the velocities to match the goals."""
         flagdist = collide.dist(self.pos, self.team.flag.pos)
         if self.flag and collide.rect2circle(self.team.base.rect, (self.pos, constants.TANKRADIUS)):
             self.team.map.scoreFlag(self.flag)
@@ -619,22 +637,26 @@ class GoodrichTank(Tank):
         self.vspeed = 0
 
     def setaccelx(self, accelx):
-        '''set the goal x accelleration'''
+        """Set the goal x accelleration."""
         self.accelx = accelx
 
     def setaccely(self, accely):
-        '''set the goal y accelleration'''
+        """Set the goal y accelleration."""
         self.accely = accely
 
     def velocity(self):
-        '''calculate the tank's linear velocity'''
+        """Calculate the tank's linear velocity."""
         return self.hspeed, self.vspeed
 
 
 class Shot(object):
     size = (constants.SHOTRADIUS*2,) * 2
-    '''Shot object:
-    contains the logic for a shot on the map'''
+    """Shot object:
+    
+    Contains the logic for a shot on the map.
+    
+    """
+    
     def __init__(self, tank):
         self.tank = tank
         self.team = tank.team
@@ -648,7 +670,7 @@ class Shot(object):
         self.status = constants.SHOTALIVE
 
     def update(self, dt):
-        '''move the shot'''
+        """Move the shot."""
         if (self.status == constants.SHOTDEAD or self.pos == constants.DEADZONE):
             return
         self.distance += math.hypot(self.vel[0]*dt, self.vel[1]*dt)
@@ -703,7 +725,7 @@ class Shot(object):
             return self.kill()
 
     def kill(self):
-        '''remove the shot from the map'''
+        """Remove the shot from the map."""
         self.status = constants.SHOTDEAD
         self.tank.team.map.trash.append(self)
         if self in self.tank.shots:
@@ -711,9 +733,14 @@ class Shot(object):
 
 
 class Flag(object):
+    """Flag object:
+    
+    Contains the logic for team flags on a map.
+    
+    """
+    
     size = (constants.FLAGRADIUS*2,) * 2
-    '''Flag object:
-    contains the logic for team flags on a map'''
+    
     def __init__(self, team):
         self.team = team
         self.rot = 0
@@ -723,7 +750,7 @@ class Flag(object):
         #    self.tank = tank
 
     def update(self, dt):
-        '''update the flag's position'''
+        """Update the flag's position."""
         x, y = self.pos
         if self.tank is not None:
             self.pos = self.tank.pos
@@ -741,26 +768,30 @@ class Flag(object):
                         tank.flag = self
                     return
 
+
 def rotate_scale(p1, p2, angle, scale = 1.0):
-    '''rotate p1 around p2 with an angle of angle'''
+    """Rotate p1 around p2 with an angle of angle."""
     theta = math.atan2(p1[1] - p2[1], p1[0] - p2[0])
     dst = math.hypot(p1[0]-p2[0], p1[1]-p2[1]) * scale
     return (p2[0] + dst*math.cos(theta + angle),
         p2[1] + dst*math.sin(theta + angle))
 
+
 def convertBoxtoPoly(center, size, rotation = 0):
-    '''convert a box to a polygon (list of points)'''
+    """Convert a box to a polygon (list of points)."""
     d = (1,1),(1,-1),(-1,-1),(-1,1)
     x,y = center
     w,h = size
     for dx,dy in d:
         yield x + w/2*dx, y + h/2 * dy
 
+
 def scale_rotate_poly(points, scale, rotation):
     points = list(points)
     center = polygon_center(points)
     for point in points:
         yield rotate_scale(point, center, rotation, scale)
+
 
 def polygon_center(points):
     points = tuple(points)
@@ -770,8 +801,12 @@ def polygon_center(points):
 
 
 class Base(object):
-    '''Base object:
-    contains the logic & data for a team's Base on a map'''
+    """Base object:
+    
+    Contains the logic & data for a team's Base on a map.
+    
+    """
+    
     def __init__(self, item):
         self.color = item.color
         self.center = self.pos = item.pos.asList()
@@ -784,8 +819,12 @@ class Base(object):
 
 
 class Obstacle(object):
-    '''Obstacle object:
-    contains the logic and data for an obstacle on the map'''
+    """Obstacle object:
+    
+    Contains the logic and data for an obstacle on the map.
+    
+    """
+    
     def __init__(self, item):
         self.center = self.pos = item.pos.asList()
         self.shape = ()
@@ -797,7 +836,8 @@ class Obstacle(object):
 
 
 class Box(Obstacle):
-    '''a Box Obstacle'''
+    """A Box Obstacle."""
+    
     def __init__(self, item):
         Obstacle.__init__(self, item)
         self.radius = math.hypot(*item.size)
@@ -807,7 +847,8 @@ class Box(Obstacle):
 
 
 class Score(object):
-    '''Score object: keeps track of a team's score'''
+    """Score object: keeps track of a team's score."""
+    
     def __init__(self, team):
         self.team = team
         self.value = 0

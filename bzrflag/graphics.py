@@ -1,21 +1,22 @@
-'''Graphics module:
-    handles all graphics; here are defined the base
-classes for various graphics implementations to subclass
+"""Graphics module:
 
-NOTE:
-    to find the pygame implementation, look in modpygame.py
+    Handles all graphics; here are defined the base
+    classes for various graphics implementations to subclass.
 
-'''
+    NOTE:
+    To find the pygame implementation, look in modpygame.py.
+
+"""
 
 import math
 import pygame
+import os
+
+import paths
 import constants
 from config import config
 from world import Base, Box
 from game import Tank, Shot, Flag, Base, Score
-
-import os
-import paths
 
 DEFAULT_SIZE = map(int, config['window_size'].split('x'))
 
@@ -30,6 +31,7 @@ TANKSCALE = 1.2
 
 
 class ImageCache(object):
+
     def __init__(self):
         self._ground = None
         self._wall = None
@@ -44,6 +46,7 @@ class ImageCache(object):
         """Creates a surface of the ground image.
 
         The surface is scaled down using the factor in TILESCALE.
+        
         """
         if not self._cache.has_key('ground'):
             ground = self.load_image(paths.GROUND)
@@ -54,6 +57,7 @@ class ImageCache(object):
         """Returns a surface for walls.
 
         The surface is scaled down using the factor in TILESCALE.
+        
         """
         if not self._wall:
             wall = self.load_image(paths.WALL)
@@ -78,6 +82,7 @@ class ImageCache(object):
         """Scales a size (width-height pair).
 
         If the scale is None, scaled_size returns the original size unmodified.
+        
         """
         if scale is not None:
             w, h = size
@@ -112,6 +117,7 @@ class ImageCache(object):
 
 
 class TextSprite(pygame.sprite.Sprite):
+
     def __init__(self, bzobject, display):
         pygame.sprite.Sprite.__init__(self)
         self.bzobject = bzobject
@@ -152,6 +158,7 @@ class Taunt(object):
 
 
 class Scores:
+
     def __init__(self):
         self.scores = []
 
@@ -181,6 +188,7 @@ class BZSprite(pygame.sprite.Sprite):
 
     The sprite manager uses the sprite's `image` and `rect` attributes to draw
     it.
+    
     """
 
     def __init__(self, bzobject, image, display, otype=None):
@@ -215,6 +223,7 @@ class BZSprite(pygame.sprite.Sprite):
 
         If force is specified, the image should be redrawn even if the
         bzobject doesn't appear to have changed.
+        
         """
         rot = self.bzobject.rot
 
@@ -256,6 +265,7 @@ class Display(object):
         >>> pos_world_to_screen((-400, -400), (800, 800), (400, 400))
         (0, 400)
         >>>
+        
         """
         x, y = pos
         world_width, world_height = self.world.size
@@ -269,6 +279,7 @@ class Display(object):
 
         Note that bzflag sizes are more like a radius (half of width), so we
         double them to normalize.
+        
         """
         w, h = size
         w *= 2
