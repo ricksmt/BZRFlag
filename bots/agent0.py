@@ -1,7 +1,9 @@
 #!/usr/bin/python -tt
 
 from bzrc import BZRC, Command
-import sys, math, time
+import sys
+import math
+import time
 
 # An incredibly simple agent.  All we do is find the closest enemy tank, drive
 # towards it, and shoot.  Note that if friendly fire is allowed, you will very
