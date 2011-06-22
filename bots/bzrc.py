@@ -23,10 +23,10 @@ from __future__ import division
 
 
 class BZRC:
-    '''Class which handles queries and responses with remote control bots.'''
+    """Class which handles queries and responses with remote control bots."""
 
     def __init__(self, host, port, debug=False):
-        '''Given a hostname and port number, connect to the RC tanks.'''
+        """Given a hostname and port number, connect to the RC tanks."""
 
         self.debug = debug
 
@@ -39,12 +39,12 @@ class BZRC:
         self.handshake()
 
     def close(self):
-        '''Close the socket.'''
+        """Close the socket."""
         self.conn.close()
 
     def read_arr(self):
-        '''Read a response from the RC tanks as an array split on
-        whitespace.'''
+        """Read a response from the RC tanks as an array split on
+        whitespace."""
 
         try:
             line = self.conn.readline()
@@ -56,14 +56,14 @@ class BZRC:
         return line.split()
 
     def sendline(self, line):
-        '''Send a line to the RC tanks.'''
+        """Send a line to the RC tanks."""
         #print 'sending',line
         print >>self.conn, line
 
     def die_confused(self, expected, got_arr):
-        '''When we think the RC bots should have responded differently, call
+        """When we think the RC bots should have responded differently, call
         this method with a string explaining what should have been sent and
-        with the array containing what was actually sent.'''
+        with the array containing what was actually sent."""
 
         raise UnexpectedResponse(expected, ' '.join(got_arr))
 
@@ -86,9 +86,9 @@ class BZRC:
         return line[len(expected):]
     
     def expect_multi(self, *expecteds, **kwds):
-        '''Verify the server's response looks like one of
+        """Verify the server's response looks like one of
         several possible responses. Return the index of the matched response,
-        and the server's line response'''
+        and the server's line response"""
 
         line = self.read_arr()
         for i,expected in enumerate(expecteds):
@@ -104,23 +104,23 @@ class BZRC:
         return i, line[len(expected):]
 
     def handshake(self):
-        '''Perform the handshake with the remote bots.'''
+        """Perform the handshake with the remote bots."""
 
         self.expect(('bzrobots', '1'), True)
         print >>self.conn, 'agent 1'
 
     def read_ack(self):
-        '''Expect an "ack" line from the remote tanks.
+        """Expect an "ack" line from the remote tanks.
 
-        Raise an UnexpectedResponse exception if we get something else.'''
+        Raise an UnexpectedResponse exception if we get something else."""
 
         self.expect('ack')
 
     def read_bool(self):
-        '''Expect a boolean response from the remote tanks.
+        """Expect a boolean response from the remote tanks.
 
         Return True or False in accordance with the response.  Raise an
-        UnexpectedResponse exception if we get something else.'''
+        UnexpectedResponse exception if we get something else."""
 
         i, rest = self.expect_multi(('ok',),('fail',))
         return (True, False)[i]
@@ -308,35 +308,35 @@ class BZRC:
     # Commands:
 
     def shoot(self, index):
-        '''Perform a shoot request.'''
+        """Perform a shoot request."""
 
         self.sendline('shoot %s' % index)
         self.read_ack()
         return self.read_bool()
 
     def speed(self, index, value):
-        '''Set the desired speed to the specified value.'''
+        """Set the desired speed to the specified value."""
 
         self.sendline('speed %s %s' % (index, value))
         self.read_ack()
         return self.read_bool()
 
     def angvel(self, index, value):
-        '''Set the desired angular velocity to the specified value.'''
+        """Set the desired angular velocity to the specified value."""
 
         self.sendline('angvel %s %s' % (index, value))
         self.read_ack()
         return self.read_bool()
 
     def accelx(self, index, value):
-        '''Set the desired x acceleration to the specified value.'''
+        """Set the desired x acceleration to the specified value."""
 
         self.sendline('accelx %s %s' % (index, value))
         self.read_ack()
         return self.read_bool()
 
     def accely(self, index, value):
-        '''Set the desired x acceleration to the specified value.'''
+        """Set the desired x acceleration to the specified value."""
 
         self.sendline('accely %s %s' % (index, value))
         self.read_ack()
@@ -345,63 +345,63 @@ class BZRC:
     # Information Requests:
 
     def get_teams(self):
-        '''Request a list of teams.'''
+        """Request a list of teams."""
 
         self.sendline('teams')
         self.read_ack()
         return self.read_teams()
 
     def get_obstacles(self):
-        '''Request a list of obstacles.'''
+        """Request a list of obstacles."""
 
         self.sendline('obstacles')
         self.read_ack()
         return self.read_obstacles()
     
     def get_occgrid(self, tankid):
-        '''Request an occupancy grid for a tank'''
+        """Request an occupancy grid for a tank"""
 
         self.sendline('occgrid %d' % tankid)
         self.read_ack()
         return self.read_occgrid()
 
     def get_flags(self):
-        '''Request a list of flags.'''
+        """Request a list of flags."""
 
         self.sendline('flags')
         self.read_ack()
         return self.read_flags()
 
     def get_shots(self):
-        '''Request a list of shots.'''
+        """Request a list of shots."""
 
         self.sendline('shots')
         self.read_ack()
         return self.read_shots()
 
     def get_mytanks(self):
-        '''Request a list of our robots.'''
+        """Request a list of our robots."""
 
         self.sendline('mytanks')
         self.read_ack()
         return self.read_mytanks()
 
     def get_othertanks(self):
-        '''Request a list of tanks that aren't our bots.'''
+        """Request a list of tanks that aren't our bots."""
 
         self.sendline('othertanks')
         self.read_ack()
         return self.read_othertanks()
 
     def get_bases(self):
-        '''Request a list of bases.'''
+        """Request a list of bases."""
 
         self.sendline('bases')
         self.read_ack()
         return self.read_bases()
 
     def get_constants(self):
-        '''Request a dictionary of game constants.'''
+        """Request a dictionary of game constants."""
 
         self.sendline('constants')
         self.read_ack()
@@ -410,9 +410,9 @@ class BZRC:
     # Optimized queries
 
     def get_lots_o_stuff(self):
-        '''Network-optimized request for mytanks, othertanks, flags, and shots.
+        """Network-optimized request for mytanks, othertanks, flags, and shots.
 
-        Returns a tuple with the four results.'''
+        Returns a tuple with the four results."""
 
         self.sendline('mytanks')
         self.sendline('othertanks')
@@ -431,7 +431,7 @@ class BZRC:
         return (mytanks, othertanks, flags, shots)
 
     def do_commands(self, commands):
-        '''Send commands for a bunch of tanks in a network-optimized way.'''
+        """Send commands for a bunch of tanks in a network-optimized way."""
 
         for cmd in commands:
             if isinstance(cmd, GoodrichCommand):
@@ -465,16 +465,16 @@ class BZRC:
         return results
 
 class Answer(object):
-    '''BZRC returns an Answer for things like tanks, obstacles, etc.
+    """BZRC returns an Answer for things like tanks, obstacles, etc.
 
     You should probably write your own code for this sort of stuff.  We
-    created this class just to keep things short and sweet.'''
+    created this class just to keep things short and sweet."""
 
     pass
 
 
 class Command(object):
-    '''Class for setting a command for a bot.'''
+    """Class for setting a command for a bot."""
 
     def __init__(self, index, speed, angvel, shoot):
         self.index = index
@@ -489,7 +489,7 @@ class GoodrichCommand(object):
         self.accely = accely
 
 class UnexpectedResponse(Exception):
-    '''Exception raised when the BZRC gets confused by a bad response.'''
+    """Exception raised when the BZRC gets confused by a bad response."""
 
     def __init__(self, expected, got):
         self.expected = expected
