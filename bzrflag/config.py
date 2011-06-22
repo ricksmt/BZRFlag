@@ -15,8 +15,12 @@ config = None
 
 
 class Config:
-    '''Config class:
-    parses command line options and the --config file if given'''
+    """Config class:
+   
+    Parses command line options and the --config file if given.
+    
+    """
+    
     def __init__(self, args=None):
         global config
         if config is not None:
@@ -35,7 +39,7 @@ class Config:
         return self.options[key]
 
     def setup_world(self):
-        '''Parse the world file'''
+        """Parse the world file"""
         if not self.options['world']:
             raise ArgumentError,'no world defined'
         if not os.path.isfile(self.options['world']):
@@ -95,6 +99,7 @@ class Config:
             help='report obstacles? (turn off to force use of the occupancy grid)')
         p.add_option('--occgrid-width', type='int',
             default=50, help='width of reported occupancy grid')
+            
         ## tank behavior
         p.add_option('--max-shots',
             type='int',
@@ -147,6 +152,7 @@ class Config:
         g.add_option('--default-tanks',
                 dest='default_tanks',type='int',default=10,
                 help='specify the default number of tanks')
+                
         ## random sensor noise
         g.add_option('--default-posnoise',
                 dest='default_posnoise',type='float',default=0,
@@ -157,6 +163,7 @@ class Config:
         g.add_option('--default-angnoise',
                 dest='default_angnoise',type='float',default=0,
                 help='specify the default angular noise')
+                 
         ## For the occupancy grid, the probabitities of sensor accuracy
         # p(1|1) // true positive
         # p(1|0) // false positive, easily obtainable from true positive;
