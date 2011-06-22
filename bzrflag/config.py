@@ -28,7 +28,8 @@ class Config:
         self.options = self.parse_cli_args(args)
         self.setup_world()
         config = self
-        #logger.debug("Options:\n"+"\n".join("%s :: %s"%(k,v) for k,v in self.options.items()))
+        #logger.debug("Options:\n"+"\n".join("%s :: %s"%(k,v) \
+        #   for k,v in self.options.items()))
 
     def get(self, key, default):
         if self.options[key] is None:
@@ -43,7 +44,8 @@ class Config:
         if not self.options['world']:
             raise ArgumentError('no world defined')
         if not os.path.isfile(self.options['world']):
-            raise ArgumentError('world file not found: %s'%self.options['world'])
+            raise ArgumentError('world file not found: %s'\
+                %self.options['world'])
         text = open(self.options['world']).read()
         size = int(self.options['world_size'])
         results = world.World.parser(size, size).parseString(text)
@@ -96,7 +98,8 @@ class Config:
         p.add_option('--no-report-obstacles',
             action='store_true', default=False,
             dest='no_report_obstacles',
-            help='report obstacles? (turn off to force use of the occupancy grid)')
+            help='report obstacles? (turn off to force use\
+                                     of the occupancy grid)')
         p.add_option('--occgrid-width', type='int',
             default=50, help='width of reported occupancy grid')
             
@@ -212,7 +215,7 @@ class Config:
                 raise Exception('config file not found')
             if not 'global' in configfile.sections():
                 raise Exception('Invalid config file. Make sure "[global]"\
-                                 is at the top')
+                    is at the top')
             config = dict(configfile.items('global'))
 
             for key in config:
