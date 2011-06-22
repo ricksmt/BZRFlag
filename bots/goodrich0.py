@@ -27,6 +27,7 @@ import random
 
 from bzrc import BZRC, GoodrichCommand, Answer
 
+
 class Agent(object):
 
     def __init__(self, bzrc):
@@ -64,7 +65,7 @@ class Agent(object):
                 self.goals[tank.index] = flag.x,flag.y
 
     def tick(self, time_diff):
-        '''Some time has passed; decide what to do next'''
+        """Some time has passed; decide what to do next."""
         # Get information from the BZRC server
         self.update()
 
@@ -125,7 +126,7 @@ class Agent(object):
         self.commands.append(GoodrichCommand(bot.index, dx/10, dy/10))
 
     def normalize_angle(self, angle):
-        '''Make any angle be between +/- pi.'''
+        """Make any angle be between +/- pi."""
         angle -= 2 * math.pi * int (angle / (2 * math.pi))
         if angle <= -math.pi:
             angle += 2 * math.pi
