@@ -27,12 +27,12 @@ class BZRC:
 
     def __init__(self, host, port, debug=False):
         """Given a hostname and port number, connect to the RC tanks."""
-
         self.debug = debug
 
         # Note that AF_INET and SOCK_STREAM are defaults.
         sock = socket.socket()
         sock.connect((host, port))
+        
         # Make a line-buffered "file" from the socket.
         self.conn = sock.makefile(bufsize=1)
 
@@ -47,7 +47,6 @@ class BZRC:
         whitespace.
         
         """
-
         try:
             line = self.conn.readline()
         except socket.error:
@@ -68,7 +67,6 @@ class BZRC:
         with the array containing what was actually sent.
         
         """
-
         raise UnexpectedResponse(expected, ' '.join(got_arr))
 
     def expect(self, expected, full=False):
@@ -95,7 +93,6 @@ class BZRC:
         and the server's line response.
         
         """
-
         line = self.read_arr()
         for i,expected in enumerate(expecteds):
             for a,b in zip(expected, line):
@@ -121,7 +118,6 @@ class BZRC:
         Raise an UnexpectedResponse exception if we get something else.
         
         """
-
         self.expect('ack')
 
     def read_bool(self):
@@ -131,7 +127,6 @@ class BZRC:
         UnexpectedResponse exception if we get something else.
         
         """
-
         i, rest = self.expect_multi(('ok',),('fail',))
         return (True, False)[i]
 
@@ -319,35 +314,30 @@ class BZRC:
 
     def shoot(self, index):
         """Perform a shoot request."""
-
         self.sendline('shoot %s' % index)
         self.read_ack()
         return self.read_bool()
 
     def speed(self, index, value):
         """Set the desired speed to the specified value."""
-
         self.sendline('speed %s %s' % (index, value))
         self.read_ack()
         return self.read_bool()
 
     def angvel(self, index, value):
         """Set the desired angular velocity to the specified value."""
-
         self.sendline('angvel %s %s' % (index, value))
         self.read_ack()
         return self.read_bool()
 
     def accelx(self, index, value):
         """Set the desired x acceleration to the specified value."""
-
         self.sendline('accelx %s %s' % (index, value))
         self.read_ack()
         return self.read_bool()
 
     def accely(self, index, value):
         """Set the desired x acceleration to the specified value."""
-
         self.sendline('accely %s %s' % (index, value))
         self.read_ack()
         return self.read_bool()
@@ -356,63 +346,54 @@ class BZRC:
 
     def get_teams(self):
         """Request a list of teams."""
-
         self.sendline('teams')
         self.read_ack()
         return self.read_teams()
 
     def get_obstacles(self):
         """Request a list of obstacles."""
-
         self.sendline('obstacles')
         self.read_ack()
         return self.read_obstacles()
     
     def get_occgrid(self, tankid):
         """Request an occupancy grid for a tank"""
-
         self.sendline('occgrid %d' % tankid)
         self.read_ack()
         return self.read_occgrid()
 
     def get_flags(self):
         """Request a list of flags."""
-
         self.sendline('flags')
         self.read_ack()
         return self.read_flags()
 
     def get_shots(self):
         """Request a list of shots."""
-
         self.sendline('shots')
         self.read_ack()
         return self.read_shots()
 
     def get_mytanks(self):
         """Request a list of our robots."""
-
         self.sendline('mytanks')
         self.read_ack()
         return self.read_mytanks()
 
     def get_othertanks(self):
         """Request a list of tanks that aren't our bots."""
-
         self.sendline('othertanks')
         self.read_ack()
         return self.read_othertanks()
 
     def get_bases(self):
         """Request a list of bases."""
-
         self.sendline('bases')
         self.read_ack()
         return self.read_bases()
 
     def get_constants(self):
         """Request a dictionary of game constants."""
-
         self.sendline('constants')
         self.read_ack()
         return self.read_constants()
@@ -425,7 +406,6 @@ class BZRC:
         Returns a tuple with the four results.
         
         """
-
         self.sendline('mytanks')
         self.sendline('othertanks')
         self.sendline('flags')
@@ -444,7 +424,6 @@ class BZRC:
 
     def do_commands(self, commands):
         """Send commands for a bunch of tanks in a network-optimized way."""
-
         for cmd in commands:
             if isinstance(cmd, GoodrichCommand):
                 self.sendline('accelx %d %s' % (cmd.index, cmd.accelx))
@@ -484,13 +463,12 @@ class Answer(object):
     created this class just to keep things short and sweet.
     
     """
-
     pass
 
 
 class Command(object):
     """Class for setting a command for a bot."""
-
+    
     def __init__(self, index, speed, angvel, shoot):
         self.index = index
         self.speed = speed
