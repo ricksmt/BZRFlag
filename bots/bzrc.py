@@ -476,6 +476,7 @@ class BZRC:
                 results.append( (result_speed, result_angvel, result_shoot) )
         return results
 
+
 class Answer(object):
     """BZRC returns an Answer for things like tanks, obstacles, etc.
 
@@ -496,11 +497,14 @@ class Command(object):
         self.angvel = angvel
         self.shoot = shoot
 
+
 class GoodrichCommand(object):
+
     def __init__(self, index, accelx, accely):
         self.index = index
         self.accelx = accelx
         self.accely = accely
+
 
 class UnexpectedResponse(Exception):
     """Exception raised when the BZRC gets confused by a bad response."""
