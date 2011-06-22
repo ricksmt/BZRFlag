@@ -24,7 +24,7 @@ class Config:
     def __init__(self, args=None):
         global config
         if config is not None:
-            raise Exception,"there should only be one config instance"
+            raise Exception("there should only be one config instance")
         self.options = self.parse_cli_args(args)
         self.setup_world()
         config = self
@@ -41,14 +41,14 @@ class Config:
     def setup_world(self):
         """Parse the world file"""
         if not self.options['world']:
-            raise ArgumentError,'no world defined'
+            raise ArgumentError('no world defined')
         if not os.path.isfile(self.options['world']):
-            raise ArgumentError, 'world file not found: %s'%self.options['world']
+            raise ArgumentError('world file not found: %s'%self.options['world'])
         text = open(self.options['world']).read()
         size = int(self.options['world_size'])
         results = world.World.parser(size, size).parseString(text)
         if not results:
-            raise ParseError,'invalid world file: %s'%config['world']
+            raise ParseError('invalid world file: %s'%config['world'])
         self.world = results[0]
 
     def parse_cli_args(self, args):
@@ -209,15 +209,15 @@ class Config:
         if opts.config:
             configfile = ConfigParser.ConfigParser()
             if not len(configfile.read(opts.config)):
-                raise Exception,'config file not found'
+                raise Exception('config file not found')
             if not 'global' in configfile.sections():
-                raise Exception,'invalid config file. make sure "[global]"\
-                                 is at the top'
+                raise Exception('Invalid config file. Make sure "[global]"\
+                                 is at the top')
             config = dict(configfile.items('global'))
 
             for key in config:
                 if not hasattr(opts,key):
-                    raise Exception,'invalid configuration option: %s'%key
+                    raise Exception('invalid configuration option: %s'%key)
                 if getattr(opts,key) == None:
                     type = p.get_option('--'+key.replace('_','-')).type
                     value = config[key]
