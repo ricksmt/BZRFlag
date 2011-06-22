@@ -2,7 +2,9 @@
 import unittest
 import inspect
 
+
 class MagicTest(unittest.TestCase):
+
     @classmethod
     def _get_test_funcs(cls):
         testcase_methods = dir(unittest.TestCase)
