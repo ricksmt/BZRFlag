@@ -13,8 +13,14 @@
 # express or implied.
 ####################################################################
 
+import math
+import sys
+import socket
+import time
+import numpy
+
 from __future__ import division
-import math, sys, socket, time, numpy
+
 
 class BZRC:
     '''Class which handles queries and responses with remote control bots.'''
