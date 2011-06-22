@@ -34,7 +34,7 @@ class Agent(object):
         self.commands = []
 
     def tick(self, time_diff):
-        '''Some time has passed; decide what to do next'''
+        """Some time has passed; decide what to do next."""
         # Get information from the BZRC server
         mytanks, othertanks, flags, shots = self.bzrc.get_lots_o_stuff()
         self.mytanks = mytanks
@@ -55,7 +55,7 @@ class Agent(object):
         results = self.bzrc.do_commands(self.commands)
 
     def attack_enemies(self, bot):
-        '''Find the closest enemy and chase it, shooting as you go'''
+        """Find the closest enemy and chase it, shooting as you go."""
         best_enemy = None
         best_dist = 2 * float(self.constants['worldsize'])
         for enemy in self.enemies:
@@ -79,7 +79,7 @@ class Agent(object):
         self.commands.append(command)
 
     def normalize_angle(self, angle):
-        '''Make any angle be between +/- pi.'''
+        """Make any angle be between +/- pi."""
         angle -= 2 * math.pi * int (angle / (2 * math.pi))
         if angle <= -math.pi:
             angle += 2 * math.pi
