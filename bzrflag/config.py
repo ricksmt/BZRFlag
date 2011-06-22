@@ -1,13 +1,14 @@
-import sys, os
+import sys
+import os
 import optparse
 import ConfigParser
+import logging
 
 import world
 
 class ParseError(Exception):pass
 class ArgumentError(Exception):pass
 
-import logging
 logger = logging.getLogger("config.py")
 
 config = None
