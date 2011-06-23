@@ -6,17 +6,20 @@ creating Python objects for all of the static components of a BZFlag world
 only worries about a subset of BZFlag features anyway.  However, everything
 that is supported is implemented correctly.  See the bzw man page for more
 information about the file format (but note that their BNF is incomplete).
+
 """
 
-from __future__ import division
-
 import logging
+import math
+from __future__ import division
+from pyparsing import alphas, nums, Word, Keyword, LineEnd, Each, ZeroOrMore, \
+                      Combine, Optional, Dict, SkipTo, Group
+        
 import constants
+
+
 logger = logging.getLogger('world')
 
-import math
-from pyparsing import alphas, nums, Word, Keyword, LineEnd, \
-        Each, ZeroOrMore, Combine, Optional, Dict, SkipTo, Group
 
 def numeric(toks):
     n = toks[0]
@@ -27,10 +30,9 @@ def numeric(toks):
 
 integer = Word(nums).setParseAction(numeric)
 
-floatnum = Combine(
-        Optional('-') + ('0' | Word('123456789',nums)) +
-        Optional('.' + Word(nums)) +
-        Optional(Word('eE',exact=1) + Word(nums+'+-',nums)))
+floatnum = Combine(Optional('-') + ('0' | Word('123456789',nums)) +
+                   Optional('.' + Word(nums)) +
+                   Optional(Word('eE',exact=1) + Word(nums+'+-',nums)))
 floatnum.setParseAction(numeric)
 
 end = Keyword('end').suppress()
@@ -48,6 +50,7 @@ obstacle_items = [position, Optional(size), Optional(rotation)]
 
 class Box(object):
     """a basic obstacle type"""
+    
     def __init__(self, pos=None, position=None, rot=None, rotation=None,
             size=None):
         # TODO: use "if" instead of unreadable "or" expressions.
@@ -69,8 +72,9 @@ class Box(object):
 
 class Base(object):
     """a BZFlag Base. one per team"""
+    
     def __init__(self, color=None, pos=None, position=None, rot=None,
-            rotation=None, size=None):
+                 rotation=None, size=None):
         self.color = constants.COLORNAME[color]
         # TODO: use "if" instead of unreadable "or" expressions.
         self.pos = pos or position
@@ -96,7 +100,10 @@ class Base(object):
 class World(object):
     """encompassing class which parses the entire file. Returns a World
     object that is used by the classes in :mod:`game` to populate the
-    game"""
+    game
+    
+    """
+    
     def __init__(self, WIDTH, HEIGHT, items=None):
         self.size = (WIDTH, HEIGHT)
         self.width = WIDTH

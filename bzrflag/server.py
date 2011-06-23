@@ -1,6 +1,7 @@
 """
 The Server object listens on a port for incoming connections.  When a client
 connects, the Server dispatches its connection to a new Handler.
+
 """
 
 import asynchat
@@ -11,10 +12,11 @@ import time
 import random
 import logging
 import numpy
-logger = logging.getLogger('server')
 
 import constants
 from config import config
+
+logger = logging.getLogger('server')
 
 BACKLOG = 5
 
@@ -25,7 +27,9 @@ class Server(asyncore.dispatcher):
     Each team has its own server which dispatches sessions to the Handler.
     Only one connection is allowed at a time.  Any subsequent connections will
     be rejected until the active connection closes.
+    
     """
+    
     def __init__(self, addr, team):
         self.team = team
         self.in_use = False
@@ -68,7 +72,9 @@ class Handler(asynchat.async_chat):
     bzrc commands.  To create the command "xyz", just create a method called
     "bzrc_xyz", and the Handler will automatically call it when the client
     sends an "xyz" request.  You don't have to add it to a table or anything.
+    
     """
+    
     def __init__(self, sock, team, closed_callback):
         asynchat.async_chat.__init__(self, sock)
         self.team = team
@@ -91,7 +97,8 @@ class Handler(asynchat.async_chat):
     def push(self, text):
         asynchat.async_chat.push(self, text)
         if config['telnet_console']:
-            self.team.map.game.display.console.write(self.team.color + ' > ' + text)
+            self.team.map.game.display.console.write(self.team.color +
+                                                     ' > ' + text)
         logger.debug(self.team.color + ' > ' + text)
         if text.startswith('fail '):
             logger.error(self.team.color + ' > ' + text)
@@ -101,9 +108,11 @@ class Handler(asynchat.async_chat):
 
         Note that Asynchat ensures that our input buffer contains everything
         up to but not including the newline character.
+        
         """
         if config['telnet_console']:
-            self.team.map.game.display.console.write(self.team.color + ' : ' + self.input_buffer + '\n')
+            self.team.map.game.display.console.write(self.team.color + ' : ' +
+                                                     self.input_buffer + '\n')
         logger.debug(self.team.color + ' : ' + self.input_buffer + '\n')
         args = self.input_buffer.split()
         self.input_buffer = ''
@@ -117,8 +126,13 @@ class Handler(asynchat.async_chat):
                 try:
                     command(args)
                 except Exception, e:
-                    logger.error(self.team.color + ' : ERROR : %s : %s\n' % (args, e))
-                    self.team.map.game.display.console.write(self.team.color + ' : ERROR : %s : %s : %s\n' % (args, e.__class__.__name__, e))
+                    logger.error(self.team.color + ' : ERROR : %s : %s\n' 
+                                 % (args, e))
+                    self.team.map.game.display.console.write(self.team.color +
+                                                             ' : ERROR : %s : 
+                                                             %s : %s\n' % 
+                                                             (args, e.__class__
+                                                             .__name__, e))
                     self.push('fail %s\n' % e)
                     return
             elif args == ['agent', '1']:
@@ -165,6 +179,7 @@ class Handler(asynchat.async_chat):
 
         If no command is given, list the commands.  Otherwise, return specific
         help for a command.
+        
         """
         if len(args)==1:
             help_lines = []
@@ -193,6 +208,7 @@ class Handler(asynchat.async_chat):
         or:
             fail [comment]
         where the comment is optional.
+        
         """
         try:
             command, tankid = args
@@ -221,6 +237,7 @@ class Handler(asynchat.async_chat):
         >>> args = ['speed', '1', '1']
         >>> Handler.bzrc_speed(Handler(), args)
         fail
+        
         """
         try:
             command, tankid, value = args
@@ -244,6 +261,7 @@ class Handler(asynchat.async_chat):
         clockwise motion, and negative values indicate clockwise motion. The
         sign is consistent with the convention use in angles in the circle.
         Returns a boolean ("ok" or "fail" as described under shoot).
+        
         """
         try:
             command, tankid, value = args
@@ -261,6 +279,7 @@ class Handler(asynchat.async_chat):
         """accelx [??]
 
         Used specifically for freezeTag.
+        
         """
         try:
             command, tankid, value = args
@@ -278,6 +297,7 @@ class Handler(asynchat.async_chat):
         """accely [??]
 
         Used specifically for freezeTag.
+        
         """
         try:
             command, tankid, value = args
@@ -299,6 +319,7 @@ class Handler(asynchat.async_chat):
             team [color] [playercount]
         Color is the identifying team color/team name. Playercount is the
         number of tanks on the team.
+        
         """
         try:
             command, = args
@@ -321,6 +342,7 @@ class Handler(asynchat.async_chat):
             obstacle [x1] [y1] [x2] [y2] ...
         where (x1, y1), (x2, y2), etc. are the corners of the obstacle in
         counter-clockwise order.
+        
         """
         try:
             command, = args
@@ -351,6 +373,7 @@ class Handler(asynchat.async_chat):
         Looks like:
             100,430|20,20|####
         #### = encoded 01 string
+        
         """
         try:
             command, tankid = args
@@ -361,7 +384,7 @@ class Handler(asynchat.async_chat):
 
         if self.team.map.occgrid is None:
             raise Exception('occgrid not currently compatible with rotated '
-                    'obstacles')
+                            'obstacles')
         if tank.status == constants.TANKDEAD:
             self.push('fail\n')
             return
@@ -384,7 +407,7 @@ class Handler(asynchat.async_chat):
         width = epos[0]-spos[0]
         height = epos[1]-spos[1]
         true_grid = self.team.map.occgrid[spos[0]:epos[0],
-                spos[1]:epos[1]]
+                                          spos[1]:epos[1]]
 
         true_positive = config['%s_true_positive' % self.team.color]
         if true_positive is None:
@@ -422,6 +445,7 @@ class Handler(asynchat.async_chat):
             base [team color] [x1] [y1] [x2] [y2] ...
         where (x1, y1), (x2, y2), etc. are the corners of the base in counter-
         clockwise order and team color is the name of the owning team.
+        
         """
         try:
             command, = args
@@ -451,6 +475,7 @@ class Handler(asynchat.async_chat):
         carrying the flag, the possessing team is "none". The coordinate
         (x, y) is the current position of the flag. Note that the list may be
         incomplete if visibility is limited.
+        
         """
         try:
             command, = args
@@ -481,6 +506,7 @@ class Handler(asynchat.async_chat):
             shot [x] [y] [vx] [vy]
         where (c, y) is the current position of the shot and (vx, vy) is the
         current velocity.
+        
         """
         try:
             command, = args
@@ -514,6 +540,7 @@ class Handler(asynchat.async_chat):
         tank is pointed, between negative pi and pi. The vector (vx, vy) is
         the current velocity of the tank, and angvel is the current angular
         velocity of the tank (in radians per second).
+        
         """
         try:
             command, = args
@@ -524,8 +551,9 @@ class Handler(asynchat.async_chat):
 
         response = ['begin\n']
         entry_template = ('mytank %(id)s %(callsign)s %(status)s'
-                ' %(shots_avail)s %(reload)s %(flag)s %(x)s %(y)s %(angle)s'
-                ' %(vx)s %(vy)s %(angvel)s\n')
+                          ' %(shots_avail)s %(reload)s %(flag)s\
+                            %(x)s %(y)s %(angle)s'
+                          ' %(vx)s %(vy)s %(angvel)s\n')
         for i, tank in enumerate(self.team.tanks):
             data = {}
             data['id'] = i
@@ -554,6 +582,7 @@ class Handler(asynchat.async_chat):
             othertank [callsign] [color] [status] [flag] [x] [y] [angle]
         where callsign, status, flag, x, y, and angle are as described under
         mytanks and color is the name of the team color.
+        
         """
         try:
             command, = args
@@ -564,7 +593,7 @@ class Handler(asynchat.async_chat):
 
         response = ['begin\n']
         entry_template = ('othertank %(callsign)s %(color)s %(status)s'
-                ' %(flag)s %(x)s %(y)s %(angle)s\n')
+                          ' %(flag)s %(x)s %(y)s %(angle)s\n')
         for color,team in self.team.map.teams.items():
             if team == self.team:
                 continue
@@ -606,6 +635,7 @@ class Handler(asynchat.async_chat):
             constant [name] [value]
         Name is a string. Value may be a number or a string. Boolean values
         are 0 or 1.
+        
         """
         # TODO: is it possible to simply iterate through all constants without
         # specifically referencing each one?
@@ -623,28 +653,28 @@ class Handler(asynchat.async_chat):
         self.ack(command)
         ## is this the best way to do this? hard coding it in?
         response = ['begin\n',
-            'constant team %s\n' % (self.team.color),
-            'constant worldsize %s\n' % (config['world_size']),
-            # WARNING: there's an evil hard-coded constant here!
-            'constant hoverbot %s\n' % (0),
-            'constant puppyzone %s\n' % (config['puppy_guard_zone']),
-            'constant tankangvel %s\n' % (constants.TANKANGVEL),
-            'constant tanklength %s\n' % (constants.TANKLENGTH),
-            'constant tankradius %s\n' % (constants.TANKRADIUS),
-            'constant tankspeed %s\n' % (constants.TANKSPEED),
-            'constant tankalive %s\n' % (constants.TANKALIVE),
-            'constant tankdead %s\n' % (constants.TANKDEAD),
-            'constant linearaccel %s\n' % (constants.LINEARACCEL),
-            'constant angularaccel %s\n' % (constants.ANGULARACCEL),
-            'constant tankwidth %s\n' % (constants.TANKWIDTH),
-            'constant shotradius %s\n' % (constants.SHOTRADIUS),
-            'constant shotrange %s\n' % (constants.SHOTRANGE),
-            'constant shotspeed %s\n' % (constants.SHOTSPEED),
-            'constant flagradius %s\n' % (constants.FLAGRADIUS),
-            'constant explodetime %s\n' % (constants.EXPLODETIME),
-            'constant truepositive %s\n' % (true_positive),
-            'constant truenegative %s\n' % (true_negative),
-            'end\n']
+                    'constant team %s\n' % (self.team.color),
+                    'constant worldsize %s\n' % (config['world_size']),
+                    # WARNING: there's an evil hard-coded constant here!
+                    'constant hoverbot %s\n' % (0),
+                    'constant puppyzone %s\n' % (config['puppy_guard_zone']),
+                    'constant tankangvel %s\n' % (constants.TANKANGVEL),
+                    'constant tanklength %s\n' % (constants.TANKLENGTH),
+                    'constant tankradius %s\n' % (constants.TANKRADIUS),
+                    'constant tankspeed %s\n' % (constants.TANKSPEED),
+                    'constant tankalive %s\n' % (constants.TANKALIVE),
+                    'constant tankdead %s\n' % (constants.TANKDEAD),
+                    'constant linearaccel %s\n' % (constants.LINEARACCEL),
+                    'constant angularaccel %s\n' % (constants.ANGULARACCEL),
+                    'constant tankwidth %s\n' % (constants.TANKWIDTH),
+                    'constant shotradius %s\n' % (constants.SHOTRADIUS),
+                    'constant shotrange %s\n' % (constants.SHOTRANGE),
+                    'constant shotspeed %s\n' % (constants.SHOTSPEED),
+                    'constant flagradius %s\n' % (constants.FLAGRADIUS),
+                    'constant explodetime %s\n' % (constants.EXPLODETIME),
+                    'constant truepositive %s\n' % (true_positive),
+                    'constant truenegative %s\n' % (true_negative),
+                    'end\n']
         self.push(''.join(response))
 
     def bzrc_scores(self, args):
@@ -655,6 +685,7 @@ class Handler(asynchat.async_chat):
             score [team_i] [team_j] [score]
 
         Notice that a team generates no score when compared against itself.
+        
         """
         try:
             command, = args
@@ -674,7 +705,7 @@ class Handler(asynchat.async_chat):
                     # Score not implemented (?)
                     score = 0
                     response.append('score %s %s %s'
-                            % (team1_name, team2_name, score))
+                                    % (team1_name, team2_name, score))
                     response.append('\n')
         response.append('end\n')
         self.push(''.join(response))
@@ -689,6 +720,7 @@ class Handler(asynchat.async_chat):
         Time elapsed is the number of seconds that the server has been alive,
         while time limit is the given limit. Once the limit is reached, the
         server will stop updating the game.
+        
         """
         try:
             command, = args
@@ -707,6 +739,7 @@ class Handler(asynchat.async_chat):
 
         This is technically an extension to the BZRC protocol.  We should
         really backport this to BZFlag.
+        
         """
         try:
             command, = args
@@ -724,6 +757,7 @@ class Handler(asynchat.async_chat):
         The protocol specification guarantees that angles are in this range,
         so all angles should be passed through this method before being sent
         across the wire.
+        
         """
         angle %= 2 * math.pi
         if angle > math.pi:

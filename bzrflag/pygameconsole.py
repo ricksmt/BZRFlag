@@ -1,23 +1,25 @@
-import pygame
-from pygame.locals import *
-
-from code import InteractiveConsole as IC
 import string
 import sys
+import pygame
+from pygame.locals import *
+from code import InteractiveConsole as IC
+
 import collide
 import paths
 
 
 class Console(object):
+
     def __init__(self, game, rect):
         self.rect = pygame.Rect(rect)
-        self.minrect = pygame.Rect(self.rect.bottom-30,self.rect.right-30,30,30)
+        self.minrect = pygame.Rect(self.rect.bottom-30, 
+                                   self.rect.right-30,30,30)
         self.image = pygame.Surface(self.rect.size)
         self.dirty = True
         self.txt = ''
         self.game = game
         self.at = 0
-        self.font = pygame.font.Font(paths.FONT_FILE,16)
+        self.font = pygame.font.Font(paths.FONT_FILE, 16)
         self.lineheight = 15
         self.maxlines = 14
         self.minimized = True
@@ -35,10 +37,13 @@ class Console(object):
         if lnx>0:lnx+=1
         wpos = False
         for i,line in enumerate(self.txt.split('\n')[-self.maxlines:]):
-            self.image.blit(self.font.render(line,1,(0,0,0),self.bgc),(10,self.lineheight*i+10))
+            self.image.blit(self.font.render(line,1,(0,0,0),
+                            self.bgc),(10,self.lineheight*i+10))
             if not wpos and lnx + len(line)>=self.at:
                 wpos = True
-                pygame.draw.rect(self.image,(0,0,0),(10 + self.font.size(line[:self.at-lnx])[0],self.lineheight*i+10,2,self.lineheight))
+                pygame.draw.rect(self.image,(0,0,0),(10 + 
+                                 self.font.size(line[:self.at-lnx])[0], 
+                                 self.lineheight*i+10,2,self.lineheight))
             lnx += len(line) + 1
 
         nrect = pygame.Rect(self.minrect)
@@ -65,6 +70,7 @@ class Console(object):
 
 
 class TelnetConsole(Console):
+
     def __init__(self, *a, **b):
         super(TelnetConsole, self).__init__(*a, **b)
         self.frozen = False
@@ -79,9 +85,12 @@ class TelnetConsole(Console):
 
 
 class PyConsole(Console):
+
     def __init__(self, game, rect):
         super(PyConsole, self).__init__(game, rect)
-        self.console = IC({'game':game,'sys':sys,'pygame':pygame,'self':self,'purple':game.map.teams['purple'],'collide':collide})
+        self.console = IC({'game':game,'sys':sys,'pygame':pygame,'self':self,
+                           'purple':game.map.teams['purple'],
+                           'collide':collide})
         self.history = []
         self.athistory = 0
         self.prompt()
