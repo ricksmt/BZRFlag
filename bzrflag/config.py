@@ -28,8 +28,6 @@ class Config:
         self.options = self.parse_cli_args(args)
         self.setup_world()
         config = self
-        #logger.debug("Options:\n"+"\n".join("%s :: %s"%(k,v) \
-        #   for k,v in self.options.items()))
 
     def get(self, key, default):
         if self.options[key] is None:

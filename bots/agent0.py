@@ -99,7 +99,6 @@ def main():
         sys.exit(-1)
 
     # Connect.
-    #bzrc = BZRC(host, int(port), debug=True)
     bzrc = BZRC(host, int(port))
 
     agent = Agent(bzrc)

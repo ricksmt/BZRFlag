@@ -58,7 +58,6 @@ class BZRC:
 
     def sendline(self, line):
         """Send a line to the RC tanks."""
-        #print 'sending',line
         print >>self.conn, line
 
     def die_confused(self, expected, got_arr):

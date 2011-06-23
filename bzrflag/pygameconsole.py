@@ -1,7 +1,6 @@
 import string
 import sys
 import pygame
-from pygame.locals import *
 from code import InteractiveConsole as IC
 
 import collide

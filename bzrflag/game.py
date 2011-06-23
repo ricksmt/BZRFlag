@@ -748,8 +748,6 @@ class Flag(object):
         self.rot = 0
         self.pos = team.base.center
         self.tank = None
-        #if tank is not None:
-        #    self.tank = tank
 
     def update(self, dt):
         """Update the flag's position."""
@@ -762,7 +760,6 @@ class Flag(object):
         else:
             # handle collide
             for tank in self.team.map.tanks():
-                #if tank.team is self.team:continue
                 if collide.circle2circle((self.pos, constants.FLAGRADIUS),
                                          (tank.pos, constants.TANKRADIUS)):
                     if tank.team is self.team:

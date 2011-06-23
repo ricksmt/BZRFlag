@@ -115,7 +115,6 @@ class TextSprite(graphics.TextSprite):
 
     def reposition(self):
         self.rect.center = (0,0)
-        #self.display.pos_world_to_screen(self.bzobject.pos)
 
 
 class Taunt(graphics.Taunt):
@@ -230,7 +229,6 @@ class Display(graphics.Display):
         self.scale = scale
 
         realpos = (pos[0] - self.pos[0])/oscale, (pos[1] - self.pos[1])/oscale
-        #realpos = (pos[0] - self.pos[0])/self.scale
         self.pos[0] = pos[0] - realpos[0]*self.scale
         self.pos[1] = pos[1] - realpos[1]*self.scale
 
@@ -254,7 +252,6 @@ class Display(graphics.Display):
                 self.screen.blit(sprite.image,sprite.rect)
         self.console.draw(self.screen)
         self.taunt.draw(self.screen)
-        #pygame.display.flip()
 
     def update(self):
         """Updates the state of all sprites and redraws the screen."""
@@ -282,8 +279,6 @@ class Display(graphics.Display):
             for box in self.game.map.obstacles:
                 s = TiledBZSprite(box, self.images.wall(), self)
                 bg.blit(s.image, s.rect.topleft)
-                #pts = list(self.pos_world_to_screen(xy) for xy in box.shape)
-                #pygame.draw.lines(bg, (255,255,255), 1, pts, 2)
             self._normal_background = self._background = bg
         return self._background
 

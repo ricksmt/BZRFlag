@@ -37,8 +37,6 @@ class Input:
         for color,team in self.game.map.teams.items():
             self.servers[color] = server.Server(
                     ('0.0.0.0', config.config[color+'_port']),team)
-            #logger.debug("Listening op port %s for team %s"
-            # %(self.servers[color].get_port(), color))
             print 'port for %s: %s' % (color, self.servers[color].get_port())
         print
 

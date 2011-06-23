@@ -43,7 +43,6 @@ class Server(asyncore.dispatcher):
 
         self.bind(addr)
         self.listen(BACKLOG)
-        ## print self.sock,addr
 
     def handle_accept(self):
         sock, addr = self.accept()
