@@ -94,7 +94,7 @@ class Game:
             final_score = 'Final Score\n'
             for team in self.map.teams:
                 final_score += 'Team %s: %d\n' % (team,
-                             self.map.teams[team].score.total())
+                                self.map.teams[team].score.total())
             print final_score
 
     def kill(self):
@@ -137,7 +137,8 @@ class Map(object):
         # track objects on map
         self.obstacles = [Box(item) for item in config.world.boxes]
         self.build_truegrid()
-        self.bases = dict((item.color, Base(item)) for item in config.world.bases)
+        self.bases = dict((item.color, Base(item))
+                           for item in config.world.bases)
 
         self.teams = {}
         for color,base in self.bases.items():
@@ -175,7 +176,8 @@ class Map(object):
                 # because it would be really difficult for students to deal
                 # with.  If someone implements it sometime, great.  Until then,
                 # this is our workaround - the server returns a fail on a
-                # request for the occupancy grid if there are rotated obstacles.
+                # request for the occupancy grid if there are rotated
+                # obstacles.
                 self.occgrid = None
                 break
 
@@ -218,7 +220,8 @@ class Map(object):
         self.returnFlag(flag)
 
     def closest_base(self, pos):
-        items = tuple(sorted((collide.dist(pos, base.center), base) for base in self.bases.values()))
+        items = tuple(sorted((collide.dist(pos, base.center), base)
+                      for base in self.bases.values()))
         if abs(items[0][0] - items[1][0]) < 50:
             return None
         return items[0][1]
@@ -293,7 +296,8 @@ class Team(object):
                 break
             pos = self.spawn_position()
         else:
-            raise Exception,"No workable spawning spots found for team %s"%self.color
+            raise Exception("No workable spawning spots found for team %s"
+                            %self.color)
         tank.pos = pos
 
     def check_position(self, point, radius):
@@ -323,7 +327,8 @@ class Team(object):
         """Generate a random spawning position around the base."""
         angle = random.uniform(0, 2*math.pi)
         dist = random.uniform(0,1) * self.tanks_radius
-        return [self.base.center[0] + dist*math.cos(angle), self.base.center[1] + dist*math.sin(angle)]
+        return [self.base.center[0] + dist*math.cos(angle),
+                self.base.center[1] + dist*math.sin(angle)]
 
     def update(self, dt):
         """Update the tanks and flag."""
@@ -527,8 +532,10 @@ class SeppiTank(Tank):
 
     def update_goals(self, dt):
         """Update the velocities to match the goals."""
-        self.speed = self.update_goal(self.speed, self.goal_speed, constants.LINEARACCEL * dt)
-        self.angvel = self.update_goal(self.angvel, self.goal_angvel, constants.ANGULARACCEL * dt)
+        self.speed = self.update_goal(self.speed, self.goal_speed,
+                                      constants.LINEARACCEL * dt)
+        self.angvel = self.update_goal(self.angvel, self.goal_angvel,
+                                       constants.ANGULARACCEL * dt)
         self.rot += self.angvel * constants.TANKANGVEL * dt
         # Normalize the angle to be between 0 and 2*pi
         self.rot = self.rot % (2 * math.pi)
@@ -581,20 +588,23 @@ class GoodrichTank(Tank):
     def update_goals(self, dt):
         """Update the velocities to match the goals."""
         flagdist = collide.dist(self.pos, self.team.flag.pos)
-        if self.flag and collide.rect2circle(self.team.base.rect, (self.pos, constants.TANKRADIUS)):
+        if self.flag and collide.rect2circle(self.team.base.rect,
+                                            (self.pos, constants.TANKRADIUS)):
             self.team.map.scoreFlag(self.flag)
 
-        if not self.flag and self.team.flag.tank is None and flagdist < config['puppy_guard_zone']:
+        if not self.flag and self.team.flag.tank is None and\
+                         flagdist < config['puppy_guard_zone']:
             x,y = self.team.flag.pos
             rad = 1 # config['puppy_guard_zone']
             angle = math.atan2(self.pos[1]-y, self.pos[0]-x)
-            npos = [math.cos(angle) * rad + self.pos[0], math.sin(angle) * rad + self.pos[1]]
+            npos = [math.cos(angle) * rad + self.pos[0],
+                    math.sin(angle) * rad + self.pos[1]]
             if not self.collision_at(npos, True):
                 self.pos = npos
 
-        ## return the flag once you get on "your side"
-        # if self.flag and self.team.map.closest_base(self.pos) == self.team.base:
-        #     self.team.map.scoreFlag(self.flag)
+        # Return the flag once you get on "your side"
+        # if self.flag and self.team.map.closest_base(self.pos) == 
+        # self.team.base: self.team.map.scoreFlag(self.flag)
 
         self.hspeed += self.accelx
         self.vspeed += self.accely
@@ -607,8 +617,10 @@ class GoodrichTank(Tank):
     def collision_at(self, pos, ignore_base=False):
         if super(GoodrichTank, self).collision_at(pos):
             return True
-        if not ignore_base and not self.flag and self.team.flag.tank is None and\
-                collide.dist(pos, self.team.flag.pos) < config['puppy_guard_zone']:
+        if not ignore_base and not self.flag and\
+                            self.team.flag.tank is None and\
+                            collide.dist(pos, self.team.flag.pos) < \
+                            config['puppy_guard_zone']:
             return True
         return False
 
@@ -616,7 +628,8 @@ class GoodrichTank(Tank):
         if tank.team == self.team:
             if tank.status == constants.TANKDEAD:
                 self.team.respawn(tank)
-        elif tank.status != constants.TANKDEAD and self.status != constants.TANKDEAD:
+        elif tank.status != constants.TANKDEAD and \
+                            self.status != constants.TANKDEAD:
             base = self.team.map.closest_base(self.pos)
             if not base:return
             if base.team == tank.team:
@@ -671,7 +684,8 @@ class Shot(object):
 
     def update(self, dt):
         """Move the shot."""
-        if (self.status == constants.SHOTDEAD or self.pos == constants.DEADZONE):
+        if (self.status == constants.SHOTDEAD or
+            self.pos == constants.DEADZONE):
             return
         self.distance += math.hypot(self.vel[0]*dt, self.vel[1]*dt)
 
@@ -691,7 +705,8 @@ class Shot(object):
 
     def check_collisions(self):
         for obs in self.team.map.obstacles:
-            if collide.poly2circle(obs.shape, ((self.pos),constants.SHOTRADIUS)):
+            if collide.poly2circle(obs.shape, 
+                                  ((self.pos),constants.SHOTRADIUS)):
                 return self.kill()
         for tank in self.team.map.tanks():
             if self in tank.shots:continue
@@ -712,16 +727,16 @@ class Shot(object):
             if collide.rect2line(obs.rect, (p1,p2)):
                 return self.kill()
         for tank in self.team.map.tanks():
-            if collide.circle2line((tank.pos, constants.TANKRADIUS + constants.SHOTRADIUS),
-                                     (p1,p2)):
+            if collide.circle2line((tank.pos,constants.TANKRADIUS + 
+                                    constants.SHOTRADIUS), (p1,p2)):
                 if tank.team == self.team and not config['friendly_fire']:
                     continue
                 tank.kill()
                 return self.kill()
         if self.pos[0]<-config.world.size[0]/2 or\
-         self.pos[1]<-config.world.size[1]/2 or\
-         self.pos[0]>config.world.size[0]/2 or \
-         self.pos[1]>config.world.size[1]/2:
+           self.pos[1]<-config.world.size[1]/2 or\
+           self.pos[0]>config.world.size[0]/2 or \
+           self.pos[1]>config.world.size[1]/2:
             return self.kill()
 
     def kill(self):
@@ -754,13 +769,15 @@ class Flag(object):
         x, y = self.pos
         if self.tank is not None:
             self.pos = self.tank.pos
-            if collide.rect2circle(self.tank.team.base.rect, (self.pos, constants.FLAGRADIUS)):
+            if collide.rect2circle(self.tank.team.base.rect,
+                                  (self.pos, constants.FLAGRADIUS)):
                 self.tank.team.map.scoreFlag(self)
         else:
             # handle collide
             for tank in self.team.map.tanks():
                 #if tank.team is self.team:continue
-                if collide.circle2circle((self.pos, constants.FLAGRADIUS), (tank.pos, constants.TANKRADIUS)):
+                if collide.circle2circle((self.pos, constants.FLAGRADIUS),
+                                         (tank.pos, constants.TANKRADIUS)):
                     if tank.team is self.team:
                         self.team.map.returnFlag(self)
                     else:
@@ -813,7 +830,8 @@ class Base(object):
         self.size = tuple(x*2 for x in item.size.asList())
         self.radius = math.sqrt((self.size[0]/2)**2 + (self.size[1]/2)**2)
         poly = tuple(convertBoxtoPoly(item.pos,self.size))
-        self.rect = (item.pos[0]-self.size[0]/2, item.pos[1]-self.size[1]/2) + self.size
+        self.rect = (item.pos[0]-self.size[0]/2, 
+                     item.pos[1]-self.size[1]/2) + self.size
         self.shape = list(scale_rotate_poly(poly, 1, item.rot))
         self.rot = item.rot
 
@@ -832,7 +850,8 @@ class Obstacle(object):
         self.radius = 0
 
     def pad(self, padding):
-        self.shape = list(scale_rotate_poly(self.shape, (self.radius + padding)/float(self.radius), 0))
+        self.shape = list(scale_rotate_poly(self.shape, 
+                         (self.radius + padding)/float(self.radius), 0))
 
 
 class Box(Obstacle):
@@ -865,7 +884,8 @@ class Score(object):
     def score_tank(self, tank):
         if tank.flag:
             ebase = tank.flag.team.base
-            distance_to = collide.dist(self.team.base.center,tank.flag.team.base.center)
+            distance_to = collide.dist(self.team.base.center, 
+                                       tank.flag.team.base.center)
             distance_back = collide.dist(tank.pos,self.team.base.center)
             more = 100.0 * (distance_to - distance_back)/distance_to
             if distance_back > distance_to:

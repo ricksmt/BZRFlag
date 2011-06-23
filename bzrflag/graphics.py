@@ -36,7 +36,8 @@ class ImageCache(object):
         self._ground = None
         self._wall = None
 
-        self.suffixes = {'base':'basetop','shot':'bolt','tank':'tank','flag':'flag'}
+        self.suffixes = {'base':'basetop','shot':'bolt',
+                         'tank':'tank','flag':'flag'}
         ## curently lazy loading...is that good?
         self._teamcache = {'base':{},'shot':{},'flag':{},'tank':{}}
         self._cache = {}
@@ -98,7 +99,8 @@ class ImageCache(object):
     def scaled_image(self, image, scale):
         scale = tuple(int(a) for a in scale)
         if self._tcache['scale'].has_key((image,scale)):
-            self._tcache['scale'][(image,scale)] = self._scaled_image(image,scale)
+            self._tcache['scale'][(image,scale)] = self._scaled_image(image, 
+                                                                      scale)
         return self._tcache['scale'][(image,scale)]
 
     def _scaled_image(self, image, scale):
@@ -176,7 +178,8 @@ class Scores:
         fy = y
         y = screen.get_rect().height-10
         pygame.draw.rect(screen, (0,0,0), (10, fy, w, y-fy))
-        tosort = list(sorted((score.bzobject.total(),score) for score in self.scores))
+        tosort = list(sorted((score.bzobject.total(),score) 
+                      for score in self.scores))
 
         for num,score in tosort:
             y -= score.rect.height
@@ -307,7 +310,8 @@ class Display(object):
         return wscale, hscale
 
     def add_object(self, obj):
-        types = (Tank, 'tank'),(Shot,'shot'),(Flag,'flag'),(Base,'base'),(Score,'score')
+        types = (Tank, 'tank'), (Shot,'shot'), (Flag,'flag'), \
+                (Base,'base'), (Score,'score')
         otype = None
         for cls,name in types:
             if isinstance(obj,cls):
