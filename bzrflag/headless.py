@@ -1,16 +1,18 @@
 '''headless.py
 
 defines a Display class and an Input class
-for a headless station'''
+for a headless station
+
+'''
+
 import asyncore
+import logging
 
-import graphics
 import server
-
 import constants
 import config
+import graphics
 
-import logging
 logger = logging.getLogger('headless.py')
 
 # A higher loop timeout decreases CPU usage but also decreases the frame rate.
@@ -18,14 +20,17 @@ LOOP_TIMEOUT = 0.01
 
 
 class Display(graphics.Display):
+
     def update(self):
         pass
+        
     def setup(self):
         pass
 
 
 class Input:
     '''The server input class'''
+    
     def __init__(self, game):
         self.game = game
         self.servers = {}
