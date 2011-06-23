@@ -1,7 +1,7 @@
 import string
 import sys
 import pygame
-from pygame import MOUSEBUTTONDOWN, KEYDOWN, QUIT
+from pygame import MOUSEBUTTONDOWN, KEYDOWN, QUIT, K_SPACE
 from code import InteractiveConsole as IC
 
 import collide
