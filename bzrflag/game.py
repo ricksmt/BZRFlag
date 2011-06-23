@@ -1,4 +1,3 @@
-
 import math
 import random
 import datetime
@@ -33,12 +32,9 @@ class Game:
 
         if config['random_seed'] != -1:
             random.seed(config['random_seed'])
-
         self.map = Map(self)
-
         self.display = modpygame.Display(self)
         self.input = headless.Input(self)
-
         self.running = False
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()
@@ -54,7 +50,6 @@ class Game:
 
     def update(self):
         """Updates the game world."""
-
         now = datetime.datetime.utcnow()
         delta = now - self.timestamp
         self.timestamp = now
@@ -109,12 +104,11 @@ class Map(object):
     
     def __init__(self, game):
         self.game = game
-
         self.end_game = False
+        
         # queue of objects that need to be created or destroyed
         self.inbox = []
         self.trash = []
-
         # attrs ::fix these -- are they all needed? they should be
         #       defined somewhere else::
         # defaults for customizable values
@@ -466,7 +460,6 @@ class Tank(object):
 
     def update(self, dt):
         """Update the tank's position, status, velocities."""
-
         if (self.pos == constants.DEADZONE and
                 self.status != constants.TANKDEAD):
             self.team.respawn(self)
@@ -512,7 +505,6 @@ class SeppiTank(Tank):
 
     def __init__(self, team, tankid):
         super(SeppiTank, self).__init__(team, tankid)
-
         self.goal_speed = 0
         self.goal_angvel = 0
         self.speed = 0
@@ -523,7 +515,6 @@ class SeppiTank(Tank):
         """Update tank's position, status, etc."""
         for shot in self.shots:
             shot.update(dt)
-
         if self.reloadtimer > 0:
             self.reloadtimer -= dt
         super(SeppiTank, self).update(dt)
@@ -674,10 +665,8 @@ class Shot(object):
         self.rot = self.tank.rot
         self.distance = 0
         self.pos = tank.pos[:]
-
         speed = constants.SHOTSPEED + tank.speed
         self.vel = (speed * math.cos(self.rot), speed * math.sin(self.rot))
-
         self.status = constants.SHOTALIVE
 
     def update(self, dt):
@@ -859,7 +848,8 @@ class Box(Obstacle):
         Obstacle.__init__(self, item)
         self.radius = math.hypot(*item.size)
         self.size = tuple(x*2 for x in item.size.asList())
-        self.shape = list(scale_rotate_poly((convertBoxtoPoly(item.pos,self.size,item.rot)), 1, item.rot))
+        self.shape = list(scale_rotate_poly((convertBoxtoPoly
+                         (item.pos, self.size,item.rot)), 1, item.rot))
         self.rect = (tuple(self.pos)+self.size)
 
 

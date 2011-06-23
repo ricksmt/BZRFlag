@@ -35,7 +35,6 @@ class ImageCache(object):
     def __init__(self):
         self._ground = None
         self._wall = None
-
         self.suffixes = {'base':'basetop','shot':'bolt',
                          'tank':'tank','flag':'flag'}
         ## curently lazy loading...is that good?
@@ -72,9 +71,13 @@ class ImageCache(object):
             raise KeyError("invalid color: %s"%color)
         if not self._teamcache[type].has_key(color):
             if type != 'tank' or not config['freeze_tag']:
-                self._teamcache[type][color] = self.load_image('%s_%s.png'%(color,self.suffixes[type]))
+                self._teamcache[type][color] = \
+                        self.load_image('%s_%s.png'%(color,
+                                                     self.suffixes[type]))
             else:
-                self._teamcache[type][color] = self.load_image('%s_%s_g.png'%(color,self.suffixes[type]))
+                self._teamcache[type][color] = \
+                        self.load_image('%s_%s_g.png'%(color,
+                                                       self.suffixes[type]))
 
 
         return self._teamcache[type][color]
@@ -201,12 +204,10 @@ class BZSprite(pygame.sprite.Sprite):
         self.display = display
         self.orig_image = image
         self.type = otype
-
         self.rect = image.get_rect()
         self.prev_rot = None
         self.prev_scale = None
         self._render_image()
-
         self.update(True)
 
 
@@ -229,7 +230,6 @@ class BZSprite(pygame.sprite.Sprite):
         
         """
         rot = self.bzobject.rot
-
         self._render_image(force)
         self.rect = self.image.get_rect()
         self._translate()
@@ -298,7 +298,6 @@ class Display(object):
         >>>
         """
         wscale,hscale = self.world_to_screen_scale()
-
         x, y = vector
         return int(round(x * wscale)), -int(round(y * hscale))
 
