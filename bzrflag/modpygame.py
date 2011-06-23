@@ -167,7 +167,7 @@ class Display(graphics.Display):
         pygame.display.update()
 
     def resize(self, w, h):
-        """resize the pygame surface"""
+        """Resize the pygame surface."""
         self.screen_size = w, h
         self.setup_screen()
         for sprite in self.sprites:

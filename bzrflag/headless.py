@@ -1,9 +1,9 @@
-'''headless.py
+"""headless.py
 
-defines a Display class and an Input class
-for a headless station
+Defines a Display class and an Input class
+for a headless station.
 
-'''
+"""
 
 import asyncore
 import logging
@@ -11,7 +11,7 @@ import logging
 import server
 import constants
 import config
-import graphics
+import graphics 
 
 logger = logging.getLogger('headless.py')
 
@@ -29,7 +29,7 @@ class Display(graphics.Display):
 
 
 class Input:
-    '''The server input class'''
+    """The server input class."""
     
     def __init__(self, game):
         self.game = game
