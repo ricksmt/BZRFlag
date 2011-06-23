@@ -341,12 +341,12 @@ class Team(object):
         """Get a tank based on its ID."""
         if 0<=id<len(self.tanks):
             return self.tanks[id]
-        raise ValueError,"Invalid tank ID: %s"%id
+        raise ValueError("Invalid tank ID: %s"%id)
 
     def shoot(self, tankid):
         """Tell a tank to shoot."""
         if config['freeze_tag']:
-            raise GoodrichException,'No shooting in this game'
+            raise GoodrichException('No shooting in this game')
         return self.tank(tankid).shoot()
 
     def speed(self, tankid, value):
@@ -356,7 +356,7 @@ class Team(object):
         elif value < -1:
             value = -1
         if not (1 >= value >= -1):
-            raise Exception, "not a number"
+            raise Exception("not a number")
         self.tank(tankid).setspeed(value)
 
     def angvel(self, tankid, value):
@@ -366,7 +366,7 @@ class Team(object):
         elif value < -1:
             value = -1
         if not (1 >= value >= -1):
-            raise Exception, "not a number"
+            raise Exception("not a number")
         self.tank(tankid).setangvel(value)
 
     def accelx(self, tankid, value):
@@ -376,7 +376,7 @@ class Team(object):
         elif value < -1:
             value = -1
         if not (1 >= value >= -1):
-            raise Exception, "not a number"
+            raise Exception("not a number")
         self.tank(tankid).setaccelx(value)
 
     def accely(self, tankid, value):
@@ -386,7 +386,7 @@ class Team(object):
         elif value < -1:
             value = -1
         if not (1 >= value >= -1):
-            raise Exception, "not a number"
+            raise Exception("not a number")
         self.tank(tankid).setaccely(value)
 
 

@@ -67,9 +67,9 @@ class ImageCache(object):
 
     def loadteam(self, type, color):
         if not self._teamcache.has_key(type):
-            raise KeyError,"invalid image type: %s"%type
+            raise KeyError("invalid image type: %s"%type)
         if not color in constants.COLORNAME:
-            raise KeyError,"invalid color: %s"%color
+            raise KeyError("invalid color: %s"%color)
         if not self._teamcache[type].has_key(color):
             if type != 'tank' or not config['freeze_tag']:
                 self._teamcache[type][color] = self.load_image('%s_%s.png'%(color,self.suffixes[type]))
@@ -94,7 +94,7 @@ class ImageCache(object):
 
     def load_image(self, filename):
         """Loads the image with the given filename from the DATA_DIR."""
-        raise Exception,'override this method'
+        raise Exception('override this method')
 
     def scaled_image(self, image, scale):
         scale = tuple(int(a) for a in scale)
@@ -105,7 +105,7 @@ class ImageCache(object):
 
     def _scaled_image(self, image, scale):
         """Scales the given image to the given size."""
-        raise Exception,'override this method'
+        raise Exception('override this method')
 
     def rotated_image(self, image, rot):
         rot = int(rot)
@@ -115,7 +115,7 @@ class ImageCache(object):
 
     def tile(self, tile, size):
         """Creates a surface of the given size tiled with the given surface."""
-        raise Exception,'override this method'
+        raise Exception('override this method')
 
 
 class TextSprite(pygame.sprite.Sprite):
@@ -153,7 +153,7 @@ class Taunt(object):
             self.refresh()
 
     def refresh(self):
-        raise Exception, 'not implemented'
+        raise Exception('not implemented')
 
     def draw(self, screen):
         pass
@@ -219,7 +219,7 @@ class BZSprite(pygame.sprite.Sprite):
         self.rect.center = self.display.pos_world_to_screen(self.bzobject.pos)
 
     def _render_image(self, force=False):
-        raise Exception,'_scale_image must be overridden'
+        raise Exception('_scale_image must be overridden')
 
     def update(self, force=False):
         """Overrideable function for creating the image.
@@ -318,7 +318,7 @@ class Display(object):
                 otype = name
                 break
         else:
-            raise Exception,'invalid object added to display: %s'%obj
+            raise Exception('invalid object added to display: %s'%obj)
         if otype == 'score':
             sprite = self._textclass(obj, self)
             self.scores.add(sprite)
@@ -332,10 +332,10 @@ class Display(object):
         self.remove_sprite(self.spritemap[obj])
 
     def add_sprite(self,sprite,otype):
-        raise Exception,'add_sprite must be overridden'
+        raise Exception('add_sprite must be overridden')
 
     def remove_sprite(self, sprite):
-        raise Exception,'remove_sprite must be overridden'
+        raise Exception('remove_sprite must be overridden')
 
     def kill(self):
         pass
