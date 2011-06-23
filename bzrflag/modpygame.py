@@ -1,6 +1,7 @@
 import os
-import pygame
 import math
+import pygame
+from pygame import MOUSEBUTTONDOWN, KEYDOWN, QUIT, MOUSEMOTION, VIDEORESIZE
 
 import graphics
 import constants

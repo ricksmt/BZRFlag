@@ -128,7 +128,7 @@ class Handler(asynchat.async_chat):
                     logger.error(self.team.color + ' : ERROR : %s : %s\n' 
                                  % (args, e))
                     self.team.map.game.display.console.write(self.team.color +
-                                                             ' : ERROR : %s : 
+                                                             ' : ERROR : %s : \
                                                              %s : %s\n' % 
                                                              (args, e.__class__
                                                              .__name__, e))

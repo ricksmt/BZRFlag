@@ -12,8 +12,8 @@ CODING STYLE
 - add doc strings and other documentation
 + make naming and whitespace styles more compliant (PEP 8) and consistent,
   with whitespace between operators, max line length of 80, etc.(23 June 2011)
-- remove local dead (commented-out) code
-- remove global dead code: snapshot.py etc.
++ remove local dead (commented-out) code(23 June 2011)
++ remove global dead code: snapshot.py etc.(23 June 2011)
 - figure out why there are different classes with the same name in
   graphics.py and modpygame.py: either document or merge--there seems to be
   some half-implemented plan for implementing other graphics library (would

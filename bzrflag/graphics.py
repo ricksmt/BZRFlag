@@ -18,6 +18,7 @@ from config import config
 from world import Base, Box
 from game import Tank, Shot, Flag, Base, Score
 
+
 DEFAULT_SIZE = map(int, config['window_size'].split('x'))
 
 BASE_PATTERN = '%s_basetop.png'

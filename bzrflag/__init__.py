@@ -5,7 +5,6 @@ import logging
 import os
 
 import config
-#from main import run
 
 LOG_FILENAME = os.path.abspath(os.path.join(
     os.path.split(__file__)[0], '..', 'debug.log'))
@@ -13,7 +12,7 @@ LOG_FILENAME = os.path.abspath(os.path.join(
 
 def run():
     config.init()
-    from game import Game
+    from game import Game # Cannot be imported befor config.init() is called!
     level = logging.WARNING
     if config.config['debug']:
         level = logging.DEBUG

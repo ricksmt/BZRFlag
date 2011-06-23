@@ -9,9 +9,9 @@ information about the file format (but note that their BNF is incomplete).
 
 """
 
+from __future__ import division
 import logging
 import math
-from __future__ import division
 from pyparsing import alphas, nums, Word, Keyword, LineEnd, Each, ZeroOrMore, \
                       Combine, Optional, Dict, SkipTo, Group
         
