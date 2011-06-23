@@ -5,6 +5,8 @@ import datetime
 import numpy
 import logging
 
+import headless
+import modpygame
 import collide
 import constants
 from config import config
@@ -29,9 +31,6 @@ class Game:
     
     def __init__(self):
 
-        import headless
-        import modpygame
-
         if config['random_seed'] != -1:
             random.seed(config['random_seed'])
 
@@ -47,7 +46,6 @@ class Game:
     def remake(self):
         """For testing purposes."""
         self.display.kill()
-        import modpygame
         self.map = Map(self)
         self.display = modpygame.Display(self)
         self.running = False
