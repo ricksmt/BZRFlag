@@ -49,7 +49,7 @@ obstacle_items = [position, Optional(size), Optional(rotation)]
 
 
 class Box(object):
-    """a basic obstacle type"""
+    """A basic obstacle type."""
     
     def __init__(self, pos=None, position=None, rot=None, rotation=None,
             size=None):
@@ -71,7 +71,7 @@ class Box(object):
 
 
 class Base(object):
-    """a BZFlag Base. one per team"""
+    """A BZFlag Base.  One per team."""
     
     def __init__(self, color=None, pos=None, position=None, rot=None,
                  rotation=None, size=None):
@@ -98,9 +98,9 @@ class Base(object):
 
 
 class World(object):
-    """encompassing class which parses the entire file. Returns a World
+    """Encompassing class which parses the entire file.  Returns a World
     object that is used by the classes in :mod:`game` to populate the
-    game
+    game.
     
     """
     
