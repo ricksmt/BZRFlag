@@ -69,7 +69,7 @@ class BZRC:
         raise UnexpectedResponse(expected, ' '.join(got_arr))
 
     def expect(self, expected, full=False):
-        if type(expected) == str:
+        if isinstance(expected, str):
             expected = (expected,)
         line = self.read_arr()
         good = True
