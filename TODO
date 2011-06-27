@@ -35,3 +35,6 @@ BUGS
   map (from a fully zoomed out perspective)
 
 
+
+
+- agents*.pyc in compiled bots folder have bad magic number error
