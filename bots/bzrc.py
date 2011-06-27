@@ -13,13 +13,13 @@
 # express or implied.
 ####################################################################
 
+from __future__ import division
+
 import math
 import sys
 import socket
 import time
 import numpy
-
-from __future__ import division
 
 
 class BZRC:
