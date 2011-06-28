@@ -72,6 +72,7 @@ class Agent(object):
             self.move_to_position(bot, best_enemy.x, best_enemy.y)
 
     def move_to_position(self, bot, target_x, target_y):
+        """Set command to move to given coordinates."""
         target_angle = math.atan2(target_y - bot.y,
                                   target_x - bot.x)
         relative_angle = self.normalize_angle(target_angle - bot.angle)

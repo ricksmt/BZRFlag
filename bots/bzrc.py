@@ -132,7 +132,7 @@ class BZRC:
         return (True, False)[i]
 
     def read_teams(self):
-        """"""
+        """Get team information."""
         self.expect('begin')
         teams = []
         while True:
@@ -148,7 +148,7 @@ class BZRC:
         return teams
 
     def read_obstacles(self):
-        """"""
+        """Get obstacle information."""
         self.expect('begin')
         obstacles = []
         while True:
@@ -161,6 +161,7 @@ class BZRC:
         return obstacles
     
     def read_occgrid(self):
+        """Read grid."""
         response = self.read_arr()
         if 'fail' in response:
             return None
@@ -176,6 +177,7 @@ class BZRC:
         return pos, grid
 
     def read_flags(self):
+        """Get flag information."""
         line = self.read_arr()
         if line[0] != 'begin':
             self.die_confused('begin', line)
@@ -197,6 +199,7 @@ class BZRC:
         return flags
 
     def read_shots(self):
+        """Get shot information."""
         line = self.read_arr()
         if line[0] != 'begin':
             self.die_confused('begin', line)
@@ -218,6 +221,7 @@ class BZRC:
         return shots
 
     def read_mytanks(self):
+        """Get friendly tank information."""
         line = self.read_arr()
         if line[0] != 'begin':
             self.die_confused('begin', line)
@@ -247,6 +251,7 @@ class BZRC:
         return tanks
 
     def read_othertanks(self):
+        """Get enemy tank information."""
         line = self.read_arr()
         if line[0] != 'begin':
             self.die_confused('begin', line)
@@ -271,6 +276,7 @@ class BZRC:
         return tanks
 
     def read_bases(self):
+        """Get base information."""
         bases = []
         line = self.read_arr()
         if line[0] != 'begin':
@@ -296,6 +302,7 @@ class BZRC:
         return bases
 
     def read_constants(self):
+        """Get constants."""
         line = self.read_arr()
         if line[0] != 'begin':
             self.die_confused('begin', line)
@@ -453,7 +460,7 @@ class BZRC:
                     result_shoot = self.read_bool()
                 else:
                     result_shoot = False
-                results.append( (result_speed, result_angvel, result_shoot) )
+                results.append((result_speed, result_angvel, result_shoot))
         return results
 
 
@@ -478,7 +485,8 @@ class Command(object):
 
 
 class GoodrichCommand(object):
-
+    """Class for setting a command for a Goodrich bot."""
+    
     def __init__(self, index, accelx, accely):
         self.index = index
         self.accelx = accelx

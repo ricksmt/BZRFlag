@@ -59,6 +59,7 @@ class Agent(object):
         occg = list(self.bzrc.get_occgrid(i.index) for i in self.mytanks)
 
     def set_flag_goals(self):
+        """Set goal to nearest enemy flag."""
         for tank in self.mytanks:
             best = [0,None]
             flag = self.closest_flag(tank)
@@ -82,6 +83,10 @@ class Agent(object):
         results = self.bzrc.do_commands(self.commands)
 
     def update_goal(self, bot):
+        """Update goal to nearest flag if currently none, or to home base
+        if flag in possesion.  Otherwise set to random. 
+        
+        """
         if bot.flag != '-':
             self.goals[bot.index] = self.base.x, self.base.y
         if not self.goals[bot.index]:
@@ -103,12 +108,14 @@ class Agent(object):
         self.commands.append(GoodrichCommand(bot.index, dx/5, dy/5))
 
     def random_pos(self):
+        """Return random x y coordinates."""
         width = int(self.constants['worldsize'])
         x = random.randrange(width) - width/2
         y = random.randrange(width) - width/2
         return x,y
 
     def closest_flag(self, bot):
+        """Find closest enemy flag."""
         best = None
         for flag in self.flags:
             if flag.color == self.constants['team']:
@@ -122,6 +129,7 @@ class Agent(object):
             return best[1]
 
     def move_towards(self, bot, x, y):
+        """Set command to move to given coordinates."""
         dx = x - bot.x
         dy = y - bot.y
         self.commands.append(GoodrichCommand(bot.index, dx/10, dy/10))

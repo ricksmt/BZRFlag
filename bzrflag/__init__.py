@@ -7,7 +7,7 @@ import os
 import config
 
 LOG_FILENAME = os.path.abspath(os.path.join(
-    os.path.split(__file__)[0], '..', 'debug.log'))
+               os.path.split(__file__)[0], '..', 'debug.log'))
 
 
 def run():
