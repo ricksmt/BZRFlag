@@ -51,6 +51,7 @@ class Agent(object):
         self.set_flag_goals()
 
     def update(self):
+        """Updates mytanks, othertanks, flags, and shots."""
         mytanks, othertanks, flags, shots = self.bzrc.get_lots_o_stuff()
         self.mytanks = mytanks
         self.othertanks = othertanks

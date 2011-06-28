@@ -69,10 +69,12 @@ class BZRC:
         raise UnexpectedResponse(expected, ' '.join(got_arr))
 
     def expect(self, expected, full=False):
+        """Verify that server's response is as expected."""
         if isinstance(expected, str):
             expected = (expected,)
         line = self.read_arr()
         good = True
+        
         if full and len(expected) != len(line):
             good = False
         else:
@@ -80,6 +82,7 @@ class BZRC:
                 if a!=b:
                     good = False
                     break
+                    
         if not good:
             self.die_confused(' '.join(expected), line)
         if full:
@@ -107,7 +110,6 @@ class BZRC:
 
     def handshake(self):
         """Perform the handshake with the remote bots."""
-
         self.expect(('bzrobots', '1'), True)
         print >>self.conn, 'agent 1'
 
@@ -130,8 +132,8 @@ class BZRC:
         return (True, False)[i]
 
     def read_teams(self):
+        """"""
         self.expect('begin')
-
         teams = []
         while True:
             i, rest = self.expect_multi(('team',),('end',))
@@ -146,8 +148,8 @@ class BZRC:
         return teams
 
     def read_obstacles(self):
+        """"""
         self.expect('begin')
-
         obstacles = []
         while True:
             i, rest = self.expect_multi(('obstacle',),('end',))

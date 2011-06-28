@@ -73,7 +73,7 @@ class Agent(object):
 
     def move_to_position(self, bot, target_x, target_y):
         target_angle = math.atan2(target_y - bot.y,
-                target_x - bot.x)
+                                  target_x - bot.x)
         relative_angle = self.normalize_angle(target_angle - bot.angle)
         command = Command(bot.index, 1, 2 * relative_angle, True)
         self.commands.append(command)
@@ -99,6 +99,7 @@ def main():
         sys.exit(-1)
 
     # Connect.
+    #bzrc = BZRC(host, int(port), debug=True)
     bzrc = BZRC(host, int(port))
 
     agent = Agent(bzrc)
