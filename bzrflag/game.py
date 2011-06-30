@@ -287,7 +287,7 @@ class Team(object):
         if not config['freeze_tag']:
             tank.rot = random.uniform(0, 2*math.pi)
         pos = self.spawn_position()
-        for i in xrange(1000):
+        for i in xrange(constants.RESPAWNTRIES):
             if self.check_position(pos, constants.TANKRADIUS):
                 break
             pos = self.spawn_position()
@@ -580,6 +580,7 @@ class GoodrichTank(Tank):
 
     def update_goals(self, dt):
         """Update the velocities to match the goals."""
+        # Return the flag once you get on "your side"
         flagdist = collide.dist(self.pos, self.team.flag.pos)
         if self.flag and collide.rect2circle(self.team.base.rect,
                                             (self.pos, constants.TANKRADIUS)):
@@ -594,10 +595,6 @@ class GoodrichTank(Tank):
                     math.sin(angle) * rad + self.pos[1]]
             if not self.collision_at(npos, True):
                 self.pos = npos
-
-        # Return the flag once you get on "your side"
-        # if self.flag and self.team.map.closest_base(self.pos) == 
-        # self.team.base: self.team.map.scoreFlag(self.flag)
 
         self.hspeed += self.accelx
         self.vspeed += self.accely

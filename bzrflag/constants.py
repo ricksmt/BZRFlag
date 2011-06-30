@@ -8,8 +8,8 @@ global.cxx but are not included in the list of BSFlag constants.
 
 from __future__ import division
 import math
-
 import logging
+
 logger = logging.getLogger('constants')
 
 # Colors
@@ -42,3 +42,27 @@ CAPTUREPOINTS = 4000
 
 # Rules
 EXPLODETIME = 5
+
+# Graphics
+BASE_PATTERN = '%s_basetop.png'
+SHOT_PATTERN = '%s_bolt.png'
+FLAG_PATTERN = '%s_flag.png'
+TANK_PATTERN = '%s_tank.png'
+TILESCALE = 0.1
+SHOTSCALE = 2
+FLAGSCALE = 3
+TANKSCALE = 1.2
+
+FONTSIZE = 16
+
+# A higher loop timeout decreases CPU usage but also decreases the frame rate.
+LOOP_TIMEOUT = 0.01
+
+# Server
+BACKLOG = 5
+
+# Game
+RESPAWNTRIES = 1000
+
+
+

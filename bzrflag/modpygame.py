@@ -98,7 +98,7 @@ class TextSprite(graphics.TextSprite):
     def refresh(self):
         self.text = self.bzobject.text()
         lines = self.text.split('\n')
-        font = pygame.font.Font(paths.FONT_FILE, 16)
+        font = pygame.font.Font(paths.FONT_FILE, constants.FONTSIZE)
         mw = 0
         mh = 0
         for line in lines:

@@ -14,11 +14,10 @@ import logging
 import numpy
 
 import constants
+from constants import BACKLOG
 from config import config
 
 logger = logging.getLogger('server')
-
-BACKLOG = 5
 
 
 class Server(asyncore.dispatcher):

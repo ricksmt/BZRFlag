@@ -10,10 +10,10 @@ information about the file format (but note that their BNF is incomplete).
 """
 
 from __future__ import division
-import logging
-import math
 from pyparsing import alphas, nums, Word, Keyword, LineEnd, Each, ZeroOrMore, \
                       Combine, Optional, Dict, SkipTo, Group
+import logging
+import math
         
 import constants
 

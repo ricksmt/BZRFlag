@@ -13,22 +13,13 @@ import pygame
 import os
 
 import paths
-import constants
+from constants import COLORNAME, TILESCALE
 from config import config
 from world import Base, Box
 from game import Tank, Shot, Flag, Base, Score
 
 
 DEFAULT_SIZE = map(int, config['window_size'].split('x'))
-
-BASE_PATTERN = '%s_basetop.png'
-SHOT_PATTERN = '%s_bolt.png'
-FLAG_PATTERN = '%s_flag.png'
-TANK_PATTERN = '%s_tank.png'
-TILESCALE = 0.1
-SHOTSCALE = 2
-FLAGSCALE = 3
-TANKSCALE = 1.2
 
 
 class ImageCache(object):
@@ -68,7 +59,7 @@ class ImageCache(object):
     def loadteam(self, type, color):
         if not self._teamcache.has_key(type):
             raise KeyError("invalid image type: %s"%type)
-        if not color in constants.COLORNAME:
+        if not color in COLORNAME:
             raise KeyError("invalid color: %s"%color)
         if not self._teamcache[type].has_key(color):
             if type != 'tank' or not config['freeze_tag']:
