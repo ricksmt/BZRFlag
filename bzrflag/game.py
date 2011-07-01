@@ -313,9 +313,9 @@ class Team(object):
             if collide.dist(point, self.base.center) < self.base.radius:
                 return False
         if point[0]-radius<-config.world.size[0]/2 or\
-         point[1]-radius<-config.world.size[1]/2 or\
-         point[0]+radius>config.world.size[0]/2 or \
-         point[1]+radius>config.world.size[1]/2:
+           point[1]-radius<-config.world.size[1]/2 or\
+           point[0]+radius>config.world.size[0]/2 or\
+           point[1]+radius>config.world.size[1]/2:
             return False
         return True
 

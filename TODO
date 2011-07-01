@@ -3,13 +3,13 @@
 GENERAL
 - add a LICENSE file and add copyright headers to each python file
 - add unit tests
-- move bzrflag/bzrflags/docs to bzrflags/docs;
++ move bzrflag/bzrflags/docs to bzrflags/docs;
   remove bzrflag/bzrflag/make.bat or put it in a non-code directory
-- move the test directory from bzrflag/bzrflag/test to bzrflag/test
++ move the test directory from bzrflag/bzrflag/test to bzrflag/test
 - consider adding setuptools for installability
 
 CODING STYLE
-- add doc strings and other documentation
++ add doc strings and other documentation
 + make naming and whitespace styles more compliant (PEP 8) and consistent,
   with whitespace between operators, max line length of 80, etc.(23 June 2011)
 + remove local dead (commented-out) code(23 June 2011)
@@ -20,7 +20,7 @@ CODING STYLE
   this even work? why not just put all of the graphics code in one place?)
 - straighten out the licensing for collide.py; integrate it into the code
   base more fully
-- move any and all magic constants to constants.py
++ move any and all magic constants to constants.py
 - unify SeppiTank and GoodrichTank into a single class; if there are two
   different classes, they should be named after motion (StandardTank and
   HoverTank) not people
@@ -37,4 +37,4 @@ BUGS
 
 
 
-- agents*.pyc in compiled bots folder have bad magic number error
+
