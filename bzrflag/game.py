@@ -245,8 +245,7 @@ class Team(object):
         if ntanks is None:
             ntanks = config['default_tanks']
 
-        Tcls = (SeppiTank, GoodrichTank)[bool(config['freeze_tag'])]
-        self.tanks = [Tcls(self, i) for i in xrange(ntanks)]
+        self.tanks = [SeppiTank(self, i) for i in xrange(ntanks)]
         self.tanks_radius = constants.TANKRADIUS * ntanks * 3/2.0
         self.base = base
         base.team = self
@@ -341,8 +340,6 @@ class Team(object):
 
     def shoot(self, tankid):
         """Tell a tank to shoot."""
-        if config['freeze_tag']:
-            raise GoodrichException('No shooting in this game')
         return self.tank(tankid).shoot()
 
     def speed(self, tankid, value):
@@ -364,26 +361,6 @@ class Team(object):
         if not (1 >= value >= -1):
             raise Exception("not a number")
         self.tank(tankid).setangvel(value)
-
-    def accelx(self, tankid, value):
-        """Set a tank's goal angular velocity."""
-        if value > 1:
-            value = 1
-        elif value < -1:
-            value = -1
-        if not (1 >= value >= -1):
-            raise Exception("not a number")
-        self.tank(tankid).setaccelx(value)
-
-    def accely(self, tankid, value):
-        """Set a tank's goal angular velocity."""
-        if value > 1:
-            value = 1
-        elif value < -1:
-            value = -1
-        if not (1 >= value >= -1):
-            raise Exception("not a number")
-        self.tank(tankid).setaccely(value)
 
 
 class Tank(object):
@@ -567,89 +544,6 @@ class SeppiTank(Tank):
         """Calculate the tank's linear velocity."""
         return (self.speed * math.cos(self.rot) * constants.TANKSPEED,
             self.speed * math.sin(self.rot) * constants.TANKSPEED)
-
-
-class GoodrichTank(Tank):
-
-    def __init__(self, team, tankid):
-        super(GoodrichTank, self).__init__(team, tankid)
-        self.accelx = 0
-        self.accely = 0
-        self.hspeed = 0
-        self.vspeed = 0
-
-    def update_goals(self, dt):
-        """Update the velocities to match the goals."""
-        # Return the flag once you get on "your side"
-        flagdist = collide.dist(self.pos, self.team.flag.pos)
-        if self.flag and collide.rect2circle(self.team.base.rect,
-                                            (self.pos, constants.TANKRADIUS)):
-            self.team.map.scoreFlag(self.flag)
-
-        if not self.flag and self.team.flag.tank is None and\
-                         flagdist < config['puppy_guard_zone']:
-            x,y = self.team.flag.pos
-            rad = 1 # config['puppy_guard_zone']
-            angle = math.atan2(self.pos[1]-y, self.pos[0]-x)
-            npos = [math.cos(angle) * rad + self.pos[0],
-                    math.sin(angle) * rad + self.pos[1]]
-            if not self.collision_at(npos, True):
-                self.pos = npos
-
-        self.hspeed += self.accelx
-        self.vspeed += self.accely
-        max = 30
-        if collide.dist((0,0),(self.hspeed, self.vspeed)) > max:
-            dr = math.atan2(self.vspeed, self.hspeed)
-            self.hspeed = math.cos(dr) * max
-            self.vspeed = math.sin(dr) * max
-
-    def collision_at(self, pos, ignore_base=False):
-        if super(GoodrichTank, self).collision_at(pos):
-            return True
-        if not ignore_base and not self.flag and\
-                            self.team.flag.tank is None and\
-                            collide.dist(pos, self.team.flag.pos) < \
-                            config['puppy_guard_zone']:
-            return True
-        return False
-
-    def collide_tank(self, tank):
-        if tank.team == self.team:
-            if tank.status == constants.TANKDEAD:
-                self.team.respawn(tank)
-        elif tank.status != constants.TANKDEAD and \
-                            self.status != constants.TANKDEAD:
-            base = self.team.map.closest_base(self.pos)
-            if not base:return
-            if base.team == tank.team:
-                self.kill()
-            elif base.team == self.team:
-                tank.kill()
-
-    def kill(self):
-        flag = self.flag
-        super(GoodrichTank, self).kill()
-        if flag:
-            self.team.map.returnFlag(flag)
-
-    def reset_speed(self):
-        self.accelx = 0
-        self.accely = 0
-        self.hspeed = 0
-        self.vspeed = 0
-
-    def setaccelx(self, accelx):
-        """Set the goal x accelleration."""
-        self.accelx = accelx
-
-    def setaccely(self, accely):
-        """Set the goal y accelleration."""
-        self.accely = accely
-
-    def velocity(self):
-        """Calculate the tank's linear velocity."""
-        return self.hspeed, self.vspeed
 
 
 class Shot(object):

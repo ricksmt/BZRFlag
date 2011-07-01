@@ -37,6 +37,11 @@ class BZRC:
         self.conn = sock.makefile(bufsize=1)
 
         self.handshake()
+    
+    def handshake(self):
+        """Perform the handshake with the remote tanks."""
+        self.expect(('bzrobots', '1'), True)
+        print >>self.conn, 'agent 1'
 
     def close(self):
         """Close the socket."""
@@ -107,11 +112,6 @@ class BZRC:
             self.die_confused(' or '.join(' '.join(one) for one in expecteds),
                     line)
         return i, line[len(expected):]
-
-    def handshake(self):
-        """Perform the handshake with the remote tanks."""
-        self.expect(('bzrobots', '1'), True)
-        print >>self.conn, 'agent 1'
 
     def read_ack(self):
         """Expect an "ack" line from the remote tanks.
@@ -338,18 +338,6 @@ class BZRC:
         self.read_ack()
         return self.read_bool()
 
-    def accelx(self, index, value):
-        """Set the desired x acceleration to the specified value."""
-        self.sendline('accelx %s %s' % (index, value))
-        self.read_ack()
-        return self.read_bool()
-
-    def accely(self, index, value):
-        """Set the desired x acceleration to the specified value."""
-        self.sendline('accely %s %s' % (index, value))
-        self.read_ack()
-        return self.read_bool()
-
     # Information Requests:
 
     def get_teams(self):
@@ -433,34 +421,23 @@ class BZRC:
     def do_commands(self, commands):
         """Send commands for a bunch of tanks in a network-optimized way."""
         for cmd in commands:
-            if isinstance(cmd, GoodrichCommand):
-                self.sendline('accelx %d %s' % (cmd.index, cmd.accelx))
-                self.sendline('accely %d %s' % (cmd.index, cmd.accely))
-            else:
-                self.sendline('speed %s %s' % (cmd.index, cmd.speed))
-                self.sendline('angvel %s %s' % (cmd.index, cmd.angvel))
-                if cmd.shoot:
-                    self.sendline('shoot %s' % cmd.index)
+            self.sendline('speed %s %s' % (cmd.index, cmd.speed))
+            self.sendline('angvel %s %s' % (cmd.index, cmd.angvel))
+            if cmd.shoot:
+                self.sendline('shoot %s' % cmd.index)
 
         results = []
         for cmd in commands:
-            if isinstance(cmd, GoodrichCommand):
+            self.read_ack()
+            result_speed = self.read_bool()
+            self.read_ack()
+            result_angvel = self.read_bool()
+            if cmd.shoot:
                 self.read_ack()
-                accelx = self.read_bool()
-                self.read_ack()
-                accely = self.read_bool()
-                results.append((accelx, accely))
+                result_shoot = self.read_bool()
             else:
-                self.read_ack()
-                result_speed = self.read_bool()
-                self.read_ack()
-                result_angvel = self.read_bool()
-                if cmd.shoot:
-                    self.read_ack()
-                    result_shoot = self.read_bool()
-                else:
-                    result_shoot = False
-                results.append((result_speed, result_angvel, result_shoot))
+                result_shoot = False
+            results.append((result_speed, result_angvel, result_shoot))
         return results
 
 
@@ -482,15 +459,6 @@ class Command(object):
         self.speed = speed
         self.angvel = angvel
         self.shoot = shoot
-
-
-class GoodrichCommand(object):
-    """Class for setting a command for a Goodrich bot."""
-    
-    def __init__(self, index, accelx, accely):
-        self.index = index
-        self.accelx = accelx
-        self.accely = accely
 
 
 class UnexpectedResponse(Exception):
