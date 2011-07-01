@@ -86,10 +86,6 @@ class Config:
             dest='telnet_console', default=False,
             action='store_true',
             help='use interactive telnet shell (and log server response)')
-        p.add_option('--freeze-tag',
-            action='store_true',
-            dest='freeze_tag',
-            help='NO LONGER SUPORTED')
         p.add_option('--puppy-guard-zone',
             type='int', default=30, dest='puppy_guard_zone',
             help='radius of the puppy-guard zone')

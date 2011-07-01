@@ -109,20 +109,10 @@ class Map(object):
         # queue of objects that need to be created or destroyed
         self.inbox = []
         self.trash = []
-        # attrs ::fix these -- are they all needed? they should be
-        #       defined somewhere else::
-        # defaults for customizable values
-
-        # is maximum_shots
-        #world_diagonal = constants.WORLDSIZE * math.sqrt(2.0)
-        #max_bullet_life = constants.WORLDSIZE / constants.SHOTSPEED
-        #self.maximum_shots = int(max_bullet_life / constants.RELOADTIME)
         self.timespent = 0.0
-        ## these should be set elsewhere
         self.inertia_linear = 1
         self.inertia_angular = 1
         self.taunt_timer = 0
-        # self.display = modpygame.Display(self)
         self.taunt_msg = None
         self.taunt_color = None
 
@@ -241,7 +231,7 @@ class Team(object):
         if ntanks is None:
             ntanks = config['default_tanks']
 
-        self.tanks = [SeppiTank(self, i) for i in xrange(ntanks)]
+        self.tanks = [M1A1Abrams(self, i) for i in xrange(ntanks)]
         self.tanks_radius = constants.TANKRADIUS * ntanks * 3/2.0
         self.base = base
         base.team = self
@@ -475,10 +465,10 @@ class Tank(object):
         raise NotImplementedError
 
 
-class SeppiTank(Tank):
+class M1A1Abrams(Tank):
 
     def __init__(self, team, tankid):
-        super(SeppiTank, self).__init__(team, tankid)
+        super(M1A1Abrams, self).__init__(team, tankid)
         self.goal_speed = 0
         self.goal_angvel = 0
         self.speed = 0
@@ -491,7 +481,7 @@ class SeppiTank(Tank):
             shot.update(dt)
         if self.reloadtimer > 0:
             self.reloadtimer -= dt
-        super(SeppiTank, self).update(dt)
+        super(M1A1Abrams, self).update(dt)
 
     def update_goals(self, dt):
         """Update the velocities to match the goals."""
@@ -530,7 +520,7 @@ class SeppiTank(Tank):
         return True
 
     def kill(self):
-        super(SeppiTank, self).kill()
+        super(M1A1Abrams, self).kill()
         self.pos = constants.DEADZONE
 
     def velocity(self):

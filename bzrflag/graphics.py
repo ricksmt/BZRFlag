@@ -7,11 +7,11 @@
 import os
 import math
 import pygame
-import pygameconsole
 from pygame import MOUSEBUTTONDOWN, KEYDOWN, QUIT, MOUSEMOTION, VIDEORESIZE, \
                    K_DOWN, K_UP, K_LEFT, K_RIGHT
 
 import paths
+import pygameconsole
 from constants import COLORNAME, TILESCALE, FONTSIZE
 from config import config
 from world import Base, Box
@@ -61,16 +61,8 @@ class ImageCache(object):
         if not color in COLORNAME:
             raise KeyError("invalid color: %s"%color)
         if not self._teamcache[type].has_key(color):
-            if type != 'tank' or not config['freeze_tag']:
-                self._teamcache[type][color] = \
-                        self.load_image('%s_%s.png'%(color,
-                                                     self.suffixes[type]))
-            else:
-                self._teamcache[type][color] = \
-                        self.load_image('%s_%s_g.png'%(color,
-                                                       self.suffixes[type]))
-
-
+            self._teamcache[type][color] = \
+                    self.load_image('%s_%s.png'%(color, self.suffixes[type]))
         return self._teamcache[type][color]
 
     def scaled_size(self, size, scale):
