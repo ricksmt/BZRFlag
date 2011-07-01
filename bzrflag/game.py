@@ -11,10 +11,6 @@ from config import config
 logger = logging.getLogger('game')
 
 
-class GoodrichException(Exception):
-    pass
-
-
 class Game:
     """*Main control object. Contains the main loop.*
 
@@ -22,19 +18,19 @@ class Game:
 
     * map => :class:`game.Map`
     * input => :class:`headless.Input`
-    * display => :class:`modpygame.Display`
+    * display => :class:`graphics.Display`
     
     """
     
     def __init__(self):
     
         import headless #imported here to avoid circular imports
-        import modpygame #imported here to avoid circular imports
+        import graphics #imported here to avoid circular imports
         
         if config['random_seed'] != -1:
             random.seed(config['random_seed'])
         self.map = Map(self)
-        self.display = modpygame.Display(self)
+        self.display = graphics.Display(self)
         self.input = headless.Input(self)
         self.running = False
         self.gameover = False
@@ -43,11 +39,11 @@ class Game:
     def remake(self):
         """For testing purposes."""
         
-        import modpygame #imported here to avoid circular imports
+        import graphics #imported here to avoid circular imports
         
         self.display.kill()
         self.map = Map(self)
-        self.display = modpygame.Display(self)
+        self.display = graphics.Display(self)
         self.running = False
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()
@@ -283,8 +279,8 @@ class Team(object):
         tank.reset_speed()
         if tank.pos != constants.DEADZONE:
             return
-        if not config['freeze_tag']:
-            tank.rot = random.uniform(0, 2*math.pi)
+        
+        tank.rot = random.uniform(0, 2*math.pi)
         pos = self.spawn_position()
         for i in xrange(constants.RESPAWNTRIES):
             if self.check_position(pos, constants.TANKRADIUS):
@@ -307,9 +303,6 @@ class Team(object):
         for tank in self.map.tanks():
             if collide.circle2circle((point, radius),
                     (tank.pos, constants.TANKRADIUS)):
-                return False
-        if config['freeze_tag']:
-            if collide.dist(point, self.base.center) < self.base.radius:
                 return False
         if point[0]-radius<-config.world.size[0]/2 or\
            point[1]-radius<-config.world.size[1]/2 or\

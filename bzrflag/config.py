@@ -89,7 +89,7 @@ class Config:
         p.add_option('--freeze-tag',
             action='store_true',
             dest='freeze_tag',
-            help='start a freeze tag game')
+            help='NO LONGER SUPORTED')
         p.add_option('--puppy-guard-zone',
             type='int', default=30, dest='puppy_guard_zone',
             help='radius of the puppy-guard zone')
