@@ -23,7 +23,7 @@ import numpy
 
 
 class BZRC:
-    """Class handles queries and responses with remote control bots."""
+    """Class handles queries and responses with remote controled tanks."""
 
     def __init__(self, host, port, debug=False):
         """Given a hostname and port number, connect to the RC tanks."""
@@ -61,7 +61,7 @@ class BZRC:
         print >>self.conn, line
 
     def die_confused(self, expected, got_arr):
-        """When we think the RC bots should have responded differently, call
+        """When we think the RC tanks should have responded differently, call
         this method with a string explaining what should have been sent and
         with the array containing what was actually sent.
         
@@ -109,7 +109,7 @@ class BZRC:
         return i, line[len(expected):]
 
     def handshake(self):
-        """Perform the handshake with the remote bots."""
+        """Perform the handshake with the remote tanks."""
         self.expect(('bzrobots', '1'), True)
         print >>self.conn, 'agent 1'
 
@@ -383,13 +383,13 @@ class BZRC:
         return self.read_shots()
 
     def get_mytanks(self):
-        """Request a list of our robots."""
+        """Request a list of our tanks."""
         self.sendline('mytanks')
         self.read_ack()
         return self.read_mytanks()
 
     def get_othertanks(self):
-        """Request a list of tanks that aren't our bots."""
+        """Request a list of tanks that aren't ours."""
         self.sendline('othertanks')
         self.read_ack()
         return self.read_othertanks()
@@ -475,7 +475,7 @@ class Answer(object):
 
 
 class Command(object):
-    """Class for setting a command for a bot."""
+    """Class for setting a command for a tank."""
     
     def __init__(self, index, speed, angvel, shoot):
         self.index = index
