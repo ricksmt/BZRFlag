@@ -10,7 +10,6 @@ wf = os.path.join(pwd, 'test.bzw')
 class Test(magictest.MagicTest):
 
     def runTest(self):
-        # basic...
         args = '--world=test_bad.bzw --green-port=50189'.split()
         self.assertRaises(config.ArgumentError, config.Config,args)
         

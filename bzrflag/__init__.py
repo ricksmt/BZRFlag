@@ -11,6 +11,7 @@ LOG_FILENAME = os.path.abspath(os.path.join(
 
 
 def run():
+    """Run bzrflag game."""
     config.init()
     from game import Game # Cannot be imported befor config.init() is called!
     level = logging.WARNING

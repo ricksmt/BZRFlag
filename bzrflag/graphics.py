@@ -56,6 +56,7 @@ class ImageCache(object):
         return self._wall
 
     def loadteam(self, type, color):
+        """Loade team images."""
         if not self._teamcache.has_key(type):
             raise KeyError("invalid image type: %s"%type)
         if not color in COLORNAME:
@@ -85,6 +86,7 @@ class ImageCache(object):
         return image
 
     def scaled_image(self, image, scale):
+        """Returns scaled image."""
         size = self.scaled_size(image.get_size(), scale)
         return pygame.transform.smoothscale(image, size)
 
@@ -93,6 +95,7 @@ class ImageCache(object):
         raise Exception('override this method')
 
     def rotated_image(self, image, rot):
+        """Rotate image."""
         nimg = pygame.transform.rotate(image, rot/math.pi*180)
         return nimg
 

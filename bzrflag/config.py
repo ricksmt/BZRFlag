@@ -30,6 +30,7 @@ class Config:
         config = self
 
     def get(self, key, default):
+        """Return value of given key, or defalt if option[key] = None."""
         if self.options[key] is None:
             return default
         return self.options[key]
@@ -52,6 +53,7 @@ class Config:
         self.world = results[0]
 
     def parse_cli_args(self, args):
+        """Parse command line arguments."""
         p = optparse.OptionParser()
 
         p.add_option('-d','--debug',

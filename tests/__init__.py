@@ -6,13 +6,16 @@ import collide
 import game
 from bzrflag import constants # to make sure we can
 
+VB = 2
 
 def run():
+    print "\nSTART TESTS"
     print "\nRunning tests for config.py:"
-    config.runSuite(1)
+    config.runSuite(VB)
     print "\nRunning tests for collide.py:"
-    collide.runSuite(1)
+    collide.runSuite(VB)
     print "\nRunning tests for game.py:"
-    game.runSuite(1)
+    game.runSuite(VB)
+    print "\nEND TESTS"
     
 # vim: et sw=4 sts=4

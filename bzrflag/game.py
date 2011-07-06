@@ -142,6 +142,11 @@ class Map(object):
             team.update(dt)
 
     def build_truegrid(self):
+        """Builds occupancy grid with obstacles in self.obstacles.
+        
+        Note: Occupancy grids with rotated obstalces not implemnted.
+        
+        """
         self.occgrid = numpy.zeros((config.world.width, config.world.height))
         offset_x = config.world.width/2
         offset_y = config.world.height/2
@@ -186,22 +191,26 @@ class Map(object):
                 yield shot
 
     def dropFlag(self, flag):
+        """Sets flag to None."""
         if flag.tank is not None:
             flag.tank.flag = None
         flag.tank = None
 
     def returnFlag(self, flag):
+        """Return flag to base."""
         if flag.tank is not None:
             flag.tank.flag = None
         flag.tank = None
         flag.pos = flag.team.base.pos
 
     def scoreFlag(self, flag):
+        """Adjust scores for capture."""
         flag.tank.team.score.gotFlag()
         flag.team.score.lostFlag()
         self.returnFlag(flag)
 
     def closest_base(self, pos):
+        """Returns position of clossest base."""
         items = tuple(sorted((collide.dist(pos, base.center), base)
                       for base in self.bases.values()))
         if abs(items[0][0] - items[1][0]) < 50:
@@ -209,6 +218,7 @@ class Map(object):
         return items[0][1]
 
     def taunt(self, message, color):
+        """Set taunt message for given color."""
         if self.taunt_msg is None:
             self.taunt_msg = message
             self.taunt_timer = 3
@@ -402,6 +412,7 @@ class Tank(object):
         self.shots = []
 
     def collision_at(self, pos):
+        """Return True if collision at given position, and False otherwise."""
         for obs in self.team.map.obstacles:
             if collide.poly2circle(obs.shape, ((pos),constants.TANKRADIUS)):
                 return True
@@ -420,6 +431,7 @@ class Tank(object):
         return False
 
     def collide_tank(self, tank):
+        """Pass - Not yet implimented."""
         pass
 
     def update(self, dt):
@@ -445,6 +457,7 @@ class Tank(object):
             self.pos[0] += dx*dt
 
     def update_goal(self, num, goal, by):
+        """Update given num by given amount until equal to given goal."""
         if num < goal:
             num += by
             if num > goal:
@@ -494,6 +507,7 @@ class M1A1Abrams(Tank):
         self.rot = self.rot % (2 * math.pi)
 
     def reset_speed(self):
+        """Reset rot, speed and angvel to zero."""
         self.goal_speed = 0
         self.goal_angvel = 0
         self.speed = 0
@@ -520,6 +534,7 @@ class M1A1Abrams(Tank):
         return True
 
     def kill(self):
+        """Kill tank."""
         super(M1A1Abrams, self).kill()
         self.pos = constants.DEADZONE
 
@@ -555,8 +570,7 @@ class Shot(object):
         self.distance += math.hypot(self.vel[0]*dt, self.vel[1]*dt)
 
         ## do we need to lerp?
-        if self.vel[0]*dt > constants.TANKRADIUS*2 or \
-            self.vel[0]*dt > constants.TANKRADIUS*2:
+        if self.vel[0]*dt > constants.TANKRADIUS*2:
                 p1 = self.pos[:]
                 p2 = [self.pos[0]+self.vel[0]*dt, \
                     self.pos[1]+self.vel[1]*dt]
@@ -569,6 +583,7 @@ class Shot(object):
             self.kill()
 
     def check_collisions(self):
+        """Check for collisions."""
         for obs in self.team.map.obstacles:
             if collide.poly2circle(obs.shape, 
                                   ((self.pos),constants.SHOTRADIUS)):
@@ -582,12 +597,13 @@ class Shot(object):
                 tank.kill()
                 return self.kill()
         if self.pos[0]<-config.world.size[0]/2 or\
-         self.pos[1]<-config.world.size[1]/2 or\
-         self.pos[0]>config.world.size[0]/2 or \
-         self.pos[1]>config.world.size[1]/2:
+           self.pos[1]<-config.world.size[1]/2 or\
+           self.pos[0]>config.world.size[0]/2 or \
+           self.pos[1]>config.world.size[1]/2:
             return self.kill()
 
     def check_line(self, p1, p2):
+        """Check for collisions."""
         for obs in self.team.map.obstacles:
             if collide.rect2line(obs.rect, (p1,p2)):
                 return self.kill()
@@ -666,6 +682,7 @@ def convertBoxtoPoly(center, size, rotation = 0):
 
 
 def scale_rotate_poly(points, scale, rotation):
+    """Rotate shape."""
     points = list(points)
     center = polygon_center(points)
     for point in points:
@@ -673,6 +690,7 @@ def scale_rotate_poly(points, scale, rotation):
 
 
 def polygon_center(points):
+    """Return position of center of polygon."""
     points = tuple(points)
     cx = sum(p[0] for p in points)/len(points)
     cy = sum(p[1] for p in points)/len(points)
@@ -712,6 +730,7 @@ class Obstacle(object):
         self.radius = 0
 
     def pad(self, padding):
+        """Set shape"""
         self.shape = list(scale_rotate_poly(self.shape, 
                          (self.radius + padding)/float(self.radius), 0))
 
@@ -738,6 +757,7 @@ class Score(object):
         self.timer = 0
 
     def update(self, dt):
+        """Update scores."""
         self.timer += dt
         if self.timer > 2:
             self.timer = 0
@@ -745,6 +765,7 @@ class Score(object):
                 self.score_tank(tank)
 
     def score_tank(self, tank):
+        """Score tank."""
         if tank.flag:
             ebase = tank.flag.team.base
             distance_to = collide.dist(self.team.base.center, 
@@ -781,6 +802,7 @@ class Score(object):
             self.value = value
 
     def text(self):
+        """Print scores."""
         return "Team %s: %d"%(self.team.color, self.total())
 
     def total(self):
