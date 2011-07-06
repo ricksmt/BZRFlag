@@ -2,7 +2,7 @@
 import unittest
 import doctest
 
-from .. import collide
+from bzrflag import collide
 
 def toSuite():
     suite = unittest.TestSuite()

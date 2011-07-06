@@ -223,7 +223,6 @@ class BZSprite(pygame.sprite.Sprite):
         self._render_image()
         self.update(True)
 
-
     def object_size(self):
         """Finds the screen size of the original unrotated bzobject."""
         return self.display.size_world_to_screen(self.bzobject.size)

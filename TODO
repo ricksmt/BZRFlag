@@ -1,4 +1,4 @@
-(items with a plus sign (+) in front have been compleated on date specified)
+(items with a plus sign (+) in front have been compleated)
 
 GENERAL
 - add a LICENSE file and add copyright headers to each python file
@@ -11,9 +11,9 @@ GENERAL
 CODING STYLE
 - add doc strings and other documentation
 + make naming and whitespace styles more compliant (PEP 8) and consistent,
-  with whitespace between operators, max line length of 80, etc.(23 June 2011)
-+ remove local dead (commented-out) code(23 June 2011)
-+ remove global dead code: snapshot.py etc.(23 June 2011)
+  with whitespace between operators, max line length of 80, etc.
++ remove local dead (commented-out) code
++ remove global dead code: snapshot.py etc.
 + figure out why there are different classes with the same name in
   graphics.py and modpygame.py: either document or merge--there seems to be
   some half-implemented plan for implementing other graphics library (would
@@ -21,10 +21,10 @@ CODING STYLE
 - straighten out the licensing for collide.py; integrate it into the code
   base more fully
 + move any and all magic constants to constants.py
-- unify SeppiTank and GoodrichTank into a single class; if there are two
++ unify SeppiTank and GoodrichTank into a single class; if there are two
   different classes, they should be named after motion (StandardTank and
   HoverTank) not people
-+ remove any * imports (all imports should be explicit)(23 June 2011)
++ remove any * imports (all imports should be explicit)
 
 NEW FEATURES
 - add a command line option to enable cheats and restore the hammertime and
@@ -35,8 +35,9 @@ BUGS
   map (from a fully zoomed out perspective)
 
 
--Can't telnet in manually.
--test is broken
+- Can't telnet in manually.
++ test is broken
 -
+
 
 

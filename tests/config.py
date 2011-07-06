@@ -2,7 +2,7 @@
 import os
 
 import magictest
-from .. import config
+from bzrflag import config
 
 pwd = os.path.dirname(__file__)
 wf = os.path.join(pwd, 'test.bzw')
@@ -13,6 +13,7 @@ class Test(magictest.MagicTest):
         # basic...
         args = '--world=test_bad.bzw --green-port=50189'.split()
         self.assertRaises(config.ArgumentError, config.Config,args)
+        
         args[0] = '--world='+os.path.join(pwd, 'test.bzw')
         c = config.Config(args)
         self.assertRaises(Exception,config.Config)

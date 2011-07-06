@@ -4,7 +4,7 @@ import unittest
 import config
 import collide
 import game
-from .. import constants # to make sure we can
+from bzrflag import constants # to make sure we can
 
 
 def run():
