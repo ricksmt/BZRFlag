@@ -8,7 +8,7 @@ that is supported is implemented correctly.  See the bzw man page for more
 information about the file format (but note that their BNF is incomplete).
 
 """
-
+from __future__ import division
 from pyparsing import alphas, nums, Word, Keyword, LineEnd, Each, ZeroOrMore, \
                       Combine, Optional, Dict, SkipTo, Group
 import logging
