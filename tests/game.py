@@ -26,6 +26,7 @@ class Initial(magictest.MagicTest):
     def testCreate(self):
         g = getGame()
         self.assertIsNot(g,None)
+ 
 
 class GameTest(magictest.MagicTest):
 
@@ -35,31 +36,21 @@ class GameTest(magictest.MagicTest):
     def tearDown(self):
         self.game = None
 
-
-class MapTest(GameTest):
-
     def testTanks(self):
         self.assertEquals(len(list(self.game.map.tanks())), 40)
         
     def testShots(self):
         self.assertEquals(len(list(self.game.map.shots())), 0)
-
-
-class TeamTest(GameTest):
-
-    def setUp(self):
-        GameTest.setUp(self)
-        self.team = self.game.map.teams['green']
         
-    def testSetup(self):
+    def testTeam(self):
+        self.team = self.game.map.teams['green']
         self.assertNotEqual(self.team._obstacles,[])
 
 
-def runSuite():
-    result = Initial.runSuite()
+def runSuite(vb=2):
+    result = Initial.runSuite(vb)
     if result.wasSuccessful():
-        MapTest.runSuite()
-        TeamTest.runSuite()
+        GameTest.runSuite(vb)
 
 
 # vim: et sw=4 sts=4

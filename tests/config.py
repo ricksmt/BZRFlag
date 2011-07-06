@@ -23,5 +23,7 @@ class Test(magictest.MagicTest):
 
 suite = Test.toSuite()
 
+def runSuite(vb=2):
+    return Test.runSuite(vb)
 
 # vim: et sw=4 sts=4
