@@ -626,8 +626,7 @@ class Handler(asynchat.async_chat):
                 data['color'] = color
                 data['callsign'] = tank.callsign
                 data['status'] = tank.status
-                # WARNING: there's an evil hard-coded constant here!
-                data['shots_avail'] = 10-len(tank.shots)
+                data['shots_avail'] = constants.MAXSHOTS-len(tank.shots)
                 data['reload'] = tank.reloadtimer
                 data['flag'] = tank.flag and tank.flag.team.color or '-'
 
