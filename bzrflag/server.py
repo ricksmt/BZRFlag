@@ -121,8 +121,8 @@ class Handler(asynchat.async_chat):
     def push(self, text):
         asynchat.async_chat.push(self, text)
         if config['telnet_console']:
-            self.team.map.game.display.console.write(self.team.color +
-                                                     ' > ' + text)
+            message = (self.team.color +' > ' + text)
+            self.team.map.game.display.console.write(message)
         logger.debug(self.team.color + ' > ' + text)
         if text.startswith('fail '):
             logger.error(self.team.color + ' > ' + text)
@@ -135,8 +135,8 @@ class Handler(asynchat.async_chat):
         
         """
         if config['telnet_console']:
-            self.team.map.game.display.console.write(self.team.color + ' : ' +
-                                                     self.input_buffer + '\n')
+            message = (self.team.color + ' : ' + self.input_buffer + '\n')
+            self.team.map.game.display.console.write(message)
         logger.debug(self.team.color + ' : ' + self.input_buffer + '\n')
         args = self.input_buffer.split()
         self.input_buffer = ''
@@ -150,13 +150,11 @@ class Handler(asynchat.async_chat):
                 try:
                     command(args)
                 except Exception, e:
-                    logger.error(self.team.color + ' : ERROR : %s : %s\n' 
-                                 % (args, e))
-                    self.team.map.game.display.console.write(self.team.color +
-                                                             ' : ERROR : %s : \
-                                                             %s : %s\n' % 
-                                                             (args, e.__class__
-                                                             .__name__, e))
+                    color = self.team.color
+                    logger.error(color + ' : ERROR : %s : %s\n' % (args, e))
+                    message = (color +' : ERROR : %s : %s : %s\n' % 
+                              (args, e.__class__.__name__, e))
+                    self.team.map.game.display.console.write(message)
                     self.push('fail %s\n' % e)
                     return
             elif args == ['agent', '1']:
@@ -659,8 +657,6 @@ class Handler(asynchat.async_chat):
         are 0 or 1.
         
         """
-        # TODO: is it possible to simply iterate through all constants without
-        # specifically referencing each one?
         try:
             command, = args
         except ValueError, TypeError:
@@ -673,7 +669,8 @@ class Handler(asynchat.async_chat):
         if true_negative is None:
             true_negative = config['default_true_negative']
         self.ack(command)
-        ## is this the best way to do this? hard coding it in?
+        # TODO: is it possible to simply iterate through all constants without
+        # specifically referencing each one?
         response = ['begin\n',
                     'constant team %s\n' % (self.team.color),
                     'constant worldsize %s\n' % (config['world_size']),
