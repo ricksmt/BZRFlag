@@ -1,3 +1,25 @@
+# Bzrflag
+# Copyright 2008-2011 Brigham Young University
+#
+# This file is part of Bzrflag.
+#
+# Bzrflag is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# Bzrflag is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# Bzrflag.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Inquiries regarding any further use of Bzrflag, please contact the Copyright
+# Licensing Office, Brigham Young University, 3760 HBLL, Provo, UT 84602,
+# (801) 422-9339 or 422-3821, e-mail copyright@byu.edu.
+
 """BSFlag World Model
 
 The BSFlag World module implements a parser for reading in bzw files and
@@ -8,7 +30,13 @@ that is supported is implemented correctly.  See the bzw man page for more
 information about the file format (but note that their BNF is incomplete).
 
 """
-from __future__ import division
+
+from __future__ import division # Must be at the beginning of the file!
+
+__author__ = "BYU AML Lab <kseppi@byu.edu>"
+__copyright__ = "Copyright 2008-2011 Brigham Young University"
+__license__ = "GNU GPL"
+
 from pyparsing import alphas, nums, Word, Keyword, LineEnd, Each, ZeroOrMore, \
                       Combine, Optional, Dict, SkipTo, Group
 import logging
