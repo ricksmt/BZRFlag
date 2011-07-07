@@ -583,8 +583,7 @@ class Handler(asynchat.async_chat):
             data['id'] = i
             data['callsign'] = tank.callsign
             data['status'] = tank.status
-            # WARNING: there's an evil hard-coded constant here!
-            data['shots_avail'] = 10-len(tank.shots)
+            data['shots_avail'] = constants.MAXSHOTS-len(tank.shots)
             data['reload'] = tank.reloadtimer
             data['flag'] = tank.flag and tank.flag.team.color or '-'
             data['x'] = int(tank.pos[0])
@@ -678,8 +677,6 @@ class Handler(asynchat.async_chat):
         response = ['begin\n',
                     'constant team %s\n' % (self.team.color),
                     'constant worldsize %s\n' % (config['world_size']),
-                    # WARNING: there's an evil hard-coded constant here!
-                    'constant hoverbot %s\n' % (0),
                     'constant puppyzone %s\n' % (config['puppy_guard_zone']),
                     'constant tankangvel %s\n' % (constants.TANKANGVEL),
                     'constant tanklength %s\n' % (constants.TANKLENGTH),
