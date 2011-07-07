@@ -144,6 +144,7 @@ class TextSprite(pygame.sprite.Sprite):
         self.refresh()
 
     def refresh(self):
+        """Updates text."""
         self.text = self.bzobject.text()
         lines = self.text.split('\n')
         font = pygame.font.Font(paths.FONT_FILE, FONTSIZE)
@@ -357,8 +358,9 @@ class Display(object):
                             self.screen_size[0]-50,self.screen_size[1]/3))
                             
     def setup_screen(self):
-        self.screen = pygame.display.set_mode(self.screen_size,
-                                              pygame.RESIZABLE)
+        """Sets up screen display."""
+        size = self.screen_size
+        self.screen = pygame.display.set_mode(size, pygame.RESIZABLE)
         self._screen = pygame.Surface(self.screen_size)
         self._background = None
         bg = self.background()
@@ -374,6 +376,7 @@ class Display(object):
         self.redraw()
 
     def rescale(self, scale, pos):
+        """Rescales display."""
         if scale < 1:
             return False
         if scale > 20:
@@ -386,6 +389,7 @@ class Display(object):
         self.pos[1] = pos[1] - realpos[1]*self.scale
         
     def redraw(self):
+        """Redraws display."""
         size = self._normal_background.get_rect().size
         if self.pos[0]>0:self.pos[0] = 0
         if self.pos[1]>0:self.pos[1] = 0
@@ -525,6 +529,7 @@ class Display(object):
         return wscale, hscale
 
     def add_object(self, obj):
+        """Addes given object to display."""
         types = (Tank, 'tank'), (Shot,'shot'), (Flag,'flag'), \
                 (Base,'base'), (Score,'score')
         otype = None
@@ -555,3 +560,6 @@ class Display(object):
 
     def kill(self):
         pygame.display.quit()
+        
+        
+        

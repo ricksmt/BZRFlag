@@ -11,7 +11,7 @@ def getGame():
         g.remake()
         return g
     config.init()
-    from bzrflag import game # Cannot be imported befor config.init() is called!
+    from bzrflag import game # Cannot import before config.init() is called!
     g = game.Game()
     g.display.setup()
     g.input.update()

@@ -22,8 +22,7 @@
 
 """headless.py
 
-Defines a Display class and an Input class
-for a headless station.
+Defines an Input class for a headless station.
 
 """
 __author__ = "BYU AML Lab <kseppi@byu.edu>"
@@ -40,17 +39,6 @@ import graphics
 from constants import LOOP_TIMEOUT  
 
 logger = logging.getLogger('headless.py')
-
-
-class Display(graphics.Display):
-
-    def update(self):
-        """Pass"""
-        pass
-        
-    def setup(self):
-        """Pass"""
-        pass
 
 
 class Input:

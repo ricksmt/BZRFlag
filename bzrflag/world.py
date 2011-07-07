@@ -80,7 +80,6 @@ class Box(object):
     
     def __init__(self, pos=None, position=None, rot=None, rotation=None,
             size=None):
-        # TODO: use "if" instead of unreadable "or" expressions.
         self.pos = pos or position
         self.rot = rot or rotation
         if self.rot:
@@ -103,7 +102,6 @@ class Base(object):
     def __init__(self, color=None, pos=None, position=None, rot=None,
                  rotation=None, size=None):
         self.color = constants.COLORNAME[color]
-        # TODO: use "if" instead of unreadable "or" expressions.
         self.pos = pos or position
         self.rot = rot or rotation
         if self.rot:
@@ -116,7 +114,6 @@ class Base(object):
 
     @classmethod
     def parser(cls):
-        # Base
         color = Group(Keyword('color') + integer)
         base_contents = Each([color] + obstacle_items)
         base = Dict(Keyword('base').suppress() + base_contents + end)
@@ -151,6 +148,7 @@ class World(object):
         """Parse a BZW file.
 
         For now, we're only supporting a subset of BZW's allobjects.
+        
         """
         comment = '#' + SkipTo(LineEnd())
         bzw = ZeroOrMore(Box.parser() | Base.parser()).ignore(comment)

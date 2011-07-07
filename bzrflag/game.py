@@ -97,8 +97,10 @@ class Game:
             self.display.remove_object(self.map.trash.pop())
 
     def loop(self):
-        """The main loop of bzflag. checks events, updates positions,
-        and draws to the screen until the pygame window is closed.
+        """The main loop of bzflag. 
+        
+        Checks events, updates positions, and draws to the screen 
+        until the pygame window is closed.
         
         """
         self.running = True
@@ -200,6 +202,7 @@ class Map(object):
                 break
 
     def obstacle_at(self, x, y):
+        """Checks for obstacle at given point."""
         for obstacle in self.obstacles:
             if obstacle.rot == 0:
                 if collide.rect2point(obstacle.rect, (x, y)):
@@ -822,13 +825,16 @@ class Score(object):
             self.setValue(100.0 * (total_dist-distance_to)/total_dist)
 
     def gotFlag(self):
+        """Udates flag status."""
         self.value = 0
         self.flags += 1
 
     def lostFlag(self):
+        """Udates flag status."""
         self.flags -= 1
 
     def setValue(self,value):
+        """Sets self.value to given value."""
         if value>self.value:
             self.value = value
 
@@ -837,6 +843,8 @@ class Score(object):
         return "Team %s: %d"%(self.team.color, self.total())
 
     def total(self):
+        """Calulates total points."""
         return 1000*self.flags + self.value
+
 
 
