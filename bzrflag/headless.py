@@ -60,10 +60,13 @@ class Input:
         self.game = game
         self.servers = {}
         for color,team in self.game.map.teams.items():
-            self.servers[color] = server.Server(
-                    ('0.0.0.0', config.config[color+'_port']),team)
+            port = config.config[color+'_port']
+            self.servers[color] = server.Server(('0.0.0.0', port), team)
             print 'port for %s: %s' % (color, self.servers[color].get_port())
         print
 
     def update(self):
         asyncore.loop(LOOP_TIMEOUT, count = 1)
+        
+        
+        
