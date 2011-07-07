@@ -43,7 +43,7 @@ logger = logging.getLogger('game')
 
 
 class Game:
-    """*Main control object. Contains the main loop.*
+    """Main control object. Contains the main loop.
 
     Attributes:
 

@@ -1,7 +1,7 @@
 (items with a plus sign (+) in front have been compleated)
 
 GENERAL
-- add a LICENSE file and add copyright headers to each python file
++ add a LICENSE file and add copyright headers to each python file
 - add unit tests
 + move bzrflag/bzrflags/docs to bzrflags/docs;
   remove bzrflag/bzrflag/make.bat or put it in a non-code directory
