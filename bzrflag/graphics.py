@@ -44,286 +44,6 @@ from game import Tank, Shot, Flag, Base, Score
 
 DEFAULT_SIZE = map(int, config['window_size'].split('x'))
 
-class ImageCache(object):
-
-    def __init__(self):
-        self._ground = None
-        self._wall = None
-        self.suffixes = {'base':'basetop','shot':'bolt',
-                         'tank':'tank','flag':'flag'}
-        ## curently lazy loading...is that good?
-        self._teamcache = {'base':{},'shot':{},'flag':{},'tank':{}}
-        self._cache = {}
-        self._tcache = {'scale':{},'rot':{}}
-
-    def ground(self):
-        """Creates a surface of the ground image.
-
-        The surface is scaled down using the factor in TILESCALE.
-        
-        """
-        if not self._cache.has_key('ground'):
-            ground = self.load_image(paths.GROUND)
-            self._ground = self.scaled_image(ground, TILESCALE)
-        return self._ground
-
-    def wall(self):
-        """Returns a surface for walls.
-
-        The surface is scaled down using the factor in TILESCALE.
-        
-        """
-        if not self._wall:
-            wall = self.load_image(paths.WALL)
-            self._wall = self.scaled_image(wall, TILESCALE)
-        return self._wall
-
-    def loadteam(self, type, color):
-        """Load team images."""
-        if not self._teamcache.has_key(type):
-            raise KeyError("invalid image type: %s"%type)
-        if not color in COLORNAME:
-            raise KeyError("invalid color: %s"%color)
-        if not self._teamcache[type].has_key(color):
-            self._teamcache[type][color] = \
-                    self.load_image('%s_%s.png'%(color, self.suffixes[type]))
-        return self._teamcache[type][color]
-
-    def scaled_size(self, size, scale):
-        """Scales a size (width-height pair).
-
-        If the scale is None, scaled_size returns the original size unmodified.
-        
-        """
-        if scale is not None:
-            w, h = size
-            w = int(round(w * scale))
-            h = int(round(h * scale))
-            size = w, h
-        return size
-
-    def load_image(self, filename):
-        """Loads the image with the given filename from the DATA_DIR."""
-        path = os.path.join(paths.DATA_DIR, filename)
-        image = pygame.image.load(path).convert_alpha()
-        return image
-
-    def scaled_image(self, image, scale):
-        """Returns scaled image."""
-        size = self.scaled_size(image.get_size(), scale)
-        return pygame.transform.smoothscale(image, size)
-
-    def _scaled_image(self, image, scale):
-        """Scales the given image to the given size."""
-        raise Exception('override this method')
-
-    def rotated_image(self, image, rot):
-        """Rotate image."""
-        nimg = pygame.transform.rotate(image, rot/math.pi*180)
-        return nimg
-
-    def tile(self, tile, size):
-        """Creates a surface of the given size tiled with the given surface."""
-        tile_width, tile_height = tile.get_size()
-        width, height = size
-        surface = pygame.surface.Surface(size, pygame.SRCALPHA)
-        for i in xrange(width // tile_width + 1):
-            for j in xrange(height // tile_height + 1):
-                surface.blit(tile, (i * tile_width, j * tile_height))
-        return surface
-
-
-class TextSprite(pygame.sprite.Sprite):
-
-    def __init__(self, bzobject, display):
-        pygame.sprite.Sprite.__init__(self)
-        self.bzobject = bzobject
-        self.display = display
-        self.rect = pygame.Rect((0,0), (0,0))
-        self.maxwidth = 0
-        self.refresh()
-
-    def refresh(self):
-        """Updates text."""
-        self.text = self.bzobject.text()
-        lines = self.text.split('\n')
-        font = pygame.font.Font(paths.FONT_FILE, FONTSIZE)
-        mw = 0
-        mh = 0
-        for line in lines:
-            w,h = font.size(line)
-            if w>mw:mw=w
-            mh += h
-        if mw > self.maxwidth:
-            self.maxwidth = mw
-        image = pygame.Surface((self.maxwidth,mh))
-        at = 0
-        for line in lines:
-            image.blit(font.render(line, True, (255, 255, 255)), (0,at))
-        self.image = image
-        image.set_colorkey((0,0,0))
-        self.rect.size = image.get_rect().size
-
-    def reposition(self):
-        self.rect.center = (0,0)
-
-    def update(self):
-        if self.text != self.bzobject.text():
-            self.refresh()
-        self.reposition()
-
-
-class Taunt(object):
-    def __init__(self, map):
-        self.map = map
-        self.text = None
-        self.img = None
-        self.update()
-
-    def update(self):
-        if self.text != self.map.taunt_msg:
-            self.text = self.map.taunt_msg
-            self.refresh()
-
-    def refresh(self):
-        font = pygame.font.Font(paths.FONT_FILE, 32)
-        colors = {'red':(255,0,0),'green':(0,255,0),
-                  'blue':(0,0,255),'purple':(255,0,255)}
-        text = font.render(self.text, True, colors[self.map.taunt_color])
-        bg = font.render(self.text, True, (255,255,255))
-        self.img = font.render(self.text, True, (0,0,0))
-        self.img.blit(bg, (1,1))
-        self.img.blit(text, (0,0))
-
-    def draw(self, screen):
-        if self.img and self.text:
-            w, h = screen.get_rect().size
-            mw, mh = self.img.get_rect().size
-            screen.blit(self.img, (w/2-mw/2, h/2-mh/2))
-
-
-class Scores:
-
-    def __init__(self):
-        self.scores = []
-
-    def add(self,what):
-        self.scores.append(what)
-
-    def draw(self, screen):
-        y = screen.get_rect().height-10
-        w = 0
-        for score in self.scores:
-            score.update()
-            y -= score.rect.height
-            if score.rect.width>w:
-                w = score.rect.width
-        fy = y
-        y = screen.get_rect().height-10
-        pygame.draw.rect(screen, (0,0,0), (10, fy, w, y-fy))
-        tosort = list(sorted((score.bzobject.total(),score) 
-                      for score in self.scores))
-
-        for num,score in tosort:
-            y -= score.rect.height
-            screen.blit(score.image, (10,y))
-
-
-class BZSprite(pygame.sprite.Sprite):
-    """Determines how a single object in the game will be drawn.
-
-    The sprite manager uses the sprite's `image` and `rect` attributes to draw
-    it.
-    
-    """
-
-    def __init__(self, bzobject, image, display, otype=None):
-        super(BZSprite, self).__init__()
-
-        self.bzobject = bzobject
-        self.display = display
-        self.orig_image = image
-        self.type = otype
-        self.rect = image.get_rect()
-        self.prev_rot = None
-        self.prev_scale = None
-        self._render_image()
-        self.update(True)
-
-    def object_size(self):
-        """Finds the screen size of the original unrotated bzobject."""
-        return self.display.size_world_to_screen(self.bzobject.size)
-
-    def _translate(self):
-        """Translates the image to the bzobject's position."""
-        self.rect.center = self.display.pos_world_to_screen(self.bzobject.pos)
-
-    def _render_image(self, force=False):
-        if not force and self.display.scale == self.prev_scale \
-                     and self.bzobject.rot == self.prev_rot:
-            return
-
-        image = self._rotate_image(self.orig_image,
-                                   self.bzobject.rot * 180/math.pi)
-        if self.type == 'shot':
-            comp = 3
-        elif self.type == 'flag':
-            comp = 4
-        else:
-            comp = 1
-            
-        wscale = self.display.world_to_screen_scale()
-        isize = image.get_rect().size
-        obj_size = wscale[0]*self.bzobject.size[0],\
-                   wscale[1]*self.bzobject.size[1]
-        orig_size = self.orig_image.get_rect().size
-        thescale = [obj_size[0]/orig_size[0] *comp, 
-                    obj_size[1]/orig_size[1]*comp]
-        image = self._rescale_image(image,thescale)
-
-        self.prev_scale = self.display.scale
-        self.prev_rot = self.bzobject.rot
-        self.image = image
-        
-    def _scale_image(self, image, scale):
-        size = image.get_rect().size
-        nsize = self.display.images.scaled_size(size, scale)
-        return pygame.transform.smoothscale(image,nsize)
-
-    def _rescale_image(self, image, scale):
-        size = image.get_rect().size
-        return pygame.transform.smoothscale(image,(int(size[0]*scale[0]), 
-                                            int(size[1]*scale[1])))
-
-    def _rotate_image(self, image, rotation):
-        return pygame.transform.rotate(image, rotation)
-
-    def update(self, force=False):
-        """Overrideable function for creating the image.
-
-        If force is specified, the image should be redrawn even if the
-        bzobject doesn't appear to have changed.
-        
-        """
-        rot = self.bzobject.rot
-        self._render_image(force)
-        self.rect = self.image.get_rect()
-        self._translate()
-
-
-class TiledBZSprite(BZSprite):
-    """A BZSprite with a tiled image."""
-
-    def _render_image(self, force=False):
-        self.prev_rot = self.bzobject.rot
-        image = self.orig_image
-        w,h = self.bzobject.size
-        size = self.display.size_world_to_screen((w/2, h/2))
-        image = self.display.images.tile(image, size)
-        image = self.display.images.rotated_image(image, self.bzobject.rot)
-        self.image = image
-        self._translate()
-
 
 class Display(object):
     """Manages all graphics."""
@@ -562,4 +282,284 @@ class Display(object):
         pygame.display.quit()
         
         
+class ImageCache(object):
+
+    def __init__(self):
+        self._ground = None
+        self._wall = None
+        self.suffixes = {'base':'basetop','shot':'bolt',
+                         'tank':'tank','flag':'flag'}
+        ## curently lazy loading...is that good?
+        self._teamcache = {'base':{},'shot':{},'flag':{},'tank':{}}
+        self._cache = {}
+        self._tcache = {'scale':{},'rot':{}}
+
+    def ground(self):
+        """Creates a surface of the ground image.
+
+        The surface is scaled down using the factor in TILESCALE.
         
+        """
+        if not self._cache.has_key('ground'):
+            ground = self.load_image(paths.GROUND)
+            self._ground = self.scaled_image(ground, TILESCALE)
+        return self._ground
+
+    def wall(self):
+        """Returns a surface for walls.
+
+        The surface is scaled down using the factor in TILESCALE.
+        
+        """
+        if not self._wall:
+            wall = self.load_image(paths.WALL)
+            self._wall = self.scaled_image(wall, TILESCALE)
+        return self._wall
+
+    def loadteam(self, type, color):
+        """Load team images."""
+        if not self._teamcache.has_key(type):
+            raise KeyError("invalid image type: %s"%type)
+        if not color in COLORNAME:
+            raise KeyError("invalid color: %s"%color)
+        if not self._teamcache[type].has_key(color):
+            self._teamcache[type][color] = \
+                    self.load_image('%s_%s.png'%(color, self.suffixes[type]))
+        return self._teamcache[type][color]
+
+    def scaled_size(self, size, scale):
+        """Scales a size (width-height pair).
+
+        If the scale is None, scaled_size returns the original size unmodified.
+        
+        """
+        if scale is not None:
+            w, h = size
+            w = int(round(w * scale))
+            h = int(round(h * scale))
+            size = w, h
+        return size
+
+    def load_image(self, filename):
+        """Loads the image with the given filename from the DATA_DIR."""
+        path = os.path.join(paths.DATA_DIR, filename)
+        image = pygame.image.load(path).convert_alpha()
+        return image
+
+    def scaled_image(self, image, scale):
+        """Returns scaled image."""
+        size = self.scaled_size(image.get_size(), scale)
+        return pygame.transform.smoothscale(image, size)
+
+    def _scaled_image(self, image, scale):
+        """Scales the given image to the given size."""
+        raise Exception('override this method')
+
+    def rotated_image(self, image, rot):
+        """Rotate image."""
+        nimg = pygame.transform.rotate(image, rot/math.pi*180)
+        return nimg
+
+    def tile(self, tile, size):
+        """Creates a surface of the given size tiled with the given surface."""
+        tile_width, tile_height = tile.get_size()
+        width, height = size
+        surface = pygame.surface.Surface(size, pygame.SRCALPHA)
+        for i in xrange(width // tile_width + 1):
+            for j in xrange(height // tile_height + 1):
+                surface.blit(tile, (i * tile_width, j * tile_height))
+        return surface
+
+
+class TextSprite(pygame.sprite.Sprite):
+
+    def __init__(self, bzobject, display):
+        pygame.sprite.Sprite.__init__(self)
+        self.bzobject = bzobject
+        self.display = display
+        self.rect = pygame.Rect((0,0), (0,0))
+        self.maxwidth = 0
+        self.refresh()
+
+    def refresh(self):
+        """Updates text."""
+        self.text = self.bzobject.text()
+        lines = self.text.split('\n')
+        font = pygame.font.Font(paths.FONT_FILE, FONTSIZE)
+        mw = 0
+        mh = 0
+        for line in lines:
+            w,h = font.size(line)
+            if w>mw:mw=w
+            mh += h
+        if mw > self.maxwidth:
+            self.maxwidth = mw
+        image = pygame.Surface((self.maxwidth,mh))
+        at = 0
+        for line in lines:
+            image.blit(font.render(line, True, (255, 255, 255)), (0,at))
+        self.image = image
+        image.set_colorkey((0,0,0))
+        self.rect.size = image.get_rect().size
+
+    def reposition(self):
+        self.rect.center = (0,0)
+
+    def update(self):
+        if self.text != self.bzobject.text():
+            self.refresh()
+        self.reposition()
+
+
+class Scores:
+
+    def __init__(self):
+        self.scores = []
+
+    def add(self,what):
+        self.scores.append(what)
+
+    def draw(self, screen):
+        y = screen.get_rect().height-10
+        w = 0
+        for score in self.scores:
+            score.update()
+            y -= score.rect.height
+            if score.rect.width>w:
+                w = score.rect.width
+        fy = y
+        y = screen.get_rect().height-10
+        pygame.draw.rect(screen, (0,0,0), (10, fy, w, y-fy))
+        tosort = list(sorted((score.bzobject.total(),score) 
+                      for score in self.scores))
+
+        for num,score in tosort:
+            y -= score.rect.height
+            screen.blit(score.image, (10,y))
+
+
+class BZSprite(pygame.sprite.Sprite):
+    """Determines how a single object in the game will be drawn.
+
+    The sprite manager uses the sprite's `image` and `rect` attributes to draw
+    it.
+    
+    """
+
+    def __init__(self, bzobject, image, display, otype=None):
+        super(BZSprite, self).__init__()
+
+        self.bzobject = bzobject
+        self.display = display
+        self.orig_image = image
+        self.type = otype
+        self.rect = image.get_rect()
+        self.prev_rot = None
+        self.prev_scale = None
+        self._render_image()
+        self.update(True)
+
+    def object_size(self):
+        """Finds the screen size of the original unrotated bzobject."""
+        return self.display.size_world_to_screen(self.bzobject.size)
+
+    def _translate(self):
+        """Translates the image to the bzobject's position."""
+        self.rect.center = self.display.pos_world_to_screen(self.bzobject.pos)
+
+    def _render_image(self, force=False):
+        if not force and self.display.scale == self.prev_scale \
+                     and self.bzobject.rot == self.prev_rot:
+            return
+
+        image = self._rotate_image(self.orig_image,
+                                   self.bzobject.rot * 180/math.pi)
+        if self.type == 'shot':
+            comp = 3
+        elif self.type == 'flag':
+            comp = 4
+        else:
+            comp = 1
+            
+        wscale = self.display.world_to_screen_scale()
+        isize = image.get_rect().size
+        obj_size = wscale[0]*self.bzobject.size[0],\
+                   wscale[1]*self.bzobject.size[1]
+        orig_size = self.orig_image.get_rect().size
+        thescale = [obj_size[0]/orig_size[0] *comp, 
+                    obj_size[1]/orig_size[1]*comp]
+        image = self._rescale_image(image,thescale)
+
+        self.prev_scale = self.display.scale
+        self.prev_rot = self.bzobject.rot
+        self.image = image
+        
+    def _scale_image(self, image, scale):
+        size = image.get_rect().size
+        nsize = self.display.images.scaled_size(size, scale)
+        return pygame.transform.smoothscale(image,nsize)
+
+    def _rescale_image(self, image, scale):
+        size = image.get_rect().size
+        return pygame.transform.smoothscale(image,(int(size[0]*scale[0]), 
+                                            int(size[1]*scale[1])))
+
+    def _rotate_image(self, image, rotation):
+        return pygame.transform.rotate(image, rotation)
+
+    def update(self, force=False):
+        """Overrideable function for creating the image.
+
+        If force is specified, the image should be redrawn even if the
+        bzobject doesn't appear to have changed.
+        
+        """
+        rot = self.bzobject.rot
+        self._render_image(force)
+        self.rect = self.image.get_rect()
+        self._translate()
+
+
+class TiledBZSprite(BZSprite):
+    """A BZSprite with a tiled image."""
+
+    def _render_image(self, force=False):
+        self.prev_rot = self.bzobject.rot
+        image = self.orig_image
+        w,h = self.bzobject.size
+        size = self.display.size_world_to_screen((w/2, h/2))
+        image = self.display.images.tile(image, size)
+        image = self.display.images.rotated_image(image, self.bzobject.rot)
+        self.image = image
+        self._translate()
+
+
+class Taunt(object):
+    def __init__(self, map):
+        self.map = map
+        self.text = None
+        self.img = None
+        self.update()
+
+    def update(self):
+        if self.text != self.map.taunt_msg:
+            self.text = self.map.taunt_msg
+            self.refresh()
+
+    def refresh(self):
+        font = pygame.font.Font(paths.FONT_FILE, 32)
+        colors = {'red':(255,0,0),'green':(0,255,0),
+                  'blue':(0,0,255),'purple':(255,0,255)}
+        text = font.render(self.text, True, colors[self.map.taunt_color])
+        bg = font.render(self.text, True, (255,255,255))
+        self.img = font.render(self.text, True, (0,0,0))
+        self.img.blit(bg, (1,1))
+        self.img.blit(text, (0,0))
+
+    def draw(self, screen):
+        if self.img and self.text:
+            w, h = screen.get_rect().size
+            mw, mh = self.img.get_rect().size
+            screen.blit(self.img, (w/2-mw/2, h/2-mh/2))      
+            
+            
