@@ -53,15 +53,20 @@ class Game:
     
     """
     
-    def __init__(self):
+    def __init__(self, mode="regular"):
     
         import headless #imported here to avoid circular imports
         import graphics #imported here to avoid circular imports
-        
+            
+        if "test" in mode:
+            print "running in test mode"
+                
         if config['random_seed'] != -1:
             random.seed(config['random_seed'])
-        self.map = Map(self)
-        self.display = graphics.Display(self)
+            
+        self.map = Map(self)    
+        if not "test" in mode:
+            self.display = graphics.Display(self)    
         self.input = headless.Input(self)
         self.running = False
         self.gameover = False
@@ -69,12 +74,6 @@ class Game:
 
     def remake(self):
         """For testing purposes."""
-        
-        import graphics #imported here to avoid circular imports
-        
-        self.display.kill()
-        self.map = Map(self)
-        self.display = graphics.Display(self)
         self.running = False
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()

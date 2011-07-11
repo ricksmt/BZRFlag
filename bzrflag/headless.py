@@ -33,9 +33,7 @@ import asyncore
 import logging
 
 import server
-import constants
 import config
-import graphics 
 from constants import LOOP_TIMEOUT  
 
 logger = logging.getLogger('headless.py')

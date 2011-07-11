@@ -12,16 +12,16 @@ VB = 2
 def run():
     print "\nSTART TESTS"
        
-    print "\nRunning tests for collide.py:"
+    print "\nRUNNING TESTS FOR: collide.py:"
     collide.runSuite(VB)
     
-    print "\nRunning tests for config.py:"
-    config.runSuite(VB)
-    
-    print "\nRunning tests for server.py:"
+    print "\nRUNNING TESTS FOR: server.py:"
     server.runSuite(VB)
+    
+    print "\nRUNNING TESTS FOR: config.py:"
+    config.runSuite(VB)
         
-    print "\nRunning tests for game.py:"
+    print "\nRUNNING TESTS FOR: game.py:"
     game.runSuite(VB)
     
     print "\nEND TESTS"

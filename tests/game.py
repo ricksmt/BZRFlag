@@ -12,12 +12,9 @@ def getGame():
         return g
     config.init()
     from bzrflag import game # Cannot import before config.init() is called!
-    g = game.Game()
-    g.display.setup()
+    g = game.Game("test")
     g.input.update()
     g.update()
-    g.update_sprites()
-    g.display.update()
     return g
 
 
