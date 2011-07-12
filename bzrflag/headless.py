@@ -46,10 +46,9 @@ class Input:
         self.game = game
         self.servers = {}
         for color,team in self.game.map.teams.items():
-            port = game.config[color+'_port']
-            self.servers[color] = server.Server(('0.0.0.0', port), 
-                                                 team, game.config)
-            if not "test" in mode:
+            port_arg = ('0.0.0.0', game.config[color+'_port'])
+            self.servers[color] = server.Server(port_arg, team, game.config)
+            if not 'test' in mode:
                 port = self.servers[color].get_port()
                 print 'port for %s: %s' % (color, port)
 
