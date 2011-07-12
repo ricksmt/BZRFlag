@@ -10,14 +10,14 @@ wf = os.path.join(pwd, 'test.bzw')
 class Test(magictest.MagicTest):
 
     def runTest(self):
-        args = '--world=test_bad.bzw --green-port=50189'.split()
+        args = '--world=test_bad.bzw --red-port=50189'.split()
         self.assertRaises(config.ArgumentError, config.Config,args)
         
         args[0] = '--world='+os.path.join(pwd, 'test.bzw')
         c = config.Config(args)
         self.assertRaises(Exception,config.Config)
         self.assertEquals(c['world'],wf)
-        self.assertEquals(c['green_port'], 50189)
+        self.assertEquals(c['red_port'], 50189)
 
 
 suite = Test.toSuite()

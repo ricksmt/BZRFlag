@@ -46,8 +46,9 @@ class Input:
         self.game = game
         self.servers = {}
         for color,team in self.game.map.teams.items():
-            port = config.config[color+'_port']
-            self.servers[color] = server.Server(('0.0.0.0', port), team)
+            port = game.config[color+'_port']
+            self.servers[color] = server.Server(('0.0.0.0', port), 
+                                                 team, game.config)
             print 'port for %s: %s' % (color, self.servers[color].get_port())
         print
 

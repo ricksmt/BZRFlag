@@ -34,14 +34,11 @@ import logging
 
 import world
 
-class ParseError(Exception):pass
-class ArgumentError(Exception):pass
+class ParseError(Exception): pass
+class ArgumentError(Exception): pass
 
 logger = logging.getLogger("config.py")
-
-config = None
-
-
+    
 class Config:
     """Config class:
    
@@ -50,12 +47,8 @@ class Config:
     """
     
     def __init__(self, args=None):
-        global config
-        if config is not None:
-            raise Exception("there should only be one config instance")
         self.options = self.parse_cli_args(args)
         self.setup_world()
-        config = self
 
     def get(self, key, default):
         """Return value of given key, or defalt if option[key] = None."""
@@ -255,8 +248,6 @@ class Config:
         if args:
             p.parse_error('No positional arguments are allowed.')
         return vars(opts)
+    
+            
 
-
-def init():
-    if not config:
-        Config()

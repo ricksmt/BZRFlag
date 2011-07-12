@@ -39,9 +39,8 @@ import random
 import logging
 import numpy
 
+import config
 import constants
-from constants import BACKLOG
-from config import config
 
 logger = logging.getLogger('server')
 
@@ -55,7 +54,8 @@ class Server(asyncore.dispatcher):
     
     """
     
-    def __init__(self, addr, team):
+    def __init__(self, addr, team, config):
+        self.config = config
         self.team = team
         self.in_use = False
         sock = socket.socket()
@@ -67,7 +67,7 @@ class Server(asyncore.dispatcher):
         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         self.bind(addr)
-        self.listen(BACKLOG)
+        self.listen(constants.BACKLOG)
 
     def handle_accept(self):
         sock, addr = self.accept()
@@ -75,7 +75,7 @@ class Server(asyncore.dispatcher):
             sock.close()
         else:
             self.in_use = True
-            Handler(sock, self.team, self.handle_closed_handler)
+            Handler(sock, self.team, self.handle_closed_handler, self.config)
             self.sock = sock
 
     def get_port(self):
@@ -99,8 +99,9 @@ class Handler(asynchat.async_chat):
     
     """
     
-    def __init__(self, sock, team, closed_callback):
+    def __init__(self, sock, team, closed_callback, config):
         asynchat.async_chat.__init__(self, sock)
+        self.config = config
         self.team = team
         self.closed_callback = closed_callback
         self.set_terminator('\n')
@@ -120,7 +121,7 @@ class Handler(asynchat.async_chat):
 
     def push(self, text):
         asynchat.async_chat.push(self, text)
-        if config['telnet_console']:
+        if self.config['telnet_console']:
             message = (self.team.color +' > ' + text)
             self.team.map.game.display.console.write(message)
         logger.debug(self.team.color + ' > ' + text)
@@ -134,7 +135,7 @@ class Handler(asynchat.async_chat):
         up to but not including the newline character.
         
         """
-        if config['telnet_console']:
+        if self.config['telnet_console']:
             message = (self.team.color + ' : ' + self.input_buffer + '\n')
             self.team.map.game.display.console.write(message)
         logger.debug(self.team.color + ' : ' + self.input_buffer + '\n')
@@ -337,7 +338,7 @@ class Handler(asynchat.async_chat):
             self.invalid_args(args)
             return
         self.ack(command)
-        if config['no_report_obstacles']:
+        if self.config['no_report_obstacles']:
             self.push('fail\n')
             return
 
@@ -378,9 +379,9 @@ class Handler(asynchat.async_chat):
 
         self.ack(command)
 
-        offset_x = int(config.world.width/2)
-        offset_y = int(config.world.height/2)
-        width = config['occgrid_width']
+        offset_x = int(self.config.world.width/2)
+        offset_y = int(self.config.world.height/2)
+        width = self.config['occgrid_width']
         world_spos = [int(tank.pos[0]-width/2), int(tank.pos[1]-width/2)]
         world_spos[0] = max(-offset_x, world_spos[0])
         world_spos[1] = max(-offset_y, world_spos[1])
@@ -389,19 +390,19 @@ class Handler(asynchat.async_chat):
         epos = [spos[0]+width, spos[1]+width]
         spos[0] = max(0, spos[0])
         spos[1] = max(0, spos[1])
-        epos[0] = min(config.world.width, epos[0])
-        epos[1] = min(config.world.height, epos[1])
+        epos[0] = min(self.config.world.width, epos[0])
+        epos[1] = min(self.config.world.height, epos[1])
         width = epos[0]-spos[0]
         height = epos[1]-spos[1]
         true_grid = self.team.map.occgrid[spos[0]:epos[0],
                                           spos[1]:epos[1]]
 
-        true_positive = config['%s_true_positive' % self.team.color]
+        true_positive = self.config['%s_true_positive' % self.team.color]
         if true_positive is None:
-            true_positive = config['default_true_positive']
-        true_negative = config['%s_true_negative' % self.team.color]
+            true_positive = self.config['default_true_positive']
+        true_negative = self.config['%s_true_negative' % self.team.color]
         if true_negative is None:
-            true_negative = config['default_true_negative']
+            true_negative = self.config['default_true_negative']
 
         randomized_grid = numpy.zeros((width, height))
         r_array = numpy.random.uniform(low=0, high=1, size=(width, height))
@@ -627,19 +628,19 @@ class Handler(asynchat.async_chat):
         except ValueError, TypeError:
             self.invalid_args(args)
             return
-        true_positive = config['%s_true_positive' % self.team.color]
+        true_positive = self.config['%s_true_positive' % self.team.color]
         if true_positive is None:
-            true_positive = config['default_true_positive']
-        true_negative = config['%s_true_negative' % self.team.color]
+            true_positive = self.config['default_true_positive']
+        true_negative = self.config['%s_true_negative' % self.team.color]
         if true_negative is None:
-            true_negative = config['default_true_negative']
+            true_negative = self.config['default_true_negative']
         self.ack(command)
         # TODO: is it possible to simply iterate through all constants without
         # specifically referencing each one?
         response = ['begin\n',
                     'constant team %s\n' % (self.team.color),
-                    'constant worldsize %s\n' % (config['world_size']),
-                    'constant puppyzone %s\n' % (config['puppy_guard_zone']),
+                    'constant worldsize %s\n' % (self.config['world_size']),
+                    'constant puppyzone %s\n' % (self.config['puppy_guard_zone']),
                     'constant tankangvel %s\n' % (constants.TANKANGVEL),
                     'constant tanklength %s\n' % (constants.TANKLENGTH),
                     'constant tankradius %s\n' % (constants.TANKRADIUS),

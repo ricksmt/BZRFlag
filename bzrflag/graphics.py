@@ -38,13 +38,11 @@ from pygame import MOUSEBUTTONDOWN, KEYDOWN, QUIT, MOUSEMOTION, VIDEORESIZE, \
 import paths
 import pygameconsole
 from constants import COLORNAME, TILESCALE, FONTSIZE
-from config import config
+import config
 from world import Base, Box
 from game import Tank, Shot, Flag, Base, Score
 
-DEFAULT_SIZE = map(int, config['window_size'].split('x'))
-      
-        
+  
 class ImageCache(object):
 
     def __init__(self):
@@ -333,12 +331,13 @@ class Display(object):
     _spriteclass = BZSprite
     _taunt = Taunt
     
-    def __init__(self, game, screen_size=DEFAULT_SIZE):
+    def __init__(self, game, config):
+        self.config = config
         self.game = game
-        self.world = config.world
+        self.world = self.config.world
         self.scores = Scores()
         self.taunt = self._taunt(self.game.map)
-        self.screen_size = screen_size
+        self.screen_size = map(int, self.config['window_size'].split('x'))
         self.images = self._imagecache()
         self._background = None
         self.spritemap = {}
@@ -351,7 +350,7 @@ class Display(object):
         pygame.key.set_repeat(200,50)
         self.setup_screen()
         self.sprites = pygame.sprite.LayeredUpdates()
-        if config['python_console']:
+        if self.config['python_console']:
             cons = pygameconsole.PyConsole
         else:
             cons = pygameconsole.TelnetConsole

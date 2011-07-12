@@ -37,8 +37,8 @@ import logging
 
 import collide
 import constants
-from config import config
-
+import config
+        
 logger = logging.getLogger('game')
 
 
@@ -53,20 +53,20 @@ class Game:
     
     """
     
-    def __init__(self, mode="regular"):
+    def __init__(self, config, mode="regular"):
     
-        import headless #imported here to avoid circular imports
         import graphics #imported here to avoid circular imports
+        import headless #imported here to avoid circular imports
             
         if "test" in mode:
             print "running in test mode"
-                
-        if config['random_seed'] != -1:
-            random.seed(config['random_seed'])
+        self.config = config      
+        if self.config['random_seed'] != -1:
+            random.seed(self.config['random_seed'])
             
-        self.map = Map(self)    
+        self.map = Map(self, self.config)    
         if not "test" in mode:
-            self.display = graphics.Display(self)    
+            self.display = graphics.Display(self, self.config)    
         self.input = headless.Input(self)
         self.running = False
         self.gameover = False
@@ -134,8 +134,9 @@ class Map(object):
     
     """
     
-    def __init__(self, game):
+    def __init__(self, game, config):
         self.game = game
+        self.config = config
         self.end_game = False
         
         # queue of objects that need to be created or destroyed
@@ -149,14 +150,14 @@ class Map(object):
         self.taunt_color = None
 
         # track objects on map
-        self.obstacles = [Box(item) for item in config.world.boxes]
+        self.obstacles = [Box(item) for item in self.config.world.boxes]
         self.build_truegrid()
         self.bases = dict((item.color, Base(item))
-                           for item in config.world.bases)
+                           for item in self.config.world.bases)
 
         self.teams = {}
         for color,base in self.bases.items():
-            self.teams[color] = Team(self, color, base)
+            self.teams[color] = Team(self, color, base, self.config)
 
     def update(self, dt):
         """Update the teams."""
@@ -167,7 +168,7 @@ class Map(object):
                 self.taunt_msg = None
                 self.game.display.taunt.update()
                 self.game.display.redraw()
-        if self.timespent > config['time_limit']:
+        if self.timespent > self.config['time_limit']:
             self.end_game = True
             return
         for team in self.teams.values():
@@ -179,9 +180,10 @@ class Map(object):
         Note: Occupancy grids with rotated obstalces not implemnted.
         
         """
-        self.occgrid = numpy.zeros((config.world.width, config.world.height))
-        offset_x = config.world.width/2
-        offset_y = config.world.height/2
+        self.occgrid = numpy.zeros((self.config.world.width,
+                                    self.config.world.height))
+        offset_x = self.config.world.width/2
+        offset_y = self.config.world.height/2
         for obstacle in self.obstacles:
             if obstacle.rot == 0:
                 lx = (obstacle.pos[0] - obstacle.size[0]/2,
@@ -267,30 +269,31 @@ class Team(object):
     
     """
     
-    def __init__(self, map, color, base):
+    def __init__(self, map, color, base, config):
+        self.config = config
         self.color = color
         self.map = map
-        ntanks = config[self.color+'_tanks']
+        ntanks = self.config[self.color+'_tanks']
         if ntanks is None:
-            ntanks = config['default_tanks']
+            ntanks = self.config['default_tanks']
 
-        self.tanks = [M1A1Abrams(self, i) for i in xrange(ntanks)]
+        self.tanks = [M1A1Abrams(self, i, self.config) for i in xrange(ntanks)]
         self.tanks_radius = constants.TANKRADIUS * ntanks * 3/2.0
         self.base = base
         base.team = self
         self.flag = Flag(self)
 
-        self.posnoise = config[self.color+'_posnoise']
+        self.posnoise = self.config[self.color+'_posnoise']
         if self.posnoise is None:
-            self.posnoise = config['default_posnoise']
+            self.posnoise = self.config['default_posnoise']
 
-        self.angnoise = config[self.color+'_angnoise']
+        self.angnoise = self.config[self.color+'_angnoise']
         if self.angnoise is None:
-            self.angnoise = config['default_angnoise']
+            self.angnoise = self.config['default_angnoise']
 
-        self.velnoise = config[self.color+'_velnoise']
+        self.velnoise = self.config[self.color+'_velnoise']
         if self.velnoise is None:
-            self.velnoise = config['default_velnoise']
+            self.velnoise = self.config['default_velnoise']
 
         self.score = Score(self)
         self._obstacles = []
@@ -337,10 +340,10 @@ class Team(object):
             if collide.circle2circle((point, radius),
                     (tank.pos, constants.TANKRADIUS)):
                 return False
-        if point[0]-radius<-config.world.size[0]/2 or\
-           point[1]-radius<-config.world.size[1]/2 or\
-           point[0]+radius>config.world.size[0]/2 or\
-           point[1]+radius>config.world.size[1]/2:
+        if point[0]-radius<-self.config.world.size[0]/2 or\
+           point[1]-radius<-self.config.world.size[1]/2 or\
+           point[0]+radius>self.config.world.size[0]/2 or\
+           point[1]+radius>self.config.world.size[1]/2:
             return False
         return True
 
@@ -401,7 +404,8 @@ class Tank(object):
     size = (constants.TANKRADIUS*2,) * 2
     radius = constants.TANKRADIUS
 
-    def __init__(self, team, tankid):
+    def __init__(self, team, tankid, config):
+        self.config = config
         self.team = team
         self.pos = constants.DEADZONE
         self.rot = 0
@@ -435,7 +439,7 @@ class Tank(object):
     def kill(self):
         """Destroy the tank."""
         self.status = constants.TANKDEAD
-        self.dead_timer = config['respawn_time']
+        self.dead_timer = self.config['respawn_time']
         self.team.score.score_tank(self)
         if self.flag:
             self.team.map.dropFlag(self.flag)
@@ -456,10 +460,10 @@ class Tank(object):
                 self.collide_tank(tank)
                 return True
         radius = constants.TANKRADIUS
-        if pos[0]-radius<-config.world.size[0]/2 or\
-         pos[1]-radius<-config.world.size[1]/2 or\
-         pos[0]+radius>config.world.size[0]/2 or \
-         pos[1]+radius>config.world.size[1]/2:
+        if pos[0]-radius<-self.config.world.size[0]/2 or\
+         pos[1]-radius<-self.config.world.size[1]/2 or\
+         pos[0]+radius>self.config.world.size[0]/2 or \
+         pos[1]+radius>self.config.world.size[1]/2:
             return True
         return False
 
@@ -513,8 +517,8 @@ class Tank(object):
 
 class M1A1Abrams(Tank):
 
-    def __init__(self, team, tankid):
-        super(M1A1Abrams, self).__init__(team, tankid)
+    def __init__(self, team, tankid, config):
+        super(M1A1Abrams, self).__init__(team, tankid, config)
         self.goal_speed = 0
         self.goal_angvel = 0
         self.speed = 0
@@ -558,9 +562,9 @@ class M1A1Abrams(Tank):
     def shoot(self):
         """Tell the tank to shoot."""
         if self.reloadtimer > 0 or \
-                len(self.shots) >= config['max_shots']:
+                len(self.shots) >= self.config['max_shots']:
             return False
-        shot = Shot(self)
+        shot = Shot(self, self.config)
         self.shots.insert(0, shot)
         self.team.map.inbox.append(shot)
         self.reloadtimer = constants.RELOADTIME
@@ -578,14 +582,15 @@ class M1A1Abrams(Tank):
 
 
 class Shot(object):
-    size = (constants.SHOTRADIUS*2,) * 2
     """Shot object:
     
     Contains the logic for a shot on the map.
     
     """
+    size = (constants.SHOTRADIUS*2,) * 2
     
-    def __init__(self, tank):
+    def __init__(self, tank, config):
+        self.config = config
         self.tank = tank
         self.team = tank.team
         self.rot = self.tank.rot
@@ -625,14 +630,14 @@ class Shot(object):
             if self in tank.shots:continue
             if collide.circle2circle((tank.pos, constants.TANKRADIUS),
                                      (self.pos, constants.SHOTRADIUS)):
-                if tank.team == self.team and not config['friendly_fire']:
+                if tank.team == self.team and not self.config['friendly_fire']:
                     continue
                 tank.kill()
                 return self.kill()
-        if self.pos[0]<-config.world.size[0]/2 or\
-           self.pos[1]<-config.world.size[1]/2 or\
-           self.pos[0]>config.world.size[0]/2 or \
-           self.pos[1]>config.world.size[1]/2:
+        if self.pos[0]<-self.config.world.size[0]/2 or\
+           self.pos[1]<-self.config.world.size[1]/2 or\
+           self.pos[0]>self.config.world.size[0]/2 or \
+           self.pos[1]>self.config.world.size[1]/2:
             return self.kill()
 
     def check_line(self, p1, p2):
@@ -643,14 +648,14 @@ class Shot(object):
         for tank in self.team.map.tanks():
             if collide.circle2line((tank.pos,constants.TANKRADIUS + 
                                     constants.SHOTRADIUS), (p1,p2)):
-                if tank.team == self.team and not config['friendly_fire']:
+                if tank.team == self.team and not self.config['friendly_fire']:
                     continue
                 tank.kill()
                 return self.kill()
-        if self.pos[0]<-config.world.size[0]/2 or\
-           self.pos[1]<-config.world.size[1]/2 or\
-           self.pos[0]>config.world.size[0]/2 or \
-           self.pos[1]>config.world.size[1]/2:
+        if self.pos[0]<-self.config.world.size[0]/2 or\
+           self.pos[1]<-self.config.world.size[1]/2 or\
+           self.pos[0]>self.config.world.size[0]/2 or \
+           self.pos[1]>self.config.world.size[1]/2:
             return self.kill()
 
     def kill(self):

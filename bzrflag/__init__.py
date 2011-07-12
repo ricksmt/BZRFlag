@@ -31,6 +31,7 @@ import logging
 import os
 
 import config
+import game
 
 LOG_FILENAME = os.path.abspath(os.path.join(
                os.path.split(__file__)[0], '..', 'debug.log'))
@@ -38,12 +39,11 @@ LOG_FILENAME = os.path.abspath(os.path.join(
 
 def run():
     """Run bzrflag game."""
-    config.init()
-    from game import Game # Cannot be imported befor config.init() is called!
+    config_file = config.Config()
     level = logging.WARNING
-    if config.config['debug']:
+    if config_file['debug']:
         level = logging.DEBUG
-    fname = config.config.get('debug_out', None)
+    fname = config_file.get('debug_out', None)
     logging.basicConfig(level=level, filename=fname)
-    g = Game()
+    g = game.Game(config_file)
     g.loop()

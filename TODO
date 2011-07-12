@@ -1,42 +1,18 @@
 (items with a plus sign (+) in front have been compleated)
 
 GENERAL
-+ add a LICENSE file and add copyright headers to each python file
-+ add unit tests
-+ move bzrflag/bzrflags/docs to bzrflags/docs;
-  remove bzrflag/bzrflag/make.bat or put it in a non-code directory
-+ move the test directory from bzrflag/bzrflag/test to bzrflag/test
+- add unit tests
 - consider adding setuptools for installability
 
 CODING STYLE
-+ add doc strings and other documentation
-+ make naming and whitespace styles more compliant (PEP 8) and consistent,
-  with whitespace between operators, max line length of 80, etc.
-+ remove local dead (commented-out) code
-+ remove global dead code: snapshot.py etc.
-+ figure out why there are different classes with the same name in
-  graphics.py and modpygame.py: either document or merge--there seems to be
-  some half-implemented plan for implementing other graphics library (would
-  this even work? why not just put all of the graphics code in one place?)
+- add doc strings and other documentation
 - straighten out the licensing for collide.py; integrate it into the code
   base more fully
-+ move any and all magic constants to constants.py
-+ unify SeppiTank and GoodrichTank into a single class; if there are two
-  different classes, they should be named after motion (StandardTank and
-  HoverTank) not people
-+ remove any * imports (all imports should be explicit)
-
-NEW FEATURES
-- add a command line option to enable cheats and restore the hammertime and
-  fireatwill commands from the git history
-
+  
 BUGS
 - fix the GUI bug that causes tanks and bases to jitter when dragging the
   map (from a fully zoomed out perspective)
-
-
-- Can't telnet in manually.
-+ test is broken
++ Can't telnet in manually.
 - Tank speed when hiting an obstacle
 
 
