@@ -55,22 +55,14 @@ class Game:
     
     """
     
-    def __init__(self, config, mode="regular"):
+    def __init__(self, config, mode=""):
         self.config = config
-        if "test" in mode:
-            print "running in test mode"
         if self.config['random_seed'] != -1:
             random.seed(self.config['random_seed'])
         self.map = Map(self, self.config)  
         if not "test" in mode:
             self.display = graphics.Display(self, self.config)      
-        self.input = headless.Input(self)
-        self.running = False
-        self.gameover = False
-        self.timestamp = datetime.datetime.utcnow()
-
-    def remake(self):
-        """For testing purposes."""
+        self.input = headless.Input(self, mode)
         self.running = False
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()
@@ -81,8 +73,8 @@ class Game:
         delta = now - self.timestamp
         self.timestamp = now
         dt = ((24 * 60 * 60) * delta.days
-                + delta.seconds
-                + (10 ** -6) * delta.microseconds)
+               + delta.seconds
+               + (10 ** -6) * delta.microseconds)
         self.map.update(dt)
 
     def update_sprites(self):
@@ -274,7 +266,7 @@ class Team(object):
         if ntanks is None:
             ntanks = self.config['default_tanks']
 
-        self.tanks = [M1A1Abrams(self, i, self.config) for i in xrange(ntanks)]
+        self.tanks = [Tank(self, i, self.config) for i in xrange(ntanks)]
         self.tanks_radius = constants.TANKRADIUS * ntanks * 3/2.0
         self.base = base
         base.team = self
@@ -405,8 +397,11 @@ class Tank(object):
         self.config = config
         self.team = team
         self.pos = constants.DEADZONE
-        self.rot = 0
+        self.goal_speed = 0
+        self.goal_angvel = 0
+        self.speed = 0
         self.angvel = 0
+        self.rot = 0
         self.callsign = self.team.color + str(tankid)
         self.status = constants.TANKDEAD
         self.shots = []
@@ -416,26 +411,36 @@ class Tank(object):
         self.spawned = False
 
     def reset_speed(self):
-        raise NotImplementedError
+        """Reset rot, speed and angvel to zero."""
+        self.goal_speed = 0
+        self.goal_angvel = 0
+        self.speed = 0
+        self.angvel = 0
+        self.rot = 0
 
     def setspeed(self, speed):
-        raise NotImplementedError
+        """Set the goal speed."""
+        self.goal_speed = speed
 
     def setangvel(self, angvel):
-        raise NotImplementedError
-
-    def setaccelx(self, value):
-        raise NotImplementedError
-
-    def setaccely(self, value):
-        raise NotImplementedError
+        """Set the goal angular velocity."""
+        self.goal_angvel = angvel
 
     def shoot(self):
-        raise NotImplementedError
+        """Tell the tank to shoot."""
+        if self.reloadtimer > 0 or \
+                len(self.shots) >= self.config['max_shots']:
+            return False
+        shot = Shot(self, self.config)
+        self.shots.insert(0, shot)
+        self.team.map.inbox.append(shot)
+        self.reloadtimer = constants.RELOADTIME
+        return True
 
     def kill(self):
-        """Destroy the tank."""
+        """Kill tank."""
         self.status = constants.TANKDEAD
+        self.pos = constants.DEADZONE
         self.dead_timer = self.config['respawn_time']
         self.team.score.score_tank(self)
         if self.flag:
@@ -470,19 +475,25 @@ class Tank(object):
 
     def update(self, dt):
         """Update the tank's position, status, velocities."""
-        if (self.pos == constants.DEADZONE and
-                self.status != constants.TANKDEAD):
+        for shot in self.shots:
+            shot.update(dt)
+            
+        if self.reloadtimer > 0:
+            self.reloadtimer -= dt   
+        if (self.pos == constants.DEADZONE and 
+            self.status != constants.TANKDEAD):
             self.team.respawn(self)
         if self.status == constants.TANKDEAD:
             self.dead_timer -= dt
             if self.dead_timer <= 0:
-                self.team.respawn(self,not self.spawned)
+                self.team.respawn(self, not self.spawned)
                 self.spawned = True
             return
 
         self.update_goals(dt)
         dx,dy = self.velocity()
-        if not self.collision_at((self.pos[0]+dx*dt, self.pos[1]+dy*dt)):
+        if not self.collision_at((self.pos[0]+dx*dt, 
+                                  self.pos[1]+dy*dt)):
             self.pos[0] += dx*dt
             self.pos[1] += dy*dt
         elif not self.collision_at((self.pos[0], self.pos[1]+dy*dt)):
@@ -506,31 +517,6 @@ class Tank(object):
             return num
 
     def update_goals(self, dt):
-        raise NotImplementedError
-
-    def velocity(self):
-        raise NotImplementedError
-
-
-class M1A1Abrams(Tank):
-
-    def __init__(self, team, tankid, config):
-        super(M1A1Abrams, self).__init__(team, tankid, config)
-        self.goal_speed = 0
-        self.goal_angvel = 0
-        self.speed = 0
-        self.angvel = 0
-        self.rot = 0
-
-    def update(self, dt):
-        """Update tank's position, status, etc."""
-        for shot in self.shots:
-            shot.update(dt)
-        if self.reloadtimer > 0:
-            self.reloadtimer -= dt
-        super(M1A1Abrams, self).update(dt)
-
-    def update_goals(self, dt):
         """Update the velocities to match the goals."""
         self.speed = self.update_goal(self.speed, self.goal_speed,
                                       constants.LINEARACCEL * dt)
@@ -539,38 +525,6 @@ class M1A1Abrams(Tank):
         self.rot += self.angvel * constants.TANKANGVEL * dt
         # Normalize the angle to be between 0 and 2*pi
         self.rot = self.rot % (2 * math.pi)
-
-    def reset_speed(self):
-        """Reset rot, speed and angvel to zero."""
-        self.goal_speed = 0
-        self.goal_angvel = 0
-        self.speed = 0
-        self.angvel = 0
-        self.rot = 0
-
-    def setspeed(self, speed):
-        """Set the goal speed."""
-        self.goal_speed = speed
-
-    def setangvel(self, angvel):
-        """Set the goal angular velocity."""
-        self.goal_angvel = angvel
-
-    def shoot(self):
-        """Tell the tank to shoot."""
-        if self.reloadtimer > 0 or \
-                len(self.shots) >= self.config['max_shots']:
-            return False
-        shot = Shot(self, self.config)
-        self.shots.insert(0, shot)
-        self.team.map.inbox.append(shot)
-        self.reloadtimer = constants.RELOADTIME
-        return True
-
-    def kill(self):
-        """Kill tank."""
-        super(M1A1Abrams, self).kill()
-        self.pos = constants.DEADZONE
 
     def velocity(self):
         """Calculate the tank's linear velocity."""
