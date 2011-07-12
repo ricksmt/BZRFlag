@@ -39,7 +39,8 @@ import collide
 import constants
 import config
 import headless 
-        
+import graphics
+       
 logger = logging.getLogger('game')
 
 
@@ -55,18 +56,14 @@ class Game:
     """
     
     def __init__(self, config, mode="regular"):
-    
-        import graphics #imported here to avoid circular imports
-            
+        self.config = config
         if "test" in mode:
             print "running in test mode"
-        self.config = config      
         if self.config['random_seed'] != -1:
             random.seed(self.config['random_seed'])
-            
-        self.map = Map(self, self.config)    
+        self.map = Map(self, self.config)  
         if not "test" in mode:
-            self.display = graphics.Display(self, self.config)    
+            self.display = graphics.Display(self, self.config)      
         self.input = headless.Input(self)
         self.running = False
         self.gameover = False
