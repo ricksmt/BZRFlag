@@ -38,6 +38,7 @@ import logging
 import collide
 import constants
 import config
+import headless 
         
 logger = logging.getLogger('game')
 
@@ -56,7 +57,6 @@ class Game:
     def __init__(self, config, mode="regular"):
     
         import graphics #imported here to avoid circular imports
-        import headless #imported here to avoid circular imports
             
         if "test" in mode:
             print "running in test mode"

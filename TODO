@@ -12,7 +12,6 @@ CODING STYLE
 BUGS
 - fix the GUI bug that causes tanks and bases to jitter when dragging the
   map (from a fully zoomed out perspective)
-+ Can't telnet in manually.
 - Tank speed when hiting an obstacle
 
 

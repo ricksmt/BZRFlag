@@ -27,8 +27,6 @@ __license__ = "GNU GPL"
 import string
 import sys
 import pygame
-from pygame import MOUSEBUTTONDOWN, KEYDOWN, KEYUP, QUIT, K_SPACE,\
-                   K_LEFT, K_RIGHT, K_UP, K_DOWN
 from code import InteractiveConsole as IC
 
 import collide
@@ -88,7 +86,7 @@ class Console(object):
             screen.blit(self.image, self.rect)
 
     def event(self, e):
-        if e.type == MOUSEBUTTONDOWN:
+        if e.type == pygame.MOUSEBUTTONDOWN:
             if self.minrect.collidepoint(e.pos):
                 self.minimized = not self.minimized
                 if self.minimized:
@@ -107,7 +105,7 @@ class TelnetConsole(Console):
     def event(self, e):
         if super(TelnetConsole, self).event(e):
             return
-        elif e.type == KEYDOWN and e.key == K_SPACE:
+        elif e.type == pygame.KEYDOWN and e.key == pygame.K_SPACE:
             self.frozen = not self.frozen
 
 
@@ -156,7 +154,7 @@ class PyConsole(Console):
     def event(self, e):
         if super(PyConsole, self).event(e):
             return
-        elif e.type == KEYDOWN:
+        elif e.type == pygame.KEYDOWN:
             if self.minimized:return
             if e.key == 8:
                 if self.at>self.index:
@@ -166,15 +164,15 @@ class PyConsole(Console):
                         self.at = self.index
             elif e.key == 13:
                 self.execute()
-            elif e.key == K_UP:
+            elif e.key == pygame.K_UP:
                 self.athistory -= 1
                 self.rehistory()
-            elif e.key == K_DOWN:
+            elif e.key == pygame.K_DOWN:
                 self.athistory += 1
                 self.rehistory()
-            elif e.key == K_LEFT:
+            elif e.key == pygame.K_LEFT:
                 if self.at>self.index:self.at-=1
-            elif e.key == K_RIGHT:
+            elif e.key == pygame.K_RIGHT:
                 if self.at<len(self.txt):
                     self.at+=1
             elif e.unicode in string.printable:

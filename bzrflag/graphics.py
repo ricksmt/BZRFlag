@@ -32,15 +32,12 @@ __license__ = "GNU GPL"
 import os
 import math
 import pygame
-from pygame import MOUSEBUTTONDOWN, KEYDOWN, QUIT, MOUSEMOTION, VIDEORESIZE, \
-                   K_DOWN, K_UP, K_LEFT, K_RIGHT
 
 import paths
 import pygameconsole
-from constants import COLORNAME, TILESCALE, FONTSIZE
+import constants 
 import config
-from world import Base, Box
-from game import Tank, Shot, Flag, Base, Score
+import game
 
   
 class ImageCache(object):
@@ -58,30 +55,30 @@ class ImageCache(object):
     def ground(self):
         """Creates a surface of the ground image.
 
-        The surface is scaled down using the factor in TILESCALE.
+        The surface is scaled down using the factor in constants.TILESCALE.
         
         """
         if not self._cache.has_key('ground'):
             ground = self.load_image(paths.GROUND)
-            self._ground = self.scaled_image(ground, TILESCALE)
+            self._ground = self.scaled_image(ground, constants.TILESCALE)
         return self._ground
 
     def wall(self):
         """Returns a surface for walls.
 
-        The surface is scaled down using the factor in TILESCALE.
+        The surface is scaled down using the factor in constants.TILESCALE.
         
         """
         if not self._wall:
             wall = self.load_image(paths.WALL)
-            self._wall = self.scaled_image(wall, TILESCALE)
+            self._wall = self.scaled_image(wall, constants.TILESCALE)
         return self._wall
 
     def loadteam(self, type, color):
         """Load team images."""
         if not self._teamcache.has_key(type):
             raise KeyError("invalid image type: %s"%type)
-        if not color in COLORNAME:
+        if not color in constants.COLORNAME:
             raise KeyError("invalid color: %s"%color)
         if not self._teamcache[type].has_key(color):
             self._teamcache[type][color] = \
@@ -146,7 +143,7 @@ class TextSprite(pygame.sprite.Sprite):
         """Updates text."""
         self.text = self.bzobject.text()
         lines = self.text.split('\n')
-        font = pygame.font.Font(paths.FONT_FILE, FONTSIZE)
+        font = pygame.font.Font(paths.FONT_FILE, constants.FONTSIZE)
         mw = 0
         mh = 0
         for line in lines:
@@ -443,37 +440,37 @@ class Display(object):
         dirty = False
         for e in pygame.event.get():
             self.console.event(e)
-            if e.type == QUIT:
+            if e.type == pygame.QUIT:
                 self.game.running = False
                 self.game.map.end_game = True
-            elif e.type == MOUSEBUTTONDOWN:
+            elif e.type == pygame.MOUSEBUTTONDOWN:
                 if e.button == 4:
                     dirty = True
                     self.rescale(self.scale*1.1, e.pos)
                 elif e.button == 5:
                     self.rescale(self.scale*(1/1.1), e.pos)
                     dirty = True
-            elif e.type == KEYDOWN:
+            elif e.type == pygame.KEYDOWN:
                 amt = 20
                 if not self.console.minimized:
                     continue
-                if e.key == K_DOWN:
+                if e.key == pygame.K_DOWN:
                     self.pos[1] -= amt
-                elif e.key == K_UP:
+                elif e.key == pygame.K_UP:
                     self.pos[1] += amt
-                elif e.key == K_LEFT:
+                elif e.key == pygame.K_LEFT:
                     self.pos[0] += amt
-                elif e.key == K_RIGHT:
+                elif e.key == pygame.K_RIGHT:
                     self.pos[0] -= amt
                 else:
                     continue
                 dirty = True
-            elif e.type == MOUSEMOTION:
+            elif e.type == pygame.MOUSEMOTION:
                 if e.buttons[0]:
                     self.pos[0]+=e.rel[0]
                     self.pos[1]+=e.rel[1]
                     dirty = True
-            elif e.type == VIDEORESIZE:
+            elif e.type == pygame.VIDEORESIZE:
                 w,h = e.size
                 x = min(w, h)
                 self.resize(x, x)
@@ -530,8 +527,8 @@ class Display(object):
 
     def add_object(self, obj):
         """Addes given object to display."""
-        types = (Tank, 'tank'), (Shot,'shot'), (Flag,'flag'), \
-                (Base,'base'), (Score,'score')
+        types = (game.Tank, 'tank'), (game.Shot,'shot'), (game.Flag,'flag'), \
+                (game.Base,'base'), (game.Score,'score')
         otype = None
         for cls,name in types:
             if isinstance(obj,cls):

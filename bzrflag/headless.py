@@ -34,7 +34,7 @@ import logging
 
 import server
 import config
-from constants import LOOP_TIMEOUT  
+import constants  
 
 logger = logging.getLogger('headless.py')
 
@@ -53,7 +53,7 @@ class Input:
         print
 
     def update(self):
-        asyncore.loop(LOOP_TIMEOUT, count = 1)
+        asyncore.loop(constants.LOOP_TIMEOUT, count = 1)
         
         
         

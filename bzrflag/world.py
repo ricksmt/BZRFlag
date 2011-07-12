@@ -30,20 +30,16 @@ that is supported is implemented correctly.  See the bzw man page for more
 information about the file format (but note that their BNF is incomplete).
 
 """
-
-from __future__ import division # Must be at the beginning of the file!
-
 __author__ = "BYU AML Lab <kseppi@byu.edu>"
 __copyright__ = "Copyright 2008-2011 Brigham Young University"
 __license__ = "GNU GPL"
 
-from pyparsing import alphas, nums, Word, Keyword, LineEnd, Each, ZeroOrMore, \
-                      Combine, Optional, Dict, SkipTo, Group
 import logging
 import math
-        
+from pyparsing import nums, Word, Keyword, LineEnd, Each, ZeroOrMore, \
+                      Combine, Optional, Dict, SkipTo, Group
+                              
 import constants
-
 
 logger = logging.getLogger('world')
 
