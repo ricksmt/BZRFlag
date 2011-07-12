@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import os
-import sys
 
 import magictest
 from bzrflag import game, config

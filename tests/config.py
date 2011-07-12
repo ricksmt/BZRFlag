@@ -4,25 +4,28 @@ import os
 import magictest
 from bzrflag import config
 
-pwd = os.path.dirname(__file__)
-wf = os.path.join(pwd, 'test.bzw')
 
-class Test(magictest.MagicTest):
+class ConfigTest(magictest.MagicTest):
 
-    def runTest(self):
+    def setUp(self):
+        self.world = ""+os.path.join(os.path.dirname(__file__), "test.bzw")
+        self.port = "50100"
+        self.config_file = config.Config(["--world="+self.world, 
+                                          "--red-port="+self.port])
+        
+    def tearDown(self):
+        self.config_file = None
+
+    def testArgError(self):
         args = '--world=test_bad.bzw --red-port=50189'.split()
         self.assertRaises(config.ArgumentError, config.Config,args)
         
-        args[0] = '--world='+os.path.join(pwd, 'test.bzw')
-        c = config.Config(args)
-        #self.assertRaises(Exception,config.Config)
-        self.assertEquals(c['world'],wf)
-        self.assertEquals(c['red_port'], 50189)
-
-
-suite = Test.toSuite()
+    def testOptions(self):
+        self.assertEquals(self.config_file['world'], self.world)
+        self.assertEquals(self.config_file['red_port'], int(self.port))
+        
 
 def runSuite(vb=2):
-    return Test.runSuite(vb)
+    return ConfigTest.runSuite(vb)
 
 # vim: et sw=4 sts=4

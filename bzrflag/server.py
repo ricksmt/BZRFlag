@@ -640,7 +640,6 @@ class Handler(asynchat.async_chat):
         response = ['begin\n',
                     'constant team %s\n' % (self.team.color),
                     'constant worldsize %s\n' % (self.config['world_size']),
-                    'constant puppyzone %s\n' % (self.config['puppy_guard_zone']),
                     'constant tankangvel %s\n' % (constants.TANKANGVEL),
                     'constant tanklength %s\n' % (constants.TANKLENGTH),
                     'constant tankradius %s\n' % (constants.TANKRADIUS),

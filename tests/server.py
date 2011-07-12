@@ -4,21 +4,21 @@ import os
 import magictest
 from bzrflag import server, config
 
-config_file = None
-
 class ServerTest(magictest.MagicTest):
     
     def setUp(self):
-        global config_file
-        config_file = config.Config()
+        self.config_file = config.Config()
+        
+    def tearDown(self):
+        self.config_file = None
 
-    def test_build(self):
+    def testInitialization(self):
         team = None
-        s = server.Server(('0.0.0.0', 50100),team, config_file)
+        s = server.Server(('0.0.0.0', 50100),team, self.config_file)
         self.assertEquals(s.get_port(), 50100)
         
         
 def runSuite(vb=2):
     return ServerTest.runSuite(vb)
 
-
+# vim: et sw=4 sts=4

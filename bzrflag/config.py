@@ -109,9 +109,6 @@ class Config:
             dest='telnet_console', default=False,
             action='store_true',
             help='use interactive telnet shell (and log server response)')
-        p.add_option('--puppy-guard-zone',
-            type='int', default=30, dest='puppy_guard_zone',
-            help='radius of the puppy-guard zone')
         p.add_option('--no-report-obstacles',
             action='store_true', default=False,
             dest='no_report_obstacles',
