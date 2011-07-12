@@ -42,15 +42,16 @@ logger = logging.getLogger('headless.py')
 class Input:
     """The server input class."""
     
-    def __init__(self, game):
+    def __init__(self, game, mode):
         self.game = game
         self.servers = {}
         for color,team in self.game.map.teams.items():
             port = game.config[color+'_port']
             self.servers[color] = server.Server(('0.0.0.0', port), 
                                                  team, game.config)
-            print 'port for %s: %s' % (color, self.servers[color].get_port())
-        print
+            if not "test" in mode:
+                port = self.servers[color].get_port()
+                print 'port for %s: %s' % (color, port)
 
     def update(self):
         asyncore.loop(constants.LOOP_TIMEOUT, count = 1)

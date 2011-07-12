@@ -15,11 +15,11 @@ def run():
     print "\n\nRUNNING TESTS FOR: collide.py:"
     collide.runSuite(VB)
     
-    print "\n\nRUNNING TESTS FOR: server.py:"
-    server.runSuite(VB)
-    
     print "\n\nRUNNING TESTS FOR: config.py:"
     config.runSuite(VB)
+    
+    print "\n\nRUNNING TESTS FOR: server.py:"
+    server.runSuite(VB)
         
     print "\n\nRUNNING TESTS FOR: game.py:"
     game.runSuite(VB)
