@@ -209,8 +209,9 @@ class Handler(asynchat.async_chat):
             for name in dir(self):
                 if name.startswith('bzrc_'):
                     attr = getattr(self, name)
-                    doc = ':%s\n' % attr.__doc__.split('\n')[0]
-                    help_lines.append(doc)
+                    if attr.__doc__:
+                        doc = ':%s\n' % attr.__doc__.split('\n')[0]
+                        help_lines.append(doc)
             self.push(''.join(help_lines))
         else:
             name = args[1]
