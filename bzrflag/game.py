@@ -87,8 +87,8 @@ class Game:
     def loop(self):
         """The main loop of bzflag. 
         
-        Checks events, updates positions, and draws to the screen 
-        until the pygame window is closed.
+        Checks events, updates positions, and draws to the screen until 
+        the pygame window is closed, KeyboardInterrupt, or System Exit.
         
         """
         self.running = True
@@ -97,7 +97,6 @@ class Game:
         try:
             while self.running:
                 if self.map.end_game:
-                    # do something else here?
                     break
                 self.input.update()
                 self.update()
@@ -107,11 +106,12 @@ class Game:
         except KeyboardInterrupt:
             pass
         finally:
-            final_score = 'Final Score\n'
+            final_score = '\nFinal Score\n'
             for team in self.map.teams:
                 final_score += 'Team %s: %d\n' % (team,
                                 self.map.teams[team].score.total())
-            print final_score
+            if not self.config['test']:
+                print final_score
 
     def kill(self):
         self.running = False

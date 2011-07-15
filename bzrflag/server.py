@@ -30,6 +30,7 @@ __author__ = "BYU AML Lab <kseppi@byu.edu>"
 __copyright__ = "Copyright 2008-2011 Brigham Young University"
 __license__ = "GNU GPL"
 
+import sys
 import asynchat
 import asyncore
 import math
@@ -732,7 +733,18 @@ class Handler(asynchat.async_chat):
         self.ack(command)
         self.push('ok\n')
         self.close()
-
+    
+    def bzrc_endgame(self, args):
+        ## purposely undocumented
+        try:
+            command, = args
+        except ValueError, TypeError:
+            self.invalid_args(args)
+            return
+        self.ack(command)
+        self.push('ok\n')
+        sys.exit(0)
+    
     @staticmethod
     def normalize_angle(angle):
         """Normalize angles to be in the interval (-pi, pi].

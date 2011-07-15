@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import unittest
 import inspect
-
+import sys
 
 class MagicTest(unittest.TestCase):
 
@@ -26,7 +26,7 @@ class MagicTest(unittest.TestCase):
 
     @classmethod
     def runSuite(cls, vb=2):
-        return unittest.TextTestRunner(verbosity=vb).run(cls.toSuite())
+        return unittest.TextTestRunner(sys.stdout, verbosity=vb).run(cls.toSuite())
 
 
 # vim: et sw=4 sts=4

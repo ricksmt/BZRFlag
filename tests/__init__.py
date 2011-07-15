@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import unittest
+import datetime
 
 import collide
 import config
@@ -9,10 +10,11 @@ import game
 VB = 2
 
 def run():
-    print "\nSTART TESTS"
+    print datetime.datetime.now()
+    print "\nSTART CODE TESTS"
        
     print "\n\nRUNNING TESTS FOR: collide.py:"
-    collide.runSuite(VB)
+    #collide.runSuite(VB)
     
     print "\n\nRUNNING TESTS FOR: config.py:"
     config.runSuite(VB)
@@ -23,6 +25,6 @@ def run():
     print "\n\nRUNNING TESTS FOR: game.py:"
     game.runSuite(VB)
     
-    print "\nEND TESTS"
+    print "\nEND CODE TESTS"
     
 # vim: et sw=4 sts=4

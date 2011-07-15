@@ -48,8 +48,8 @@ class Input:
         for color,team in self.game.map.teams.items():
             port_arg = ('0.0.0.0', game.config[color+'_port'])
             self.servers[color] = server.Server(port_arg, team, game.config)
+            port = self.servers[color].get_port()
             if not game.config['test']:
-                port = self.servers[color].get_port()
                 print 'port for %s: %s' % (color, port)
 
     def update(self):
