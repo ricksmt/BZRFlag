@@ -81,6 +81,10 @@ class Config:
             action='store_true',
             dest='debug',
             help='turn on verbose debugging')
+        p.add_option('--test',
+            action='store_true',
+            dest='test',
+            help='run in test mode (no GUI)')
         p.add_option('--debug-out',
             dest='debug_out',
             help='output filename for debug messages')

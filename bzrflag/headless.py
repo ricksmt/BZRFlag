@@ -42,13 +42,13 @@ logger = logging.getLogger('headless.py')
 class Input:
     """The server input class."""
     
-    def __init__(self, game, mode):
+    def __init__(self, game):
         self.game = game
         self.servers = {}
         for color,team in self.game.map.teams.items():
             port_arg = ('0.0.0.0', game.config[color+'_port'])
             self.servers[color] = server.Server(port_arg, team, game.config)
-            if not 'test' in mode:
+            if not game.config['test']:
                 port = self.servers[color].get_port()
                 print 'port for %s: %s' % (color, port)
 

@@ -41,9 +41,13 @@ def run():
     """Run bzrflag game."""
     config_file = config.Config()
     level = logging.WARNING
+    
     if config_file['debug']:
         level = logging.DEBUG
     fname = config_file.get('debug_out', None)
     logging.basicConfig(level=level, filename=fname)
     g = game.Game(config_file)
     g.loop()
+    
+    
+    

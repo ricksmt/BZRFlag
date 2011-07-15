@@ -55,14 +55,14 @@ class Game:
     
     """
     
-    def __init__(self, config, mode=""):
+    def __init__(self, config):
         self.config = config
         if self.config['random_seed'] != -1:
             random.seed(self.config['random_seed'])
         self.map = Map(self, self.config)  
-        if not "test" in mode:
+        if not self.config['test']:
             self.display = graphics.Display(self, self.config)      
-        self.input = headless.Input(self, mode)
+        self.input = headless.Input(self)
         self.running = False
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()
@@ -92,7 +92,8 @@ class Game:
         
         """
         self.running = True
-        self.display.setup()
+        if not self.config['test']:
+            self.display.setup()
         try:
             while self.running:
                 if self.map.end_game:
@@ -100,8 +101,9 @@ class Game:
                     break
                 self.input.update()
                 self.update()
-                self.update_sprites()
-                self.display.update()
+                if not self.config['test']:
+                    self.update_sprites()
+                    self.display.update()
         except KeyboardInterrupt:
             pass
         finally:
@@ -113,7 +115,8 @@ class Game:
 
     def kill(self):
         self.running = False
-        self.display.kill()
+        if not self.config['test']:
+            self.display.kill()
 
 
 class Map(object):
