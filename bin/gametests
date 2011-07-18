@@ -6,7 +6,7 @@ import sys
 path = os.path.split(os.path.abspath(__file__))[0]
 sys.path.append(os.path.join(path,'../'))
 
-import tests
+from tests import gametests
 if __name__=='__main__':
-    tests.run()
+    gametests.run()
 

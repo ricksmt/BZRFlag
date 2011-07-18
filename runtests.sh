@@ -2,7 +2,7 @@
 
 
 echo "RUNNING CODE TESTS"
-./bin/test > tests/results.txt 
+./bin/codetests > tests/results.txt 
 
 result=$(grep "FAIL" tests/results.txt) 
 
@@ -16,9 +16,9 @@ sleep 1
 
 
 echo "RUNNING GAME TESTS"
-./bin/bzrflag --test --world=tests/test.bzw --red-port=50100 & 
+./bin/bzrflag --test --world=tests/gametests/test.bzw --red-port=50100 & 
 
-python tests/gametest.py > tests/results.txt
+./bin/gametests > tests/results.txt
 
 result=$(grep "FAIL" tests/results.txt) 
 

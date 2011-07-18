@@ -12,9 +12,13 @@ CODING STYLE
 BUGS
 - fix the GUI bug that causes tanks and bases to jitter when dragging the
   map (from a fully zoomed out perspective)
+  
 - Tank speed when hiting an obstacle
+
 - Taunt messages dont show up and fail after first
 - 'timer' command produces "fail 'Map' object has fo attribute 'timelimit'"
+- 'occupancy grid' command produces fail
+- 'scores' command preduces fail
 
 
 Priority
