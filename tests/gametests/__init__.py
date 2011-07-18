@@ -12,7 +12,7 @@ def run():
        
     print "\n\nRUNNING COMMANDS TESTS:"
     testcommands.run(VB)
-    
+
     print "\nEND GAME TESTS"
     
 # vim: et sw=4 sts=4

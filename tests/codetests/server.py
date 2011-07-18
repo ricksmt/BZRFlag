@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 
-from tests import magictest
+import magictest
 from bzrflag import server, config
 
 class ServerTest(magictest.MagicTest):

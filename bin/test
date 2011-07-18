@@ -1,14 +1,11 @@
-
-
+#!/bin/bash
 
 echo "RUNNING CODE TESTS"
-./bin/codetests > tests/results.txt 
+./tests/codetest > tests/results.txt 
 
 result=$(grep "FAIL" tests/results.txt) 
 
-if  [ "$result" == "" ]; then
-    echo "Success!" 
-else
+if  [ "$result" != "" ]; then
     echo "One or more code tests failed. Please see tests/results.txt"
     exit
 fi
@@ -17,16 +14,17 @@ sleep 1
 
 echo "RUNNING GAME TESTS"
 ./bin/bzrflag --test --world=tests/gametests/test.bzw --red-port=50100 & 
-
-./bin/gametests > tests/results.txt
+sleep 1
+./tests/gametest > tests/results.txt
 
 result=$(grep "FAIL" tests/results.txt) 
 
-if  [ "$result" == "" ]; then
-    echo "Success!" 
-else
+if  [ "$result" != "" ]; then
     echo "One or more game tests failed. Please see tests/results.txt"
     exit
+else
+    date > tests/results.txt
+    echo "All tests finished successfully!" >> tests/results.txt 
 fi
 sleep 1 
 

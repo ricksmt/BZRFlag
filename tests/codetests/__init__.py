@@ -24,7 +24,7 @@ def run():
         
     print "\n\nRUNNING TESTS FOR: game.py:"
     game.runSuite(VB)
-    
+
     print "\nEND CODE TESTS"
     
 # vim: et sw=4 sts=4
