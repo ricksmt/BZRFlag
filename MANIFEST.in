@@ -1,0 +1,11 @@
+
+include rungame.sh
+
+recursive-include bin
+
+recursive-include data *.png *.ttf
+
+recursive-include maps *.bzw
+
+recursive-include docs *.rst
+
