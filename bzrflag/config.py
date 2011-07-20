@@ -246,8 +246,8 @@ class Config:
                         value = int(value)
                     setattr(opts,key,value)
 
-        if args:
-            p.parse_error('No positional arguments are allowed.')
+        #if args:
+            #p.parse_error('No positional arguments are allowed.')
         return vars(opts)
     
             

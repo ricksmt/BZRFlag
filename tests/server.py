@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import os
 
-import magictest
+import unittest
 from bzrflag import server, config
 
-class ServerTest(magictest.MagicTest):
+class ServerTest(unittest.TestCase):
     
     def setUp(self):
         self.config_file = config.Config()
@@ -19,9 +19,5 @@ class ServerTest(magictest.MagicTest):
 
     def testInitialization(self):
         self.assertEquals(self.svr.in_use, False)
-              
-           
-def runSuite(vb=2):
-    return ServerTest.runSuite(vb)
 
 # vim: et sw=4 sts=4

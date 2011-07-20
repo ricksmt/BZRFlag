@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(name='BZRFlag',
       version='1.0',
@@ -10,6 +10,7 @@ setup(name='BZRFlag',
       url='http://aml.cs.byu.edu/',
       packages=['bzrflag', 'bzagents'],
       package_data = {'': ['*.png', '*.txt', '*.ttf']},
+      test_suite = "tests",
       classifiers=['Development Status :: 4 - Beta',
                    'Operating System :: POSIX :: Linux',
                    'Intended Audience :: Science/Research',

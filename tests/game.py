@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import os
 
-import magictest
+import unittest
 from bzrflag import game, config
 
 
-class GameTest(magictest.MagicTest):
+class GameTest(unittest.TestCase):
 
     def setUp(self):  
         world = "--world="+os.path.join(os.path.dirname(__file__), "test.bzw")
@@ -24,10 +24,5 @@ class GameTest(magictest.MagicTest):
         self.assertNotEqual(self.team._obstacles,[])
         self.assertEquals(len(list(self.game.map.tanks())), 40)
         self.assertEquals(len(list(self.game.map.shots())), 0)
-            
-
-def runSuite(vb=2):
-    return GameTest.runSuite(vb)
-
 
 # vim: et sw=4 sts=4

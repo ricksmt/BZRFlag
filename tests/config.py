@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 import os
 
-import magictest
+import unittest
 from bzrflag import config
 
 
-class ConfigTest(magictest.MagicTest):
+class ConfigTest(unittest.TestCase):
 
     def setUp(self):
         self.world = ""+os.path.join(os.path.dirname(__file__), "test.bzw")
@@ -24,8 +24,5 @@ class ConfigTest(magictest.MagicTest):
         self.assertEquals(self.config_file['world'], self.world)
         self.assertEquals(self.config_file['red_port'], int(self.port))
         
-
-def runSuite(vb=2):
-    return ConfigTest.runSuite(vb)
 
 # vim: et sw=4 sts=4

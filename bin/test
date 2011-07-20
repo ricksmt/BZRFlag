@@ -1,34 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env python
 
-echo "RUNNING CODE TESTS"
-./tests/codetest > tests/results.txt 
+import os
+import sys
 
-result=$(grep "FAIL" tests/results.txt) 
+path = os.path.split(os.path.abspath(__file__))[0]
+sys.path.append(os.path.join(path,'../'))
 
-if  [ "$result" != "" ]; then
-    echo "One or more code tests failed. Please see tests/results.txt"
-    exit
-fi
-sleep 1
-
-
-echo "RUNNING GAME TESTS"
-./bin/bzrflag --test --world=tests/gametests/test.bzw --red-port=50100 & 
-sleep 1
-./tests/gametest > tests/results.txt
-
-result=$(grep "FAIL" tests/results.txt) 
-
-if  [ "$result" != "" ]; then
-    echo "One or more game tests failed. Please see tests/results.txt"
-    exit
-else
-    date > tests/results.txt
-    echo "All tests finished successfully!" >> tests/results.txt 
-fi
-sleep 1 
-
-
-echo "Finished!"
-
+import codetests
+if __name__=='__main__':
+    codetests.run()
 

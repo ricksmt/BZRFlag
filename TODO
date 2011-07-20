@@ -15,7 +15,7 @@ BUGS
   
 - Tank speed when hiting an obstacle
 
-- Taunt messages dont show up and fail after first
+- Taunt messages dont show up, and fail after first
 - 'timer' command produces "fail 'Map' object has fo attribute 'timelimit'"
 - 'occupancy grid' command produces fail
 - 'scores' command preduces fail
