@@ -38,7 +38,6 @@ import logging
 import collide
 import constants
 import config
-import headless
 import graphics
 
 logger = logging.getLogger('game')
@@ -50,7 +49,6 @@ class Game:
     Attributes:
 
     * map => :class:`game.Map`
-    * input => :class:`headless.Input`
     * display => :class:`graphics.Display`
     """
 
@@ -61,13 +59,22 @@ class Game:
         self.map = Map(self, self.config)
         if not self.config['test']:
             self.display = graphics.Display(self, self.config)
-        self.input = headless.Input(self)
+        self.servers = {}
         self.running = False
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()
         self.messages = []
 
-    def update(self):
+    def start_servers(self):
+        for color, team in self.map.teams.items():
+            port = game.config[color + '_port']
+            address = ('0.0.0.0', port)
+            srv = server.Server(address, team, self.map, self.config)
+            if not game.config['test']:
+                print 'port for %s: %s' % (color, srv.get_port())
+            self.servers[color] = srv
+
+    def update_map(self):
         """Updates the game world."""
         now = datetime.datetime.utcnow()
         delta = now - self.timestamp
@@ -99,14 +106,15 @@ class Game:
         the pygame window is closed, KeyboardInterrupt, or System Exit.
         """
         self.running = True
+        self.start_servers()
         if not self.config['test']:
             self.display.setup()
         try:
             while self.running:
                 if self.map.end_game:
                     break
-                self.input.update()
-                self.update()
+                asyncore.loop(constants.LOOP_TIMEOUT, count=1)
+                self.update_map()
                 if not self.config['test']:
                     self.update_graphics()
                     self.display.update()
