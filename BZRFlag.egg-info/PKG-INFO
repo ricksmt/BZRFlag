@@ -1,0 +1,17 @@
+Metadata-Version: 1.0
+Name: BZRFlag
+Version: 1.1
+Summary: BZRFlag: BZFlag with Robotic Tanks!
+Home-page: http://aml.cs.byu.edu/
+Author: BYU AML Lab
+Author-email: kseppi@byu.edu
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence

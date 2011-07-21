@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='BZRFlag',
-      version='1.0',
+      version='1.1',
       description='BZRFlag: BZFlag with Robotic Tanks!',
       author='BYU AML Lab',
       author_email='kseppi@byu.edu',
