@@ -59,7 +59,7 @@ class Server(asyncore.dispatcher):
         self.team = team
         self.map = map
         self.in_use = False
-        if sock is not None:
+        if sock is None:
             sock = socket.socket()
             sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         asyncore.dispatcher.__init__(self, sock)

@@ -7,17 +7,18 @@ from bzrflag import server, config
 class ServerTest(unittest.TestCase):
 
     def setUp(self):
-        self.config_file = config.Config()
-        self.team = None
-        self.svr = server.Server(('0.0.0.0', 0), self.team, self.config_file)
-        self.port = self.svr.get_port()
+        self.config = config.Config()
+        team = None
+        map = None
+        self.srv = server.Server(('0.0.0.0', 0), team, map, self.config)
+        self.port = self.srv.get_port()
 
     def tearDown(self):
         self.config_file = None
-        self.svr = None
+        self.srv = None
         self.port = None
 
     def testInitialization(self):
-        self.assertEquals(self.svr.in_use, False)
+        self.assertEquals(self.srv.in_use, False)
 
 # vim: et sw=4 sts=4
