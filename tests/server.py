@@ -11,8 +11,34 @@ CONN_SOCK_1_FILENO = 11
 CONN_SOCK_2_FILENO = 12
 
 
-class ServerTest(unittest.TestCase):
+class HandlerTest(unittest.TestCase):
+    def setUp(self):
+        self.sock = MockSocket(CONN_SOCK_1_FILENO)
 
+        self.config = {'telnet_console': False}
+        team = MockTeam()
+        self.map = None
+        self.handle_closed_handler = MockHandleClosedHandler()
+        self.handler = server.Handler(self.sock, team, map,
+                self.handle_closed_handler, self.config, {})
+
+    def tearDown(self):
+        del self.sock
+        del self.config
+        del self.map
+        del self.handle_closed_handler
+        del self.handler
+
+    def testHandshake(self):
+        # Trigger the handler to write its handshake.
+        asyncore.write(self.handler)
+        self.assertEquals(self.sock.remote_read(), 'bzrobots 1\n')
+
+        #asyncore.read(self.sock)
+        #self.sock.remote_send('
+
+
+class ServerTest(unittest.TestCase):
     def setUp(self):
         self.conn_sock_1 = MockSocket(CONN_SOCK_1_FILENO)
         self.conn_sock_2 = MockSocket(CONN_SOCK_2_FILENO)
@@ -54,9 +80,6 @@ class ServerTest(unittest.TestCase):
         # Trigger the handler to write its handshake.
         asyncore.write(handler)
         self.assertEquals(self.conn_sock_1.remote_read(), 'bzrobots 1\n')
-
-        #asyncore.read(self.sock)
-        #self.sock.remote_send('
 
 
 class MockTeam(object):
@@ -121,5 +144,13 @@ class MockSocket(object):
     def __getattr__(self, name):
         """Catchall do-nothing"""
         return (lambda *args: None)
+
+
+class MockHandleClosedHandler(object):
+    def __init__(self):
+        self.closed = False
+
+    def close(self):
+        self.closed = True
 
 # vim: et sw=4 sts=4

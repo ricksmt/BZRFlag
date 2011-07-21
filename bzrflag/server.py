@@ -77,8 +77,8 @@ class Server(asyncore.dispatcher):
             sock.close()
         else:
             self.in_use = True
-            Handler(sock, self.team, self.handle_closed_handler, self.config,
-                    self.asyncore_map)
+            Handler(sock, self.team, self.map, self.handle_closed_handler,
+                    self.config, self.asyncore_map)
             self.sock = sock
 
     def get_port(self):
@@ -101,10 +101,11 @@ class Handler(asynchat.async_chat):
     sends an "xyz" request.  You don't have to add it to a table or anything.
     """
 
-    def __init__(self, sock, team, closed_callback, config, asyncore_map):
+    def __init__(self, sock, team, map, closed_callback, config, asyncore_map):
         asynchat.async_chat.__init__(self, sock, asyncore_map)
         self.config = config
         self.team = team
+        self.map = map
         self.closed_callback = closed_callback
         self.set_terminator('\n')
         self.input_buffer = ''
