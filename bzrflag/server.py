@@ -54,17 +54,19 @@ class Server(asyncore.dispatcher):
     be rejected until the active connection closes.
     """
 
-    def __init__(self, addr, team, config):
+    def __init__(self, addr, team, map, config, sock=None):
         self.config = config
         self.team = team
+        self.map = map
         self.in_use = False
-        sock = socket.socket()
+        if sock is not None:
+            sock = socket.socket()
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         asyncore.dispatcher.__init__(self, sock)
         self.sock = sock
 
         # Disable Nagle's algorithm because this is a latency-sensitive
         # low-bandwidth application.
-        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         self.bind(addr)
         self.listen(constants.BACKLOG)
@@ -122,7 +124,7 @@ class Handler(asynchat.async_chat):
         asynchat.async_chat.push(self, text)
         if self.config['telnet_console']:
             message = (self.team.color +' > ' + text)
-            self.team.map.game.display.console.write(message)
+            self.map.game.write_message(message)
         logger.debug(self.team.color + ' > ' + text)
         if text.startswith('fail '):
             logger.error(self.team.color + ' > ' + text)
@@ -180,7 +182,7 @@ class Handler(asynchat.async_chat):
         self.push('ack %s %s\n' % (timestamp, arg_string))
 
     def bzrc_taunt(self, args):
-        ## purposely undocumented
+        # intentionally undocumented
         try:
             command = args[0]
             msg = args[1:]
@@ -190,7 +192,9 @@ class Handler(asynchat.async_chat):
             self.push('fail invalid command\n')
             return
         self.ack(*args)
-        if self.team.map.taunt(' '.join(msg[1:-1]), self.team.color):
+
+        taunt_msg = ' '.join(msg[1:-1])
+        if self.team.taunt(taunt_msg):
             self.push('ok\n')
         else:
             self.push('fail\n')
@@ -292,7 +296,6 @@ class Handler(asynchat.async_chat):
         self.ack(command, tankid, value)
         self.team.angvel(tankid, value)
         self.push('ok\n')
-
 
     def bzrc_teams(self, args):
         """teams

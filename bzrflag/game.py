@@ -65,6 +65,7 @@ class Game:
         self.running = False
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()
+        self.messages = []
 
     def update(self):
         """Updates the game world."""
@@ -76,19 +77,26 @@ class Game:
                + (10 ** -6) * delta.microseconds)
         self.map.update(dt)
 
-    def update_sprites(self):
-        """Adds and removes sprites from the display."""
+    def update_graphics(self):
+        """Updates graphics based on recent changes to game state.
+
+        Adds and removes sprites from the display, etc.
+        """
         while len(self.map.inbox) > 0:
             self.display.add_object(self.map.inbox.pop())
         while len(self.map.trash) > 0:
             self.display.remove_object(self.map.trash.pop())
+
+        # Write any pending messages to the console.
+        for message in self.messages:
+            self.display.console.write(message)
+        self.messages = []
 
     def loop(self):
         """The main loop of bzrflag.
 
         Checks events, updates positions, and draws to the screen until
         the pygame window is closed, KeyboardInterrupt, or System Exit.
-
         """
         self.running = True
         if not self.config['test']:
@@ -100,7 +108,7 @@ class Game:
                 self.input.update()
                 self.update()
                 if not self.config['test']:
-                    self.update_sprites()
+                    self.update_graphics()
                     self.display.update()
         except KeyboardInterrupt:
             pass
@@ -116,6 +124,9 @@ class Game:
         self.running = False
         if not self.config['test']:
             self.display.kill()
+
+    def write_message(self, message):
+        self.messages.append(message)
 
 
 class Map(object):
@@ -156,8 +167,6 @@ class Map(object):
             self.taunt_timer -= dt
             if self.taunt_timer <= 0:
                 self.taunt_msg = None
-                self.game.display.taunt.update()
-                self.game.display.redraw()
         if self.timespent > self.config['time_limit']:
             self.end_game = True
             return
@@ -379,6 +388,9 @@ class Team(object):
         if not (1 >= value >= -1):
             raise Exception("not a number")
         self.tank(tankid).setangvel(value)
+
+    def taunt(self, message):
+        return self.map.taunt(message, self.color)
 
 
 class Tank(object):
