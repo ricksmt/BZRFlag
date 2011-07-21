@@ -37,7 +37,7 @@ class Console(object):
 
     def __init__(self, game, rect):
         self.rect = pygame.Rect(rect)
-        self.minrect = pygame.Rect(self.rect.bottom-30, 
+        self.minrect = pygame.Rect(self.rect.bottom-30,
                                    self.rect.right-30,30,30)
         self.image = pygame.Surface(self.rect.size)
         self.dirty = True
@@ -66,8 +66,8 @@ class Console(object):
                             self.bgc),(10,self.lineheight*i+10))
             if not wpos and lnx + len(line)>=self.at:
                 wpos = True
-                pygame.draw.rect(self.image,(0,0,0),(10 + 
-                                 self.font.size(line[:self.at-lnx])[0], 
+                pygame.draw.rect(self.image,(0,0,0),(10 +
+                                 self.font.size(line[:self.at-lnx])[0],
                                  self.lineheight*i+10,2,self.lineheight))
             lnx += len(line) + 1
 

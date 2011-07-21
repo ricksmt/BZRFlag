@@ -35,11 +35,11 @@ import pygame
 
 import paths
 import pygameconsole
-import constants 
+import constants
 import config
 import game
 
-  
+
 class ImageCache(object):
 
     def __init__(self):
@@ -56,7 +56,6 @@ class ImageCache(object):
         """Creates a surface of the ground image.
 
         The surface is scaled down using the factor in constants.TILESCALE.
-        
         """
         if not self._cache.has_key('ground'):
             ground = self.load_image(paths.GROUND)
@@ -67,7 +66,6 @@ class ImageCache(object):
         """Returns a surface for walls.
 
         The surface is scaled down using the factor in constants.TILESCALE.
-        
         """
         if not self._wall:
             wall = self.load_image(paths.WALL)
@@ -89,7 +87,6 @@ class ImageCache(object):
         """Scales a size (width-height pair).
 
         If the scale is None, scaled_size returns the original size unmodified.
-        
         """
         if scale is not None:
             w, h = size
@@ -188,7 +185,7 @@ class Scores:
         fy = y
         y = screen.get_rect().height-10
         pygame.draw.rect(screen, (0,0,0), (10, fy, w, y-fy))
-        tosort = list(sorted((score.bzobject.total(),score) 
+        tosort = list(sorted((score.bzobject.total(),score)
                       for score in self.scores))
 
         for num,score in tosort:
@@ -201,7 +198,6 @@ class BZSprite(pygame.sprite.Sprite):
 
     The sprite manager uses the sprite's `image` and `rect` attributes to draw
     it.
-    
     """
 
     def __init__(self, bzobject, image, display, otype=None):
@@ -238,20 +234,20 @@ class BZSprite(pygame.sprite.Sprite):
             comp = 4
         else:
             comp = 1
-            
+
         wscale = self.display.world_to_screen_scale()
         isize = image.get_rect().size
         obj_size = wscale[0]*self.bzobject.size[0],\
                    wscale[1]*self.bzobject.size[1]
         orig_size = self.orig_image.get_rect().size
-        thescale = [obj_size[0]/orig_size[0] *comp, 
+        thescale = [obj_size[0]/orig_size[0] *comp,
                     obj_size[1]/orig_size[1]*comp]
         image = self._rescale_image(image,thescale)
 
         self.prev_scale = self.display.scale
         self.prev_rot = self.bzobject.rot
         self.image = image
-        
+
     def _scale_image(self, image, scale):
         size = image.get_rect().size
         nsize = self.display.images.scaled_size(size, scale)
@@ -259,7 +255,7 @@ class BZSprite(pygame.sprite.Sprite):
 
     def _rescale_image(self, image, scale):
         size = image.get_rect().size
-        return pygame.transform.smoothscale(image,(int(size[0]*scale[0]), 
+        return pygame.transform.smoothscale(image,(int(size[0]*scale[0]),
                                             int(size[1]*scale[1])))
 
     def _rotate_image(self, image, rotation):
@@ -270,7 +266,7 @@ class BZSprite(pygame.sprite.Sprite):
 
         If force is specified, the image should be redrawn even if the
         bzobject doesn't appear to have changed.
-        
+
         """
         rot = self.bzobject.rot
         self._render_image(force)
@@ -318,16 +314,16 @@ class Taunt(object):
         if self.img and self.text:
             w, h = screen.get_rect().size
             mw, mh = self.img.get_rect().size
-            screen.blit(self.img, (w/2-mw/2, h/2-mh/2))      
-   
-            
+            screen.blit(self.img, (w/2-mw/2, h/2-mh/2))
+
+
 class Display(object):
     """Manages all graphics."""
     _imagecache = ImageCache
     _textclass = TextSprite
     _spriteclass = BZSprite
     _taunt = Taunt
-    
+
     def __init__(self, game, config):
         self.config = config
         self.game = game
@@ -353,7 +349,7 @@ class Display(object):
             cons = pygameconsole.TelnetConsole
         self.console = cons(self.game, (25,self.screen_size[1]*2/3-25,
                             self.screen_size[0]-50,self.screen_size[1]/3))
-                            
+
     def setup_screen(self):
         """Sets up screen display."""
         size = self.screen_size
@@ -363,7 +359,7 @@ class Display(object):
         bg = self.background()
         self.screen.blit(bg, (0, 0))
         pygame.display.update()
-        
+
     def resize(self, w, h):
         """Resize the pygame surface."""
         self.screen_size = w, h
@@ -384,7 +380,7 @@ class Display(object):
         realpos = (pos[0] - self.pos[0])/oscale, (pos[1] - self.pos[1])/oscale
         self.pos[0] = pos[0] - realpos[0]*self.scale
         self.pos[1] = pos[1] - realpos[1]*self.scale
-        
+
     def redraw(self):
         """Redraws display."""
         size = self._normal_background.get_rect().size
@@ -396,7 +392,7 @@ class Display(object):
             self.pos[1] = self.screen_size[1] - size[1]*self.scale
         ## problem: jerky background.
         tmp = pygame.Surface((size[0]/self.scale,size[1]/self.scale))
-        tmp.blit(self._normal_background, (self.pos[0]/self.scale-1, 
+        tmp.blit(self._normal_background, (self.pos[0]/self.scale-1,
                                            self.pos[1]/self.scale-1))
         self._background = pygame.transform.smoothscale(tmp, size)
         self.screen.blit(self._background,(0,0))
@@ -411,7 +407,6 @@ class Display(object):
         """Creates a surface of the background with all obstacles.
 
         Obstacles includes both bases and boxes.
-        
         """
         if not self._background:
             wscale = self.world_to_screen_scale()
@@ -435,7 +430,7 @@ class Display(object):
         self.taunt.update()
         self.taunt.draw(self.screen)
         pygame.display.flip()
-        
+
     def process_events(self):
         dirty = False
         for e in pygame.event.get():
@@ -485,7 +480,6 @@ class Display(object):
         >>> pos_world_to_screen((-400, -400), (800, 800), (400, 400))
         (0, 400)
         >>>
-        
         """
         x, y = pos
         world_width, world_height = self.world.size
@@ -499,7 +493,6 @@ class Display(object):
 
         Note that bzflag sizes are more like a radius (half of width), so we
         double them to normalize.
-        
         """
         w, h = size
         w *= 2
@@ -557,5 +550,3 @@ class Display(object):
 
     def kill(self):
         pygame.display.quit()
-        
-                    

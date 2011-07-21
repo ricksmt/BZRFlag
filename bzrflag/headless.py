@@ -34,14 +34,14 @@ import logging
 
 import server
 import config
-import constants  
+import constants
 
 logger = logging.getLogger('headless.py')
 
 
 class Input:
     """The server input class."""
-    
+
     def __init__(self, game):
         self.game = game
         self.servers = {}
@@ -54,6 +54,3 @@ class Input:
 
     def update(self):
         asyncore.loop(constants.LOOP_TIMEOUT, count = 1)
-        
-        
-        

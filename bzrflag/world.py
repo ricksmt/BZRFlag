@@ -38,7 +38,7 @@ import logging
 import math
 from pyparsing import nums, Word, Keyword, LineEnd, Each, ZeroOrMore, \
                       Combine, Optional, Dict, SkipTo, Group
-                              
+
 import constants
 
 logger = logging.getLogger('world')
@@ -73,7 +73,7 @@ obstacle_items = [position, Optional(size), Optional(rotation)]
 
 class Box(object):
     """A basic obstacle type."""
-    
+
     def __init__(self, pos=None, position=None, rot=None, rotation=None,
             size=None):
         self.pos = pos or position
@@ -94,7 +94,7 @@ class Box(object):
 
 class Base(object):
     """A BZFlag Base.  One per team."""
-    
+
     def __init__(self, color=None, pos=None, position=None, rot=None,
                  rotation=None, size=None):
         self.color = constants.COLORNAME[color]
@@ -121,9 +121,8 @@ class World(object):
     """Encompassing class which parses the entire file.  Returns a World
     object that is used by the classes in :mod:`game` to populate the
     game.
-    
     """
-    
+
     def __init__(self, WIDTH, HEIGHT, items=None):
         self.size = (WIDTH, HEIGHT)
         self.width = WIDTH
@@ -144,7 +143,6 @@ class World(object):
         """Parse a BZW file.
 
         For now, we're only supporting a subset of BZW's allobjects.
-        
         """
         comment = '#' + SkipTo(LineEnd())
         bzw = ZeroOrMore(Box.parser() | Base.parser()).ignore(comment)

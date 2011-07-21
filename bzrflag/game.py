@@ -38,9 +38,9 @@ import logging
 import collide
 import constants
 import config
-import headless 
+import headless
 import graphics
-       
+
 logger = logging.getLogger('game')
 
 
@@ -52,16 +52,15 @@ class Game:
     * map => :class:`game.Map`
     * input => :class:`headless.Input`
     * display => :class:`graphics.Display`
-    
     """
-    
+
     def __init__(self, config):
         self.config = config
         if self.config['random_seed'] != -1:
             random.seed(self.config['random_seed'])
-        self.map = Map(self, self.config)  
+        self.map = Map(self, self.config)
         if not self.config['test']:
-            self.display = graphics.Display(self, self.config)      
+            self.display = graphics.Display(self, self.config)
         self.input = headless.Input(self)
         self.running = False
         self.gameover = False
@@ -85,11 +84,11 @@ class Game:
             self.display.remove_object(self.map.trash.pop())
 
     def loop(self):
-        """The main loop of bzflag. 
-        
-        Checks events, updates positions, and draws to the screen until 
+        """The main loop of bzrflag.
+
+        Checks events, updates positions, and draws to the screen until
         the pygame window is closed, KeyboardInterrupt, or System Exit.
-        
+
         """
         self.running = True
         if not self.config['test']:
@@ -120,17 +119,16 @@ class Game:
 
 
 class Map(object):
-    """Manages the map data. 
-    
+    """Manages the map data.
+
     Populates the current map with bases, obstacles, teams and tanks.
-    
     """
-    
+
     def __init__(self, game, config):
         self.game = game
         self.config = config
         self.end_game = False
-        
+
         # queue of objects that need to be created or destroyed
         self.inbox = []
         self.trash = []
@@ -168,9 +166,8 @@ class Map(object):
 
     def build_truegrid(self):
         """Builds occupancy grid with obstacles in self.obstacles.
-        
+
         Note: Occupancy grids with rotated obstalces not implemnted.
-        
         """
         self.occgrid = numpy.zeros((self.config.world.width,
                                     self.config.world.height))
@@ -256,11 +253,10 @@ class Map(object):
 
 class Team(object):
     """Team object:
-    
+
     Manages a BZRFlag team -- w/ a base, a flag, a score, and tanks.
-    
     """
-    
+
     def __init__(self, map, color, base, config):
         self.config = config
         self.color = color
@@ -303,11 +299,12 @@ class Team(object):
 
     def respawn(self, tank, first=True):
         """Respawn a dead tank."""
+
         tank.status = constants.TANKALIVE
         tank.reset_speed()
         if tank.pos != constants.DEADZONE:
             return
-        
+
         tank.rot = random.uniform(0, 2*math.pi)
         pos = self.spawn_position()
         for i in xrange(constants.RESPAWNTRIES):
@@ -386,12 +383,11 @@ class Team(object):
 
 class Tank(object):
     """BZFlag Tank
-    
+
     Handles the logic for dealing with a tank in the game.
 
     Attributes:
         rot: angular rotation in radians; always between 0 and 2*pi
-        
     """
     size = (constants.TANKRADIUS*2,) * 2
     radius = constants.TANKRADIUS
@@ -480,10 +476,10 @@ class Tank(object):
         """Update the tank's position, status, velocities."""
         for shot in self.shots:
             shot.update(dt)
-            
+
         if self.reloadtimer > 0:
-            self.reloadtimer -= dt   
-        if (self.pos == constants.DEADZONE and 
+            self.reloadtimer -= dt
+        if (self.pos == constants.DEADZONE and
             self.status != constants.TANKDEAD):
             self.team.respawn(self)
         if self.status == constants.TANKDEAD:
@@ -495,7 +491,7 @@ class Tank(object):
 
         self.update_goals(dt)
         dx,dy = self.velocity()
-        if not self.collision_at((self.pos[0]+dx*dt, 
+        if not self.collision_at((self.pos[0]+dx*dt,
                                   self.pos[1]+dy*dt)):
             self.pos[0] += dx*dt
             self.pos[1] += dy*dt
@@ -537,12 +533,12 @@ class Tank(object):
 
 class Shot(object):
     """Shot object:
-    
+
     Contains the logic for a shot on the map.
-    
     """
+
     size = (constants.SHOTRADIUS*2,) * 2
-    
+
     def __init__(self, tank, config):
         self.config = config
         self.tank = tank
@@ -577,7 +573,7 @@ class Shot(object):
     def check_collisions(self):
         """Check for collisions."""
         for obs in self.team.map.obstacles:
-            if collide.poly2circle(obs.shape, 
+            if collide.poly2circle(obs.shape,
                                   ((self.pos),constants.SHOTRADIUS)):
                 return self.kill()
         for tank in self.team.map.tanks():
@@ -600,7 +596,7 @@ class Shot(object):
             if collide.rect2line(obs.rect, (p1,p2)):
                 return self.kill()
         for tank in self.team.map.tanks():
-            if collide.circle2line((tank.pos,constants.TANKRADIUS + 
+            if collide.circle2line((tank.pos,constants.TANKRADIUS +
                                     constants.SHOTRADIUS), (p1,p2)):
                 if tank.team == self.team and not self.config['friendly_fire']:
                     continue
@@ -622,13 +618,12 @@ class Shot(object):
 
 class Flag(object):
     """Flag object:
-    
+
     Contains the logic for team flags on a map.
-    
     """
-    
+
     size = (constants.FLAGRADIUS*2,) * 2
-    
+
     def __init__(self, team):
         self.team = team
         self.rot = 0
@@ -691,18 +686,17 @@ def polygon_center(points):
 
 class Base(object):
     """Base object:
-    
+
     Contains the logic & data for a team's Base on a map.
-    
     """
-    
+
     def __init__(self, item):
         self.color = item.color
         self.center = self.pos = item.pos.asList()
         self.size = tuple(x*2 for x in item.size.asList())
         self.radius = math.sqrt((self.size[0]/2)**2 + (self.size[1]/2)**2)
         poly = tuple(convertBoxtoPoly(item.pos,self.size))
-        self.rect = (item.pos[0]-self.size[0]/2, 
+        self.rect = (item.pos[0]-self.size[0]/2,
                      item.pos[1]-self.size[1]/2) + self.size
         self.shape = list(scale_rotate_poly(poly, 1, item.rot))
         self.rot = item.rot
@@ -710,11 +704,10 @@ class Base(object):
 
 class Obstacle(object):
     """Obstacle object:
-    
+
     Contains the logic and data for an obstacle on the map.
-    
     """
-    
+
     def __init__(self, item):
         self.center = self.pos = item.pos.asList()
         self.shape = ()
@@ -723,13 +716,13 @@ class Obstacle(object):
 
     def pad(self, padding):
         """Set shape"""
-        self.shape = list(scale_rotate_poly(self.shape, 
+        self.shape = list(scale_rotate_poly(self.shape,
                          (self.radius + padding)/float(self.radius), 0))
 
 
 class Box(Obstacle):
     """A Box Obstacle."""
-    
+
     def __init__(self, item):
         Obstacle.__init__(self, item)
         self.radius = math.hypot(*item.size)
@@ -741,7 +734,7 @@ class Box(Obstacle):
 
 class Score(object):
     """Score object: keeps track of a team's score."""
-    
+
     def __init__(self, team):
         self.team = team
         self.value = 0
@@ -760,7 +753,7 @@ class Score(object):
         """Score tank."""
         if tank.flag:
             ebase = tank.flag.team.base
-            distance_to = collide.dist(self.team.base.center, 
+            distance_to = collide.dist(self.team.base.center,
                                        tank.flag.team.base.center)
             distance_back = collide.dist(tank.pos,self.team.base.center)
             more = 100.0 * (distance_to - distance_back)/distance_to

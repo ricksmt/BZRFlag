@@ -52,9 +52,8 @@ class Server(asyncore.dispatcher):
     Each team has its own server which dispatches sessions to the Handler.
     Only one connection is allowed at a time.  Any subsequent connections will
     be rejected until the active connection closes.
-    
     """
-    
+
     def __init__(self, addr, team, config):
         self.config = config
         self.team = team
@@ -97,9 +96,8 @@ class Handler(asynchat.async_chat):
     bzrc commands.  To create the command "xyz", just create a method called
     "bzrc_xyz", and the Handler will automatically call it when the client
     sends an "xyz" request.  You don't have to add it to a table or anything.
-    
     """
-    
+
     def __init__(self, sock, team, closed_callback, config):
         asynchat.async_chat.__init__(self, sock)
         self.config = config
@@ -134,7 +132,6 @@ class Handler(asynchat.async_chat):
 
         Note that Asynchat ensures that our input buffer contains everything
         up to but not including the newline character.
-        
         """
         if self.config['telnet_console']:
             message = (self.team.color + ' : ' + self.input_buffer + '\n')
@@ -154,7 +151,7 @@ class Handler(asynchat.async_chat):
                 except Exception, e:
                     color = self.team.color
                     logger.error(color + ' : ERROR : %s : %s\n' % (args, e))
-                    message = (color +' : ERROR : %s : %s : %s\n' % 
+                    message = (color +' : ERROR : %s : %s : %s\n' %
                               (args, e.__class__.__name__, e))
                     self.team.map.game.display.console.write(message)
                     self.push('fail %s\n' % e)
@@ -203,7 +200,6 @@ class Handler(asynchat.async_chat):
 
         If no command is given, list the commands.  Otherwise, return specific
         help for a command.
-        
         """
         if len(args)==1:
             help_lines = []
@@ -233,7 +229,6 @@ class Handler(asynchat.async_chat):
         or:
             fail [comment]
         where the comment is optional.
-        
         """
         try:
             command, tankid = args
@@ -262,7 +257,6 @@ class Handler(asynchat.async_chat):
         >>> args = ['speed', '1', '1']
         >>> Handler.bzrc_speed(Handler(), args)
         fail
-        
         """
         try:
             command, tankid, value = args
@@ -286,7 +280,6 @@ class Handler(asynchat.async_chat):
         clockwise motion, and negative values indicate clockwise motion. The
         sign is consistent with the convention use in angles in the circle.
         Returns a boolean ("ok" or "fail" as described under shoot).
-        
         """
         try:
             command, tankid, value = args
@@ -309,7 +302,6 @@ class Handler(asynchat.async_chat):
             team [color] [playercount]
         Color is the identifying team color/team name. Playercount is the
         number of tanks on the team.
-        
         """
         try:
             command, = args
@@ -332,7 +324,6 @@ class Handler(asynchat.async_chat):
             obstacle [x1] [y1] [x2] [y2] ...
         where (x1, y1), (x2, y2), etc. are the corners of the obstacle in
         counter-clockwise order.
-        
         """
         try:
             command, = args
@@ -363,7 +354,6 @@ class Handler(asynchat.async_chat):
         Looks like:
             100,430|20,20|####
         #### = encoded 01 string
-        
         """
         try:
             command, tankid = args
@@ -435,7 +425,6 @@ class Handler(asynchat.async_chat):
             base [team color] [x1] [y1] [x2] [y2] ...
         where (x1, y1), (x2, y2), etc. are the corners of the base in counter-
         clockwise order and team color is the name of the owning team.
-        
         """
         try:
             command, = args
@@ -465,7 +454,6 @@ class Handler(asynchat.async_chat):
         carrying the flag, the possessing team is "none". The coordinate
         (x, y) is the current position of the flag. Note that the list may be
         incomplete if visibility is limited.
-        
         """
         try:
             command, = args
@@ -496,7 +484,6 @@ class Handler(asynchat.async_chat):
             shot [x] [y] [vx] [vy]
         where (c, y) is the current position of the shot and (vx, vy) is the
         current velocity.
-        
         """
         try:
             command, = args
@@ -530,7 +517,6 @@ class Handler(asynchat.async_chat):
         tank is pointed, between negative pi and pi. The vector (vx, vy) is
         the current velocity of the tank, and angvel is the current angular
         velocity of the tank (in radians per second).
-        
         """
         try:
             command, = args
@@ -571,7 +557,6 @@ class Handler(asynchat.async_chat):
             othertank [callsign] [color] [status] [flag] [x] [y] [angle]
         where callsign, status, flag, x, y, and angle are as described under
         mytanks and color is the name of the team color.
-        
         """
         try:
             command, = args
@@ -623,7 +608,6 @@ class Handler(asynchat.async_chat):
             constant [name] [value]
         Name is a string. Value may be a number or a string. Boolean values
         are 0 or 1.
-        
         """
         try:
             command, = args
@@ -669,7 +653,6 @@ class Handler(asynchat.async_chat):
             score [team_i] [team_j] [score]
 
         Notice that a team generates no score when compared against itself.
-        
         """
         try:
             command, = args
@@ -704,7 +687,6 @@ class Handler(asynchat.async_chat):
         Time elapsed is the number of seconds that the server has been alive,
         while time limit is the given limit. Once the limit is reached, the
         server will stop updating the game.
-        
         """
         try:
             command, = args
@@ -723,7 +705,6 @@ class Handler(asynchat.async_chat):
 
         This is technically an extension to the BZRC protocol.  We should
         really backport this to BZFlag.
-        
         """
         try:
             command, = args
@@ -733,7 +714,7 @@ class Handler(asynchat.async_chat):
         self.ack(command)
         self.push('ok\n')
         self.close()
-    
+
     def bzrc_endgame(self, args):
         ## purposely undocumented
         try:
@@ -744,7 +725,7 @@ class Handler(asynchat.async_chat):
         self.ack(command)
         self.push('ok\n')
         sys.exit(0)
-    
+
     @staticmethod
     def normalize_angle(angle):
         """Normalize angles to be in the interval (-pi, pi].
@@ -752,7 +733,6 @@ class Handler(asynchat.async_chat):
         The protocol specification guarantees that angles are in this range,
         so all angles should be passed through this method before being sent
         across the wire.
-        
         """
         angle %= 2 * math.pi
         if angle > math.pi:
