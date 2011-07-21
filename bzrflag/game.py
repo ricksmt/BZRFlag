@@ -36,6 +36,7 @@ import numpy
 import logging
 
 import collide
+import collisiontest
 import constants
 import config
 import headless 
@@ -198,11 +199,9 @@ class Map(object):
         """Checks for obstacle at given point."""
         for obstacle in self.obstacles:
             if obstacle.rot == 0:
-                if collide.rect2point(obstacle.rect, (x, y)):
-                    return True
+                return collisiontest.point_in_rect((x, y), obstacle.rect)
             else:
-                if collide.poly2point(obstacle.shape, (x, y)):
-                    return True
+                return collisiontest.point_in_poly((x, y), obstacle.shape):
         return False
 
     def tanks(self):
@@ -238,7 +237,7 @@ class Map(object):
 
     def closest_base(self, pos):
         """Returns position of clossest base."""
-        items = tuple(sorted((collide.dist(pos, base.center), base)
+        items = tuple(sorted((collisiontest.get_dist(pos, base.center), base)
                       for base in self.bases.values()))
         if abs(items[0][0] - items[1][0]) < 50:
             return None
@@ -758,29 +757,29 @@ class Score(object):
 
     def score_tank(self, tank):
         """Score tank."""
+        my_base = self.team.base.center 
         if tank.flag:
             ebase = tank.flag.team.base
-            distance_to = collide.dist(self.team.base.center, 
-                                       tank.flag.team.base.center)
-            distance_back = collide.dist(tank.pos,self.team.base.center)
-            more = 100.0 * (distance_to - distance_back)/distance_to
-            if distance_back > distance_to:
+            dist_to = collisiontest.get_dist(my_base, tank.flag.team.base.center)
+            dist_back = collisiontest.get_dist(tank.pos, my_base)
+            more = 100.0 * (dist_to - dist_back)/dist_to
+            if dist_back > dist_to:
                 more = 0
             self.setValue(500 + more)
         else:
             closest = None
             for color,team in self.team.map.teams.items():
                 if team is self.team:continue
-                dst = collide.dist(tank.pos, team.base.center)
+                dst = collisiontest.get_dist(tank.pos, team.base.center)
                 if closest is None or dst < closest[0]:
                     closest = dst, team.base
             if not closest:
                 logger.warning("no closest found... %s" % self.team.color)
-                return False
-            total_dist = collide.dist(self.team.base.center,closest[1].center)
-            distance_to = collide.dist(tank.pos, closest[1].center)
-            if distance_to > total_dist:return
-            self.setValue(100.0 * (total_dist-distance_to)/total_dist)
+                return False   
+            total_dist = collisiontest.get_dist(my_base, closest[1].center)
+            dist_to = collisiontest.get_dist(tank.pos, closest[1].center)
+            if dist_to > total_dist:return
+            self.setValue(100.0 * (total_dist-dist_to)/total_dist)
 
     def gotFlag(self):
         """Udates flag status."""
