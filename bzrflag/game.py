@@ -59,7 +59,6 @@ class Game:
         self.map = Map(self, self.config)
         if not self.config['test']:
             self.display = graphics.Display(self, self.config)
-        self.servers = {}
         self.running = False
         self.gameover = False
         self.timestamp = datetime.datetime.utcnow()
@@ -72,7 +71,6 @@ class Game:
             srv = server.Server(address, team, self.map, self.config)
             if not game.config['test']:
                 print 'port for %s: %s' % (color, srv.get_port())
-            self.servers[color] = srv
 
     def update_map(self):
         """Updates the game world."""
