@@ -7,7 +7,7 @@ from bzrflag import game, config
 
 class GameTest(unittest.TestCase):
 
-    def setUp(self):  
+    def setUp(self):
         world = "--world="+os.path.join(os.path.dirname(__file__), "test.bzw")
         self.config = config.Config(['--test', world])
         self.game = game.Game(self.config)
@@ -15,7 +15,7 @@ class GameTest(unittest.TestCase):
         self.game.update()
         self.team = "red"
         self.port = self.game.input.servers[self.team].get_port()
-        
+
     def tearDown(self):
         self.game = None
 
