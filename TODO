@@ -19,6 +19,7 @@ BUGS
 - 'timer' command produces "fail 'Map' object has fo attribute 'timelimit'"
 - 'occupancy grid' command produces fail
 - 'scores' command preduces fail
+- when request teams from server and config only 2 teams but map allows 4???
 
 
 Priority

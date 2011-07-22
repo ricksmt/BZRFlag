@@ -24,10 +24,10 @@
 """2D collision testing for BZRFlag game.
 
 point : (x,y)
-line : ((x1,y1),(x2,y2))
-circle : ((cx,cy),r)
-rectangle : (x,y,w,h)
-polygon : ((x1,y1),(x2,y2),(x3,y3)...)
+line : ((ax,ay),(bx,by))
+circle : (point,radius)
+rectangle : (x,y,width,height)
+polygon : ((x1,y1),(x2,y2),(x3,y3)...(xn,yn))
 
 """
 
@@ -40,6 +40,8 @@ import logging
 
 logger = logging.getLogger('collisiontest.py')
 
+
+#Used in game.py and pygameconsole.py
 
 def point_in_rect(point, rect):
     """Check if point falls in given rectangle.
@@ -103,8 +105,19 @@ def line_cross_circle(line, circle):
     """Check if line crosses or falls in given circle.
         
     @return: True/False
+    
+    >>> line = ((1,1), (3,3))
+    >>> line_cross_circle(line, ((4,3), 1.1))
+    True
+    >>> line_cross_circle(line, ((4,3), .9))
+    False
+    >>> line_cross_circle(line, ((0,0), 7))
+    True
+    >>> line_cross_circle(line, ((4,4), 1))
+    False
     """
-    pass
+    dist = dist_to_line(circle[0], line)
+    return dist <= circle[1]
 
 
 def circle_to_rect(circle, rect):
@@ -113,36 +126,94 @@ def circle_to_rect(circle, rect):
     @return: True/False
     """
     pass
-    
-    
-def circle_to_circle(circle1, circle2):
-    """Check if circle1 overlaps or falls in circle2.
-        
-    @return: True/False
-    """
-    pass
-    
+   
      
 def circle_to_poly(circle, poly):
     """Check if circle overlaps or falls in given polygon.
         
     @return: True/False
+    
+    >>> poly = ((0,0), (4,2), (4,8), (0,7), (2,6), (0, 5))
+    >>> circle_to_poly(((3,3), .5), poly)
+    True
+    >>> circle_to_poly(((5,2), 1.1), poly)
+    True
+    >>> circle_to_poly(((5,2), .9), poly)
+    False
     """
-    pass
+    if point_in_poly(circle[0], poly):
+        return True
+    for i,point in enumerate(poly):
+        if line_cross_circle((point,poly[i-1]), circle):
+            return True
+    return False
     
-    
-def get_dist(point1, point2):
-    """Calculate distance between point1 and point2.
+
+def circle_to_circle(circle1, circle2):
+    """Check if circle1 overlaps or falls in circle2.
         
-    @return: Pythagorean distance between points.
+    @return: True/False
+    
+    >>> circle_to_circle(((0,0), 1), ((2,0), 1))
+    True
+    >>> circle_to_circle(((0,0), 1), ((2.1,0), 1))
+    False
+    """
+    return get_dist(circle1[0],circle2[0]) <= circle1[1] + circle2[1]
+    
+    
+def get_dist(point_A, point_B):
+    """Calculate distance between two points.
+        
+    @return: Pythagorean distance between point_A and point_B.
     
     >>> get_dist((0,0), (4,3))
     5.0
     """
-    (x1,y1) = point1
-    (x2,y2) = point2
-    return math.sqrt((x2-x1)**2 + (y2-y1)**2)
+    (ax,ay) = point_A
+    (bx,by) = point_B
+    return math.sqrt((bx-ax)**2 + (by-ay)**2)
+
+
+def dist_to_line(point, line):
+    """Calculate distance to nearest point on given line.
+        
+    @return: Closest point on line.
     
+    >>> line = ((1,1), (1,3))
+    >>> dist_to_line((3,2), line)
+    2.0
+    >>> dist_to_line((1,4), line)
+    1.0
+    >>> dist_to_line((2,0), line) == math.sqrt(2)
+    True
+    """
+    # P (px, py): Point of intersection of infinant line (defined by AB) and 
+    #             its perpendicular passing through  point C.
+    # r: Is position of P on infinant line (defined by AB) 
+    #    where: r = (AC dot AB) / AB_length^2
+    #    and:
+    #    r = 0  ->  P = A
+    #    r = 1  ->  P = B
+    #    r < 0  ->  P is on the backward extension of AB
+    #    r > 1  ->  P is on the forward extension of AB
+    #    0<r<1  ->  P is interior to AB  
+    
+    (ax,ay) = A = line[0]
+    (bx,by) = B = line[1]
+    (cx,cy) = C = point
+    r = ((cx-ax)*(bx-ax) + (cy-ay)*(by-ay))/get_dist(A,B)**2
+    P = (ax + r*(bx-ax), ay + r*(by-ay))
+    if r >= 0 and r <= 1:
+        return get_dist(C,P)
+    else:
+        CA_length = get_dist(C,A)
+        CB_length = get_dist(C,B)
+        if CA_length < CB_length:
+            return CA_length
+        else:
+            return CB_length
+
             
 if __name__=='__main__':
     import doctest

@@ -143,10 +143,9 @@ class Map(object):
         self.taunt_color = None
 
         # track objects on map
-        self.obstacles = [Box(item) for item in self.config.world.boxes]
+        self.obstacles = [Box(i) for i in self.config.world.boxes]
         self.build_truegrid()
-        self.bases = dict((item.color, Base(item))
-                           for item in self.config.world.bases)
+        self.bases = dict((i.color, Base(i)) for i in self.config.world.bases)
 
         self.teams = {}
         for color,base in self.bases.items():
@@ -201,7 +200,7 @@ class Map(object):
             if obstacle.rot == 0:
                 return collisiontest.point_in_rect((x, y), obstacle.rect)
             else:
-                return collisiontest.point_in_poly((x, y), obstacle.shape):
+                return collisiontest.point_in_poly((x, y), obstacle.shape)
         return False
 
     def tanks(self):
@@ -296,8 +295,9 @@ class Team(object):
         """Initialize the cache of obstacles near the base."""
         self._obstacles = []
         for o in self.map.obstacles:
-            if collide.circle2circle((o.center,o.radius),\
-            (self.base.center, self.tanks_radius + constants.TANKRADIUS)):
+            c = self.base.center
+            r = self.tanks_radius + constants.TANKRADIUS
+            if collisiontest.circle_to_circle((o.center, o.radius), (c, r)):
                 self._obstacles.append(o)
 
     def respawn(self, tank, first=True):
@@ -318,23 +318,24 @@ class Team(object):
                             %self.color)
         tank.pos = pos
 
-    def check_position(self, point, radius):
+    def check_position(self, point, rad):
         """Check a position to see if it is safe to spawn a tank there."""
         for o in self._obstacles:
-            if collide.poly2circle(o.shape, (point, radius)):
+            if collide.poly2circle(o.shape, (point,rad)):
                 return False
-        for shot in self.map.shots():
-            if collide.circle2circle((point, radius),
-                    (shot.pos, constants.SHOTRADIUS)):
+        for s in self.map.shots():
+            shot = (s.pos, constants.SHOTRADIUS)
+            if collisiontest.circle_to_circle((point,rad), shot):
                 return False
-        for tank in self.map.tanks():
-            if collide.circle2circle((point, radius),
-                    (tank.pos, constants.TANKRADIUS)):
+        for t in self.map.tanks():
+            tank = (t.pos, constants.TANKRADIUS)
+            if collisiontest.circle_to_circle((point,rad), tank):
                 return False
-        if point[0]-radius<-self.config.world.size[0]/2 or\
-           point[1]-radius<-self.config.world.size[1]/2 or\
-           point[0]+radius>self.config.world.size[0]/2 or\
-           point[1]+radius>self.config.world.size[1]/2:
+        off_map_left = point[0]-rad < -self.config.world.size[0]/2 
+        off_map_bottom = point[1]-rad < -self.config.world.size[1]/2
+        off_map_right = point[0]+rad > self.config.world.size[0]/2 
+        off_map_top = point[1]+rad > self.config.world.size[1]/2       
+        if off_map_left or off_map_bottom or off_map_right or off_map_top:
             return False
         return True
 
@@ -454,21 +455,22 @@ class Tank(object):
 
     def collision_at(self, pos):
         """Return True if collision at given position, and False otherwise."""
+        rad = constants.TANKRADIUS
         for obs in self.team.map.obstacles:
-            if collide.poly2circle(obs.shape, ((pos),constants.TANKRADIUS)):
+            if collide.poly2circle(obs.shape, ((pos),rad)):
                 return True
         for tank in self.team.map.tanks():
-            if tank is self:continue
-            if collide.circle2circle((tank.pos, constants.TANKRADIUS),
-                                     (pos, constants.TANKRADIUS)):
+            if tank is self:
+                continue
+            if collisiontest.circle_to_circle((tank.pos, rad), (pos, rad)):
                 self.collide_tank(tank)
                 return True
-        radius = constants.TANKRADIUS
-        if pos[0]-radius<-self.config.world.size[0]/2 or\
-         pos[1]-radius<-self.config.world.size[1]/2 or\
-         pos[0]+radius>self.config.world.size[0]/2 or \
-         pos[1]+radius>self.config.world.size[1]/2:
-            return True
+        at_left_wall = point[0]-rad < -self.config.world.size[0]/2 
+        at_bottem_wall = point[1]-rad < -self.config.world.size[1]/2
+        at_right_wall = point[0]+rad > self.config.world.size[0]/2 
+        at_top_wall = point[1]+rad > self.config.world.size[1]/2       
+        if at_left_wall or at_bottem_wall or at_right_wall or at_top_wall:
+            return True        
         return False
 
     def collide_tank(self, tank):
@@ -563,8 +565,7 @@ class Shot(object):
         ## do we need to lerp?
         if self.vel[0]*dt > constants.TANKRADIUS*2:
                 p1 = self.pos[:]
-                p2 = [self.pos[0]+self.vel[0]*dt, \
-                    self.pos[1]+self.vel[1]*dt]
+                p2 = [self.pos[0]+self.vel[0]*dt, self.pos[1]+self.vel[1]*dt]
                 self.check_line(p1,p2)
         else:
             self.pos[0] += self.vel[0]*dt
@@ -575,40 +576,45 @@ class Shot(object):
 
     def check_collisions(self):
         """Check for collisions."""
+        s_rad = constants.SHOTRADIUS
+        t_rad = constants.TANKRADIUS
         for obs in self.team.map.obstacles:
-            if collide.poly2circle(obs.shape, 
-                                  ((self.pos),constants.SHOTRADIUS)):
+            if collide.poly2circle(obs.shape, ((self.pos),s_rad)):
                 return self.kill()
         for tank in self.team.map.tanks():
-            if self in tank.shots:continue
-            if collide.circle2circle((tank.pos, constants.TANKRADIUS),
-                                     (self.pos, constants.SHOTRADIUS)):
+            if self in tank.shots:
+                continue
+            if collisiontest.circle_to_circle((tank.pos, t_rad),
+                                              (self.pos, s_rad)):
                 if tank.team == self.team and not self.config['friendly_fire']:
                     continue
                 tank.kill()
                 return self.kill()
-        if self.pos[0]<-self.config.world.size[0]/2 or\
-           self.pos[1]<-self.config.world.size[1]/2 or\
-           self.pos[0]>self.config.world.size[0]/2 or \
-           self.pos[1]>self.config.world.size[1]/2:
+        at_left_wall = point[0]-rad < -self.config.world.size[0]/2 
+        at_bottem_wall = point[1]-rad < -self.config.world.size[1]/2
+        at_right_wall = point[0]+rad > self.config.world.size[0]/2 
+        at_top_wall = point[1]+rad > self.config.world.size[1]/2       
+        if at_left_wall or at_bottem_wall or at_right_wall or at_top_wall:        
             return self.kill()
 
     def check_line(self, p1, p2):
         """Check for collisions."""
+        s_rad = constants.SHOTRADIUS
+        t_rad = constants.TANKRADIUS
         for obs in self.team.map.obstacles:
             if collide.rect2line(obs.rect, (p1,p2)):
                 return self.kill()
         for tank in self.team.map.tanks():
-            if collide.circle2line((tank.pos,constants.TANKRADIUS + 
-                                    constants.SHOTRADIUS), (p1,p2)):
+            if collide.circle2line((tank.pos, t_rad + s_rad), (p1,p2)):
                 if tank.team == self.team and not self.config['friendly_fire']:
                     continue
                 tank.kill()
                 return self.kill()
-        if self.pos[0]<-self.config.world.size[0]/2 or\
-           self.pos[1]<-self.config.world.size[1]/2 or\
-           self.pos[0]>self.config.world.size[0]/2 or \
-           self.pos[1]>self.config.world.size[1]/2:
+        at_left_wall = point[0]-rad < -self.config.world.size[0]/2 
+        at_bottem_wall = point[1]-rad < -self.config.world.size[1]/2
+        at_right_wall = point[0]+rad > self.config.world.size[0]/2 
+        at_top_wall = point[1]+rad > self.config.world.size[1]/2       
+        if at_left_wall or at_bottem_wall or at_right_wall or at_top_wall:        
             return self.kill()
 
     def kill(self):
@@ -636,17 +642,17 @@ class Flag(object):
 
     def update(self, dt):
         """Update the flag's position."""
+        f_rad = constants.FLAGRADIUS
+        t_rad = constants.TANKRADIUS
         x, y = self.pos
         if self.tank is not None:
             self.pos = self.tank.pos
-            if collide.rect2circle(self.tank.team.base.rect,
-                                  (self.pos, constants.FLAGRADIUS)):
+            if collide.rect2circle(self.tank.team.base.rect, (self.pos, f_rad)):
                 self.tank.team.map.scoreFlag(self)
         else:
-            # handle collide
             for tank in self.team.map.tanks():
-                if collide.circle2circle((self.pos, constants.FLAGRADIUS),
-                                         (tank.pos, constants.TANKRADIUS)):
+                if collisiontest.circle_to_circle((self.pos, f_rad),
+                                                  (tank.pos, t_rad)):
                     if tank.team is self.team:
                         self.team.map.returnFlag(self)
                     else:
