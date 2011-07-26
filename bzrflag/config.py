@@ -38,14 +38,13 @@ class ParseError(Exception): pass
 class ArgumentError(Exception): pass
 
 logger = logging.getLogger("config.py")
-    
+
 class Config:
     """Config class:
-   
+
     Parses command line options and the --config file if given.
-    
     """
-    
+
     def __init__(self, args=None):
         self.options = self.parse_cli_args(args)
         self.setup_world()
@@ -120,7 +119,7 @@ class Config:
                                      of the occupancy grid)')
         p.add_option('--occgrid-width', type='int',
             default=50, help='width of reported occupancy grid')
-            
+
         ## tank behavior
         p.add_option('--max-shots',
             type='int',
@@ -173,7 +172,7 @@ class Config:
         g.add_option('--default-tanks',
                 dest='default_tanks',type='int',default=10,
                 help='specify the default number of tanks')
-                
+
         ## random sensor noise
         g.add_option('--default-posnoise',
                 dest='default_posnoise',type='float',default=0,
@@ -184,7 +183,7 @@ class Config:
         g.add_option('--default-angnoise',
                 dest='default_angnoise',type='float',default=0,
                 help='specify the default angular noise')
-                 
+
         ## For the occupancy grid, the probabitities of sensor accuracy
         # p(1|1) // true positive
         # p(1|0) // false positive, easily obtainable from true positive;
@@ -249,6 +248,3 @@ class Config:
         #if args:
             #p.parse_error('No positional arguments are allowed.')
         return vars(opts)
-    
-            
-
