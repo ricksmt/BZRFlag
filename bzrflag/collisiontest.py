@@ -25,8 +25,8 @@
 
 point : (x,y)
 line : ((ax,ay),(bx,by))
-circle : (point,radius)
-rectangle : (x,y,width,height)
+circle : ((x,y),r)
+rectangle : (x,y,w,h)
 polygon : ((x1,y1),(x2,y2),(x3,y3)...(xn,yn))
 
 """
@@ -40,8 +40,6 @@ import logging
 
 logger = logging.getLogger('collisiontest.py')
 
-
-#Used in game.py and pygameconsole.py
 
 def point_in_rect(point, rect):
     """Check if point falls in given rectangle.
@@ -64,6 +62,8 @@ def point_in_poly(point, poly):
         
     @return: True/False
     
+    This method is an implementation of the well known ray casting algorithm.
+    
     >>> poly = ((0,0), (4,2), (4,8), (0,7), (2,6), (0, 5))
     >>> point_in_poly((.5,1), poly)
     True
@@ -75,21 +75,18 @@ def point_in_poly(point, poly):
     False
     """
     n = len(poly)
-    inside = False
     (x, y) = point
+    inside = False
 
     p1x,p1y = poly[0]
     for i in range(n+1):
         p2x,p2y = poly[i % n]
-        if y > min(p1y,p2y):
-            if y <= max(p1y,p2y):
-                if x <= max(p1x,p2x):
-                    if p1y != p2y:
-                        xinters = (y-p1y)*(p2x-p1x)/(p2y-p1y)+p1x
-                    if p1x == p2x or x <= xinters:
-                        inside = not inside
+        if y > min(p1y,p2y) and y <= max(p1y,p2y) and x <= max(p1x,p2x):
+            if p1y != p2y:
+                xintercept = p1x + (y-p1y)*(p2x-p1x)/(p2y-p1y)
+            if p1x == p2x or x <= xintercept:
+                inside = not inside
         p1x,p1y = p2x,p2y
-
     return inside
     
 
@@ -97,10 +94,68 @@ def line_cross_rect(line, rect):
     """Check if line crosses or falls in given rectangle.
         
     @return: True/False
+    
+    >>> rect = (0,0,4,4)
+    >>> line_cross_rect(((1,1), (3,3)), rect)
+    True
+    >>> line_cross_rect(((3,3), (5,3)), rect)
+    True
+    >>> line_cross_rect(((5,3), (5,0)), rect)
+    False
+    >>> line_cross_rect(((5,0), (0,5)), rect)
+    True
     """
-    pass
+    (x, y, w, h) = rect
+    poly = ((x,y), (x,y+h), (x+w,y+h), (x+w,y))
+    return line_cross_poly(line, poly)
     
     
+def line_cross_poly(line, poly):
+    """Check if line crosses or falls in given polygon.
+        
+    @return: True/False
+    
+    >>> poly = ((0,0), (4,2), (4,8), (0,7), (2,6), (0, 5))
+    >>> line_cross_poly(((1,1), (2,2)), poly)
+    True
+    >>> line_cross_poly(((2,2), (5,2)), poly)
+    True
+    >>> line_cross_poly(((5,2), (0,6)), poly)
+    True
+    >>> line_cross_poly(((5,2), (5,8)), poly)
+    False
+    """
+    if point_in_poly(line[0], poly) or point_in_poly(line[1], poly):
+        return True
+    for i,point in enumerate(poly):
+        if line_cross_line((point,poly[i-1]), line):
+            return True
+    return False
+
+
+def line_cross_line(line_AB, line_CD):
+    """Check if given line segments cross.
+        
+    @return: True/False
+    
+    >>> line = ((0,0), (5,5))
+    >>> line_cross_line(line, ((0,1), (1,0)))
+    True
+    >>> line_cross_line(line, ((6,0), (6,8)))
+    False
+    >>> line_cross_line(line, ((2,0), (5,3)))
+    False
+    """
+    
+    def clock((p1x,p1y), (p2x,p2y), (p3x,p3y)):
+        """True if p1,p2,p3 in clockwise order."""
+        return (p3y-p1y)*(p2x-p1x) < (p2y-p1y)*(p3x-p1x)
+
+    (A,B) = line_AB
+    (C,D) = line_CD
+    return clock(A,C,D) != clock(B,C,D) and clock(A,B,C) != clock(A,B,D) 
+       
+        
 def line_cross_circle(line, circle):
     """Check if line crosses or falls in given circle.
         
@@ -116,16 +171,23 @@ def line_cross_circle(line, circle):
     >>> line_cross_circle(line, ((4,4), 1))
     False
     """
-    dist = dist_to_line(circle[0], line)
-    return dist <= circle[1]
+    return dist_to_line(circle[0], line) <= circle[1]
 
 
 def circle_to_rect(circle, rect):
     """Check if circle overlaps or falls in given rectangle.
         
     @return: True/False
+    
+    >>> rect = (2,3,2,2)
+    >>> circle_to_rect(((3,4), .1), rect)
+    True
+    >>> circle_to_rect(((1,2), 1), rect)
+    False
     """
-    pass
+    (x, y, w, h) = rect
+    poly = ((x,y), (x,y+h), (x+w,y+h), (x+w,y))
+    return circle_to_poly(circle, poly)
    
      
 def circle_to_poly(circle, poly):

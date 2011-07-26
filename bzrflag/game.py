@@ -35,7 +35,6 @@ import datetime
 import numpy
 import logging
 
-import collide
 import collisiontest
 import constants
 import config
@@ -318,23 +317,23 @@ class Team(object):
                             %self.color)
         tank.pos = pos
 
-    def check_position(self, point, rad):
+    def check_position(self, pos, rad):
         """Check a position to see if it is safe to spawn a tank there."""
         for o in self._obstacles:
-            if collide.poly2circle(o.shape, (point,rad)):
+            if collisiontest.circle_to_poly((pos,rad), o.shape):
                 return False
         for s in self.map.shots():
             shot = (s.pos, constants.SHOTRADIUS)
-            if collisiontest.circle_to_circle((point,rad), shot):
+            if collisiontest.circle_to_circle((pos,rad), shot):
                 return False
         for t in self.map.tanks():
             tank = (t.pos, constants.TANKRADIUS)
-            if collisiontest.circle_to_circle((point,rad), tank):
+            if collisiontest.circle_to_circle((pos,rad), tank):
                 return False
-        off_map_left = point[0]-rad < -self.config.world.size[0]/2 
-        off_map_bottom = point[1]-rad < -self.config.world.size[1]/2
-        off_map_right = point[0]+rad > self.config.world.size[0]/2 
-        off_map_top = point[1]+rad > self.config.world.size[1]/2       
+        off_map_left = pos[0]-rad < -self.config.world.size[0]/2 
+        off_map_bottom = pos[1]-rad < -self.config.world.size[1]/2
+        off_map_right = pos[0]+rad > self.config.world.size[0]/2 
+        off_map_top = pos[1]+rad > self.config.world.size[1]/2       
         if off_map_left or off_map_bottom or off_map_right or off_map_top:
             return False
         return True
@@ -457,7 +456,7 @@ class Tank(object):
         """Return True if collision at given position, and False otherwise."""
         rad = constants.TANKRADIUS
         for obs in self.team.map.obstacles:
-            if collide.poly2circle(obs.shape, ((pos),rad)):
+            if collisiontest.circle_to_poly(((pos),rad), obs.shape):
                 return True
         for tank in self.team.map.tanks():
             if tank is self:
@@ -465,10 +464,10 @@ class Tank(object):
             if collisiontest.circle_to_circle((tank.pos, rad), (pos, rad)):
                 self.collide_tank(tank)
                 return True
-        at_left_wall = point[0]-rad < -self.config.world.size[0]/2 
-        at_bottem_wall = point[1]-rad < -self.config.world.size[1]/2
-        at_right_wall = point[0]+rad > self.config.world.size[0]/2 
-        at_top_wall = point[1]+rad > self.config.world.size[1]/2       
+        at_left_wall = pos[0]-rad < -self.config.world.size[0]/2 
+        at_bottem_wall = pos[1]-rad < -self.config.world.size[1]/2
+        at_right_wall = pos[0]+rad > self.config.world.size[0]/2 
+        at_top_wall = pos[1]+rad > self.config.world.size[1]/2       
         if at_left_wall or at_bottem_wall or at_right_wall or at_top_wall:
             return True        
         return False
@@ -579,7 +578,7 @@ class Shot(object):
         s_rad = constants.SHOTRADIUS
         t_rad = constants.TANKRADIUS
         for obs in self.team.map.obstacles:
-            if collide.poly2circle(obs.shape, ((self.pos),s_rad)):
+            if collisiontest.circle_to_poly(((self.pos),s_rad), obs.shape):
                 return self.kill()
         for tank in self.team.map.tanks():
             if self in tank.shots:
@@ -590,10 +589,10 @@ class Shot(object):
                     continue
                 tank.kill()
                 return self.kill()
-        at_left_wall = point[0]-rad < -self.config.world.size[0]/2 
-        at_bottem_wall = point[1]-rad < -self.config.world.size[1]/2
-        at_right_wall = point[0]+rad > self.config.world.size[0]/2 
-        at_top_wall = point[1]+rad > self.config.world.size[1]/2       
+        at_left_wall = self.pos[0]-s_rad < -self.config.world.size[0]/2 
+        at_bottem_wall = self.pos[1]-s_rad < -self.config.world.size[1]/2
+        at_right_wall = self.pos[0]+s_rad > self.config.world.size[0]/2 
+        at_top_wall = self.pos[1]+s_rad > self.config.world.size[1]/2       
         if at_left_wall or at_bottem_wall or at_right_wall or at_top_wall:        
             return self.kill()
 
@@ -602,18 +601,18 @@ class Shot(object):
         s_rad = constants.SHOTRADIUS
         t_rad = constants.TANKRADIUS
         for obs in self.team.map.obstacles:
-            if collide.rect2line(obs.rect, (p1,p2)):
+            if collisiontest.line_cross_rect((p1,p2), obs.rect):
                 return self.kill()
         for tank in self.team.map.tanks():
-            if collide.circle2line((tank.pos, t_rad + s_rad), (p1,p2)):
+            if collisiontest.line_cross_circle((p1,p2), (tank.pos, t_rad + s_rad)):
                 if tank.team == self.team and not self.config['friendly_fire']:
                     continue
                 tank.kill()
                 return self.kill()
-        at_left_wall = point[0]-rad < -self.config.world.size[0]/2 
-        at_bottem_wall = point[1]-rad < -self.config.world.size[1]/2
-        at_right_wall = point[0]+rad > self.config.world.size[0]/2 
-        at_top_wall = point[1]+rad > self.config.world.size[1]/2       
+        at_left_wall = self.pos[0]-s_rad < -self.config.world.size[0]/2 
+        at_bottem_wall = self.pos[1]-s_rad < -self.config.world.size[1]/2
+        at_right_wall = self.pos[0]+s_rad > self.config.world.size[0]/2 
+        at_top_wall = self.pos[1]+s_rad > self.config.world.size[1]/2       
         if at_left_wall or at_bottem_wall or at_right_wall or at_top_wall:        
             return self.kill()
 
@@ -647,7 +646,8 @@ class Flag(object):
         x, y = self.pos
         if self.tank is not None:
             self.pos = self.tank.pos
-            if collide.rect2circle(self.tank.team.base.rect, (self.pos, f_rad)):
+            rect = self.tank.team.base.rect
+            if collisiontest.circle_to_rect((self.pos, f_rad), rect):
                 self.tank.team.map.scoreFlag(self)
         else:
             for tank in self.team.map.tanks():

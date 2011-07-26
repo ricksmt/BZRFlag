@@ -10,6 +10,7 @@ bzagents/agent0.py
 bzagents/bzrc.py
 bzrflag/__init__.py
 bzrflag/collide.py
+bzrflag/collisiontest.py
 bzrflag/config.py
 bzrflag/constants.py
 bzrflag/game.py

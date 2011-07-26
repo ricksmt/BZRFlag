@@ -29,7 +29,7 @@ import sys
 import pygame
 from code import InteractiveConsole as IC
 
-import collide
+import collisiontest
 import paths
 
 
@@ -115,7 +115,7 @@ class PyConsole(Console):
         super(PyConsole, self).__init__(game, rect)
         self.console = IC({'game':game,'sys':sys,'pygame':pygame,'self':self,
                            'purple':game.map.teams['purple'],
-                           'collide':collide})
+                           'collisiontest':collisiontest})
         self.history = []
         self.athistory = 0
         self.prompt()
@@ -179,3 +179,5 @@ class PyConsole(Console):
                 self.write(e.unicode)
             else:return
             self.dirty = True
+            
+            
