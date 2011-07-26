@@ -34,11 +34,13 @@ import random
 import datetime
 import numpy
 import logging
+import asyncore
 
 import collisiontest
 import constants
 import config
 import graphics
+import server
 
 logger = logging.getLogger('game')
 
@@ -66,10 +68,10 @@ class Game:
 
     def start_servers(self):
         for color, team in self.map.teams.items():
-            port = game.config[color + '_port']
+            port = self.config[color + '_port']
             address = ('0.0.0.0', port)
             srv = server.Server(address, team, self.map, self.config)
-            if not game.config['test']:
+            if not self.config['test']:
                 print 'port for %s: %s' % (color, srv.get_port())
 
     def update_map(self):
