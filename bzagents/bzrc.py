@@ -32,12 +32,12 @@ class BZRC:
         # Note that AF_INET and SOCK_STREAM are defaults.
         sock = socket.socket()
         sock.connect((host, port))
-        
+
         # Make a line-buffered "file" from the socket.
         self.conn = sock.makefile(bufsize=1)
 
         self.handshake()
-    
+
     def handshake(self):
         """Perform the handshake with the remote tanks."""
         self.expect(('bzrobots', '1'), True)
@@ -48,9 +48,9 @@ class BZRC:
         self.conn.close()
 
     def read_arr(self):
-        """Read a response from the RC tanks as an array split on 
+        """Read a response from the RC tanks as an array split on
         whitespace.
-        
+
         """
         try:
             line = self.conn.readline()
@@ -69,7 +69,7 @@ class BZRC:
         """When we think the RC tanks should have responded differently, call
         this method with a string explaining what should have been sent and
         with the array containing what was actually sent.
-        
+
         """
         raise UnexpectedResponse(expected, ' '.join(got_arr))
 
@@ -79,7 +79,7 @@ class BZRC:
             expected = (expected,)
         line = self.read_arr()
         good = True
-        
+
         if full and len(expected) != len(line):
             good = False
         else:
@@ -87,18 +87,18 @@ class BZRC:
                 if a!=b:
                     good = False
                     break
-                    
+
         if not good:
             self.die_confused(' '.join(expected), line)
         if full:
             return True
         return line[len(expected):]
-    
+
     def expect_multi(self, *expecteds, **kwds):
         """Verify the server's response looks like one of
         several possible responses.  Return the index of the matched response,
         and the server's line response.
-        
+
         """
         line = self.read_arr()
         for i,expected in enumerate(expecteds):
@@ -117,7 +117,7 @@ class BZRC:
         """Expect an "ack" line from the remote tanks.
 
         Raise an UnexpectedResponse exception if we get something else.
-        
+
         """
         self.expect('ack')
 
@@ -126,7 +126,7 @@ class BZRC:
 
         Return True or False in accordance with the response.  Raise an
         UnexpectedResponse exception if we get something else.
-        
+
         """
         i, rest = self.expect_multi(('ok',),('fail',))
         return (True, False)[i]
@@ -159,7 +159,7 @@ class BZRC:
                     zip(rest[::2], rest[1::2])]
             obstacles.append(obstacle)
         return obstacles
-    
+
     def read_occgrid(self):
         """Read grid."""
         response = self.read_arr()
@@ -351,7 +351,7 @@ class BZRC:
         self.sendline('obstacles')
         self.read_ack()
         return self.read_obstacles()
-    
+
     def get_occgrid(self, tankid):
         """Request an occupancy grid for a tank"""
         self.sendline('occgrid %d' % tankid)
@@ -400,7 +400,7 @@ class BZRC:
         """Network-optimized request for mytanks, othertanks, flags, and shots.
 
         Returns a tuple with the four results.
-        
+
         """
         self.sendline('mytanks')
         self.sendline('othertanks')
@@ -446,14 +446,14 @@ class Answer(object):
 
     You should probably write your own code for this sort of stuff.  We
     created this class just to keep things short and sweet.
-    
+
     """
     pass
 
 
 class Command(object):
     """Class for setting a command for a tank."""
-    
+
     def __init__(self, index, speed, angvel, shoot):
         self.index = index
         self.speed = speed

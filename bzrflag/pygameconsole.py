@@ -179,5 +179,5 @@ class PyConsole(Console):
                 self.write(e.unicode)
             else:return
             self.dirty = True
-            
-            
+
+

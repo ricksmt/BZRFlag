@@ -10,11 +10,11 @@
 # modify this code if you want to do anything useful.  But this
 # should help you to know how to interact with BZRC in order to
 # get the information you need.
-# 
+#
 # After starting the bzrflag server, this is one way to start
 # this code:
 # python agent0.py [hostname] [port]
-# 
+#
 # Often this translates to something like the following (with the
 # port name being printed out by the bzrflag server):
 # python agent0.py localhost 49857
@@ -28,7 +28,7 @@ from bzrc import BZRC, Command
 
 class Agent(object):
     """Class handles all command and control logic for a teams tanks."""
-    
+
     def __init__(self, bzrc):
         self.bzrc = bzrc
         self.constants = self.bzrc.get_constants()

@@ -344,10 +344,10 @@ class Team(object):
             tank = (t.pos, constants.TANKRADIUS)
             if collisiontest.circle_to_circle((pos,rad), tank):
                 return False
-        off_map_left = pos[0]-rad < -self.config.world.size[0]/2 
+        off_map_left = pos[0]-rad < -self.config.world.size[0]/2
         off_map_bottom = pos[1]-rad < -self.config.world.size[1]/2
-        off_map_right = pos[0]+rad > self.config.world.size[0]/2 
-        off_map_top = pos[1]+rad > self.config.world.size[1]/2       
+        off_map_right = pos[0]+rad > self.config.world.size[0]/2
+        off_map_top = pos[1]+rad > self.config.world.size[1]/2
         if off_map_left or off_map_bottom or off_map_right or off_map_top:
             return False
         return True
@@ -480,12 +480,12 @@ class Tank(object):
             if collisiontest.circle_to_circle((tank.pos, rad), (pos, rad)):
                 self.collide_tank(tank)
                 return True
-        at_left_wall = pos[0]-rad < -self.config.world.size[0]/2 
+        at_left_wall = pos[0]-rad < -self.config.world.size[0]/2
         at_bottem_wall = pos[1]-rad < -self.config.world.size[1]/2
-        at_right_wall = pos[0]+rad > self.config.world.size[0]/2 
-        at_top_wall = pos[1]+rad > self.config.world.size[1]/2       
+        at_right_wall = pos[0]+rad > self.config.world.size[0]/2
+        at_top_wall = pos[1]+rad > self.config.world.size[1]/2
         if at_left_wall or at_bottem_wall or at_right_wall or at_top_wall:
-            return True        
+            return True
         return False
 
     def collide_tank(self, tank):
@@ -605,11 +605,11 @@ class Shot(object):
                     continue
                 tank.kill()
                 return self.kill()
-        at_left_wall = self.pos[0]-s_rad < -self.config.world.size[0]/2 
+        at_left_wall = self.pos[0]-s_rad < -self.config.world.size[0]/2
         at_bottem_wall = self.pos[1]-s_rad < -self.config.world.size[1]/2
-        at_right_wall = self.pos[0]+s_rad > self.config.world.size[0]/2 
-        at_top_wall = self.pos[1]+s_rad > self.config.world.size[1]/2       
-        if at_left_wall or at_bottem_wall or at_right_wall or at_top_wall:        
+        at_right_wall = self.pos[0]+s_rad > self.config.world.size[0]/2
+        at_top_wall = self.pos[1]+s_rad > self.config.world.size[1]/2
+        if at_left_wall or at_bottem_wall or at_right_wall or at_top_wall:
             return self.kill()
 
     def check_line(self, p1, p2):
@@ -625,11 +625,11 @@ class Shot(object):
                     continue
                 tank.kill()
                 return self.kill()
-        at_left_wall = self.pos[0]-s_rad < -self.config.world.size[0]/2 
+        at_left_wall = self.pos[0]-s_rad < -self.config.world.size[0]/2
         at_bottem_wall = self.pos[1]-s_rad < -self.config.world.size[1]/2
-        at_right_wall = self.pos[0]+s_rad > self.config.world.size[0]/2 
-        at_top_wall = self.pos[1]+s_rad > self.config.world.size[1]/2       
-        if at_left_wall or at_bottem_wall or at_right_wall or at_top_wall:        
+        at_right_wall = self.pos[0]+s_rad > self.config.world.size[0]/2
+        at_top_wall = self.pos[1]+s_rad > self.config.world.size[1]/2
+        if at_left_wall or at_bottem_wall or at_right_wall or at_top_wall:
             return self.kill()
 
     def kill(self):
@@ -776,7 +776,7 @@ class Score(object):
 
     def score_tank(self, tank):
         """Score tank."""
-        my_base = self.team.base.center 
+        my_base = self.team.base.center
         if tank.flag:
             ebase = tank.flag.team.base
             dist_to = collisiontest.get_dist(my_base, tank.flag.team.base.center)
@@ -794,7 +794,7 @@ class Score(object):
                     closest = dst, team.base
             if not closest:
                 logger.warning("no closest found... %s" % self.team.color)
-                return False   
+                return False
             total_dist = collisiontest.get_dist(my_base, closest[1].center)
             dist_to = collisiontest.get_dist(tank.pos, closest[1].center)
             if dist_to > total_dist:return

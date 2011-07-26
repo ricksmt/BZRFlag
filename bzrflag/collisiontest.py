@@ -43,9 +43,9 @@ logger = logging.getLogger('collisiontest.py')
 
 def point_in_rect(point, rect):
     """Check if point falls in given rectangle.
-        
+
     @return: True/False
-    
+
     >>> rect = (2,3,2,2)
     >>> point_in_rect((3,4), rect)
     True
@@ -55,15 +55,15 @@ def point_in_rect(point, rect):
     (x, y, w, h) = rect
     poly = ((x,y), (x,y+h), (x+w,y+h), (x+w,y))
     return point_in_poly(point, poly)
-    
-    
+
+
 def point_in_poly(point, poly):
     """Check if point falls in given polygon.
-        
+
     @return: True/False
-    
+
     This method is an implementation of the well known ray casting algorithm.
-    
+
     >>> poly = ((0,0), (4,2), (4,8), (0,7), (2,6), (0, 5))
     >>> point_in_poly((.5,1), poly)
     True
@@ -88,13 +88,13 @@ def point_in_poly(point, poly):
                 inside = not inside
         p1x,p1y = p2x,p2y
     return inside
-    
+
 
 def line_cross_rect(line, rect):
     """Check if line crosses or falls in given rectangle.
-        
+
     @return: True/False
-    
+
     >>> rect = (0,0,4,4)
     >>> line_cross_rect(((1,1), (3,3)), rect)
     True
@@ -108,13 +108,13 @@ def line_cross_rect(line, rect):
     (x, y, w, h) = rect
     poly = ((x,y), (x,y+h), (x+w,y+h), (x+w,y))
     return line_cross_poly(line, poly)
-    
-    
+
+
 def line_cross_poly(line, poly):
     """Check if line crosses or falls in given polygon.
-        
+
     @return: True/False
-    
+
     >>> poly = ((0,0), (4,2), (4,8), (0,7), (2,6), (0, 5))
     >>> line_cross_poly(((1,1), (2,2)), poly)
     True
@@ -135,9 +135,9 @@ def line_cross_poly(line, poly):
 
 def line_cross_line(line_AB, line_CD):
     """Check if given line segments cross.
-        
+
     @return: True/False
-    
+
     >>> line = ((0,0), (5,5))
     >>> line_cross_line(line, ((0,1), (1,0)))
     True
@@ -146,21 +146,21 @@ def line_cross_line(line_AB, line_CD):
     >>> line_cross_line(line, ((2,0), (5,3)))
     False
     """
-    
+
     def clock((p1x,p1y), (p2x,p2y), (p3x,p3y)):
         """True if p1,p2,p3 in clockwise order."""
         return (p3y-p1y)*(p2x-p1x) < (p2y-p1y)*(p3x-p1x)
 
     (A,B) = line_AB
     (C,D) = line_CD
-    return clock(A,C,D) != clock(B,C,D) and clock(A,B,C) != clock(A,B,D) 
-       
-        
+    return clock(A,C,D) != clock(B,C,D) and clock(A,B,C) != clock(A,B,D)
+
+
 def line_cross_circle(line, circle):
     """Check if line crosses or falls in given circle.
-        
+
     @return: True/False
-    
+
     >>> line = ((1,1), (3,3))
     >>> line_cross_circle(line, ((4,3), 1.1))
     True
@@ -176,9 +176,9 @@ def line_cross_circle(line, circle):
 
 def circle_to_rect(circle, rect):
     """Check if circle overlaps or falls in given rectangle.
-        
+
     @return: True/False
-    
+
     >>> rect = (2,3,2,2)
     >>> circle_to_rect(((3,4), .1), rect)
     True
@@ -188,13 +188,13 @@ def circle_to_rect(circle, rect):
     (x, y, w, h) = rect
     poly = ((x,y), (x,y+h), (x+w,y+h), (x+w,y))
     return circle_to_poly(circle, poly)
-   
-     
+
+
 def circle_to_poly(circle, poly):
     """Check if circle overlaps or falls in given polygon.
-        
+
     @return: True/False
-    
+
     >>> poly = ((0,0), (4,2), (4,8), (0,7), (2,6), (0, 5))
     >>> circle_to_poly(((3,3), .5), poly)
     True
@@ -209,26 +209,26 @@ def circle_to_poly(circle, poly):
         if line_cross_circle((point,poly[i-1]), circle):
             return True
     return False
-    
+
 
 def circle_to_circle(circle1, circle2):
     """Check if circle1 overlaps or falls in circle2.
-        
+
     @return: True/False
-    
+
     >>> circle_to_circle(((0,0), 1), ((2,0), 1))
     True
     >>> circle_to_circle(((0,0), 1), ((2.1,0), 1))
     False
     """
     return get_dist(circle1[0],circle2[0]) <= circle1[1] + circle2[1]
-    
-    
+
+
 def get_dist(point_A, point_B):
     """Calculate distance between two points.
-        
+
     @return: Pythagorean distance between point_A and point_B.
-    
+
     >>> get_dist((0,0), (4,3))
     5.0
     """
@@ -239,9 +239,9 @@ def get_dist(point_A, point_B):
 
 def dist_to_line(point, line):
     """Calculate distance to nearest point on given line.
-        
+
     @return: Closest point on line.
-    
+
     >>> line = ((1,1), (1,3))
     >>> dist_to_line((3,2), line)
     2.0
@@ -250,17 +250,17 @@ def dist_to_line(point, line):
     >>> dist_to_line((2,0), line) == math.sqrt(2)
     True
     """
-    # P (px, py): Point of intersection of infinant line (defined by AB) and 
+    # P (px, py): Point of intersection of infinant line (defined by AB) and
     #             its perpendicular passing through  point C.
-    # r: Is position of P on infinant line (defined by AB) 
+    # r: Is position of P on infinant line (defined by AB)
     #    where: r = (AC dot AB) / AB_length^2
     #    and:
     #    r = 0  ->  P = A
     #    r = 1  ->  P = B
     #    r < 0  ->  P is on the backward extension of AB
     #    r > 1  ->  P is on the forward extension of AB
-    #    0<r<1  ->  P is interior to AB  
-    
+    #    0<r<1  ->  P is interior to AB
+
     (ax,ay) = A = line[0]
     (bx,by) = B = line[1]
     (cx,cy) = C = point
@@ -276,7 +276,7 @@ def dist_to_line(point, line):
         else:
             return CB_length
 
-            
+
 if __name__=='__main__':
     import doctest
     doctest.testmod()
