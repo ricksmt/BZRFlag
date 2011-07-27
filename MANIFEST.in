@@ -1,6 +1,6 @@
 include rungame.sh
-recursive-include bin *
+include bin/bzrflag
 recursive-include bzagents *
 recursive-include data *.png *.ttf
 recursive-include maps *.bzw
-recursive-include docs *.rst
+

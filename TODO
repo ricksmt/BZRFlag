@@ -1,13 +1,9 @@
-(items with a plus sign (+) in front have been compleated)
 
 GENERAL
-- add unit tests
-- consider adding setuptools for installability
+- Add a windows distribution
+- Add more unittests
 
 CODING STYLE
-- add doc strings and other documentation
-- straighten out the licensing for collide.py; integrate it into the code
-  base more fully
 
 BUGS
 - fix the GUI bug that causes tanks and bases to jitter when dragging the
@@ -16,15 +12,14 @@ BUGS
 - Tank speed when hiting an obstacle
 
 - Taunt messages dont show up, and fail after first
-- 'timer' command produces "fail 'Map' object has fo attribute 'timelimit'"
+- 'timer' command produces "fail 'Map' object has no attribute 'timelimit'"
 - 'occupancy grid' command produces fail
 - 'scores' command preduces fail
 - when request teams from server and config only 2 teams but map allows 4???
 
 
-Priority
+PRIORITY
 
 1. Tests
 2. Setup
-4. Collision
 
