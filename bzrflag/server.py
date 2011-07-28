@@ -351,7 +351,7 @@ class Handler(asynchat.async_chat):
         self.push(''.join(response))
 
     def bzrc_occgrid(self, args):
-        """occgrid
+        """occgrid [tankid]
 
         Request an occupancy grid.
 
