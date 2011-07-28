@@ -790,7 +790,8 @@ class Score(object):
         else:
             closest = None
             for color,team in self.team.map.teams.items():
-                if team is self.team:continue
+                if team is self.team:
+                    continue
                 dst = collisiontest.get_dist(tank.pos, team.base.center)
                 if closest is None or dst < closest[0]:
                     closest = dst, team.base
@@ -799,7 +800,8 @@ class Score(object):
                 return False
             total_dist = collisiontest.get_dist(my_base, closest[1].center)
             dist_to = collisiontest.get_dist(tank.pos, closest[1].center)
-            if dist_to > total_dist:return
+            if dist_to > total_dist:
+                return
             self.setValue(100.0 * (total_dist-dist_to)/total_dist)
 
     def gotFlag(self):

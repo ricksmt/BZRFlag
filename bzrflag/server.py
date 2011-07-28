@@ -668,8 +668,9 @@ class Handler(asynchat.async_chat):
         for team1 in self.map.teams:
             for team2 in self.map.teams:
                 if team1 != team2:
-                    # Score not implemented (?)
-                    score = 0
+                    t1_score = self.map.teams[team1].score.total() 
+                    t2_score = self.map.teams[team2].score.total()
+                    score = round(t1_score - t2_score, 2)
                     response.append('score %s %s %s' % (team1, team2, score))
                     response.append('\n')
         response.append('end\n')
