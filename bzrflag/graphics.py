@@ -401,7 +401,6 @@ class Display(object):
             for sprite in self.sprites.get_sprites_from_layer(layer):
                 self.screen.blit(sprite.image,sprite.rect)
         self.console.draw(self.screen)
-        self.taunt.draw(self.screen)
 
     def background(self):
         """Creates a surface of the background with all obstacles.

@@ -188,14 +188,13 @@ class Handler(asynchat.async_chat):
         try:
             command = args[0]
             msg = args[1:]
-            if not len(msg) or msg[0] != 'please' or msg[-1] != 'thanks':
-                raise ValueError
+            #if not len(msg) or msg[0] != 'please' or msg[-1] != 'thanks':
+                #raise ValueError
         except ValueError, IndexError:
             self.push('fail invalid command\n')
             return
         self.ack(*args)
-
-        taunt_msg = ' '.join(msg[1:-1])
+        taunt_msg = ' '.join(msg[:])
         if self.team.taunt(taunt_msg):
             self.push('ok\n')
         else:
@@ -352,7 +351,7 @@ class Handler(asynchat.async_chat):
         self.push(''.join(response))
 
     def bzrc_occgrid(self, args):
-        """occupancy grid
+        """occgrid
 
         Request an occupancy grid.
 
@@ -665,19 +664,13 @@ class Handler(asynchat.async_chat):
             self.invalid_args(args)
             return
         self.ack(command)
-        self.push('fail not implemented\n')
-        return
-
         response = ['begin\n']
         for team1 in self.map.teams:
             for team2 in self.map.teams:
                 if team1 != team2:
-                    team1_name = constants.COLORNAME[team1.color]
-                    team2_name = constants.COLORNAME[team2.color]
                     # Score not implemented (?)
                     score = 0
-                    response.append('score %s %s %s'
-                                    % (team1_name, team2_name, score))
+                    response.append('score %s %s %s' % (team1, team2, score))
                     response.append('\n')
         response.append('end\n')
         self.push(''.join(response))

@@ -152,6 +152,7 @@ class Map(object):
         self.inbox = []
         self.trash = []
         self.timespent = 0.0
+        self.timelimit = self.config['time_limit']
         self.inertia_linear = 1
         self.inertia_angular = 1
         self.taunt_timer = 0
@@ -170,10 +171,11 @@ class Map(object):
     def update(self, dt):
         """Update the teams."""
         self.timespent += dt
-        if self.taunt_msg:
+        if self.taunt_msg is not None:
             self.taunt_timer -= dt
             if self.taunt_timer <= 0:
                 self.taunt_msg = None
+                self.game.display.redraw()
         if self.timespent > self.config['time_limit']:
             self.end_game = True
             return
