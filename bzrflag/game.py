@@ -45,20 +45,14 @@ import server
 logger = logging.getLogger('game')
 
 
-class Game:
-    """Main control object. Contains the main loop.
-
-    Attributes:
-
-    * map => :class:`game.Map`
-    * display => :class:`graphics.Display`
-    """
+class GameLoop:
+    """Main control object."""
 
     def __init__(self, config):
         self.config = config
         if self.config['random_seed'] != -1:
             random.seed(self.config['random_seed'])
-        self.map = Map(self, self.config)
+        self.game = Game(self, self.config)
         if not self.config['test']:
             self.display = graphics.Display(self, self.config)
         self.running = False
@@ -67,14 +61,15 @@ class Game:
         self.messages = []
 
     def start_servers(self):
-        for color, team in self.map.teams.items():
+        """Start servers for each team. """
+        for color, team in self.game.teams.items():
             port = self.config[color + '_port']
             address = ('0.0.0.0', port)
-            srv = server.Server(address, team, self.map, self.config)
+            srv = server.Server(address, team, self.game, self.config)
             if not self.config['test']:
                 print 'port for %s: %s' % (color, srv.get_port())
 
-    def update_map(self):
+    def update_game(self):
         """Updates the game world."""
         now = datetime.datetime.utcnow()
         delta = now - self.timestamp
@@ -82,17 +77,17 @@ class Game:
         dt = ((24 * 60 * 60) * delta.days
                + delta.seconds
                + (10 ** -6) * delta.microseconds)
-        self.map.update(dt)
+        self.game.update(dt)
 
     def update_graphics(self):
         """Updates graphics based on recent changes to game state.
 
         Adds and removes sprites from the display, etc.
         """
-        while len(self.map.inbox) > 0:
-            self.display.add_object(self.map.inbox.pop())
-        while len(self.map.trash) > 0:
-            self.display.remove_object(self.map.trash.pop())
+        while len(self.game.inbox) > 0:
+            self.display.add_object(self.game.inbox.pop())
+        while len(self.game.trash) > 0:
+            self.display.remove_object(self.game.trash.pop())
 
         # Write any pending messages to the console.
         for message in self.messages:
@@ -111,22 +106,22 @@ class Game:
             self.display.setup()
         try:
             while self.running:
-                if self.map.end_game:
+                if self.game.end_game:
                     break
                 asyncore.loop(constants.LOOP_TIMEOUT, count=1)
-                self.update_map()
+                self.update_game()
                 if not self.config['test']:
                     self.update_graphics()
                     self.display.update()
         except KeyboardInterrupt:
             pass
         finally:
-            final_score = '\nFinal Score\n'
-            for team in self.map.teams:
-                final_score += 'Team %s: %d\n' % (team,
-                                self.map.teams[team].score.total())
+            final_scores = '\nFinal Score\n'
+            for team in self.game.teams:
+                team_total = self.game.teams[team].score.total()
+                final_scores += 'Team %s: %d\n' % (team, team_total)
             if not self.config['test']:
-                print final_score
+                print final_scores
 
     def kill(self):
         self.running = False
@@ -137,14 +132,11 @@ class Game:
         self.messages.append(message)
 
 
-class Map(object):
-    """Manages the map data.
+class Game(object):
+    """Manages the game data."""
 
-    Populates the current map with bases, obstacles, teams and tanks.
-    """
-
-    def __init__(self, game, config):
-        self.game = game
+    def __init__(self, game_loop, config):
+        self.game_loop = game_loop
         self.config = config
         self.end_game = False
 
@@ -175,7 +167,7 @@ class Map(object):
             self.taunt_timer -= dt
             if self.taunt_timer <= 0:
                 self.taunt_msg = None
-                self.game.display.redraw()
+                self.game_loop.display.redraw()
         if self.timespent > self.config['time_limit']:
             self.end_game = True
             return

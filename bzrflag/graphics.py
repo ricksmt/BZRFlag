@@ -324,12 +324,12 @@ class Display(object):
     _spriteclass = BZSprite
     _taunt = Taunt
 
-    def __init__(self, game, config):
+    def __init__(self, game_loop, config):
         self.config = config
-        self.game = game
+        self.game_loop = game_loop
         self.world = self.config.world
         self.scores = Scores()
-        self.taunt = self._taunt(self.game.map)
+        self.taunt = self._taunt(self.game_loop.game)
         self.screen_size = map(int, self.config['window_size'].split('x'))
         self.images = self._imagecache()
         self._background = None
@@ -347,7 +347,7 @@ class Display(object):
             cons = pygameconsole.PyConsole
         else:
             cons = pygameconsole.TelnetConsole
-        self.console = cons(self.game, (25,self.screen_size[1]*2/3-25,
+        self.console = cons(self.game_loop, (25,self.screen_size[1]*2/3-25,
                             self.screen_size[0]-50,self.screen_size[1]/3))
 
     def setup_screen(self):
@@ -410,7 +410,7 @@ class Display(object):
         if not self._background:
             wscale = self.world_to_screen_scale()
             bg = self.images.tile(self.images.ground(), self.screen_size)
-            for box in self.game.map.obstacles:
+            for box in self.game_loop.game.obstacles:
                 s = TiledBZSprite(box, self.images.wall(), self)
                 bg.blit(s.image, s.rect.topleft)
             self._normal_background = self._background = bg
@@ -435,8 +435,8 @@ class Display(object):
         for e in pygame.event.get():
             self.console.event(e)
             if e.type == pygame.QUIT:
-                self.game.running = False
-                self.game.map.end_game = True
+                self.game_loop.running = False
+                self.game_loop.game.end_game = True
             elif e.type == pygame.MOUSEBUTTONDOWN:
                 if e.button == 4:
                     dirty = True

@@ -46,5 +46,5 @@ def run():
         level = logging.DEBUG
     fname = config_file.get('debug_out', None)
     logging.basicConfig(level=level, filename=fname)
-    g = game.Game(config_file)
+    g = game.GameLoop(config_file)
     g.loop()

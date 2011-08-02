@@ -39,17 +39,17 @@ class GameTest(unittest.TestCase):
         path = os.path.dirname(__file__)
         world = "--world="+os.path.join(path, "..", "maps", "test.bzw")
         self.config = config.Config(['--test', world])
-        self.game = game.Game(self.config)
-        self.game.update_map()
+        self.game_loop = game.GameLoop(self.config)
+        self.game_loop.update_game()
         self.team = "red"
 
     def tearDown(self):
-        self.game = None
+        del self.game_loop
 
     def testInitialization(self):
-        self.team = self.game.map.teams['green']
+        self.team = self.game_loop.game.teams['green']
         self.assertNotEqual(self.team._obstacles,[])
-        self.assertEquals(len(list(self.game.map.tanks())), 40)
-        self.assertEquals(len(list(self.game.map.shots())), 0)
+        self.assertEquals(len(list(self.game_loop.game.tanks())), 40)
+        self.assertEquals(len(list(self.game_loop.game.shots())), 0)
 
 # vim: et sw=4 sts=4
