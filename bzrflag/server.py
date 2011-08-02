@@ -53,10 +53,10 @@ class Server(asyncore.dispatcher):
     be rejected until the active connection closes.
     """
 
-    def __init__(self, addr, team, map, config, sock=None, asyncore_map=None):
+    def __init__(self, addr, team, game, config, sock=None, asyncore_map=None):
         self.config = config
         self.team = team
-        self.map = map
+        self.game = game
         self.in_use = False
         if sock is None:
             sock = socket.socket()
@@ -77,7 +77,7 @@ class Server(asyncore.dispatcher):
             sock.close()
         else:
             self.in_use = True
-            Handler(sock, self.team, self.map, self.handle_closed_handler,
+            Handler(sock, self.team, self.game, self.handle_closed_handler,
                     self.config, self.asyncore_map)
             self.sock = sock
 
@@ -101,11 +101,11 @@ class Handler(asynchat.async_chat):
     sends an "xyz" request.  You don't have to add it to a table or anything.
     """
 
-    def __init__(self, sock, team, map, closed_callback, config, asyncore_map):
+    def __init__(self, sock, team, game, closed_callback, config, asyncore_map):
         asynchat.async_chat.__init__(self, sock, asyncore_map)
         self.config = config
         self.team = team
-        self.map = map
+        self.game = game
         self.closed_callback = closed_callback
         self.set_terminator('\n')
         self.input_buffer = ''
@@ -115,6 +115,9 @@ class Handler(asynchat.async_chat):
 
     def handle_close(self):
         self.close()
+
+    def handle_error(self):
+        sys.excepthook(*sys.exc_info())
 
     def collect_incoming_data(self, chunk):
         if self.input_buffer:
@@ -126,7 +129,7 @@ class Handler(asynchat.async_chat):
         asynchat.async_chat.push(self, text)
         if self.config['telnet_console']:
             message = (self.team.color +' > ' + text)
-            self.map.game.write_message(message)
+            self.game.game_loop.write_message(message)
         logger.debug(self.team.color + ' > ' + text)
         if text.startswith('fail '):
             logger.error(self.team.color + ' > ' + text)
@@ -139,7 +142,7 @@ class Handler(asynchat.async_chat):
         """
         if self.config['telnet_console']:
             message = (self.team.color + ' : ' + self.input_buffer + '\n')
-            self.map.game.display.console.write(message)
+            self.game.game_loop.display.console.write(message)
         logger.debug(self.team.color + ' : ' + self.input_buffer + '\n')
         args = self.input_buffer.split()
         self.input_buffer = ''
@@ -157,7 +160,7 @@ class Handler(asynchat.async_chat):
                     logger.error(color + ' : ERROR : %s : %s\n' % (args, e))
                     message = (color +' : ERROR : %s : %s : %s\n' %
                               (args, e.__class__.__name__, e))
-                    self.map.game.display.console.write(message)
+                    self.game.write_msg(message)
                     self.push('fail %s\n' % e)
                     return
             elif args == ['agent', '1']:
@@ -314,7 +317,7 @@ class Handler(asynchat.async_chat):
             return
         self.ack(command)
         response = ['begin\n']
-        for color,team in self.map.teams.items():
+        for color,team in self.game.teams.items():
             response.append('team %s %d\n' % (color, len(team.tanks)))
         response.append('end\n')
         self.push(''.join(response))
@@ -340,7 +343,7 @@ class Handler(asynchat.async_chat):
             return
 
         response = ['begin\n']
-        for obstacle in self.map.obstacles:
+        for obstacle in self.game.obstacles:
             response.append('obstacle')
             for x, y in obstacle.shape:
                 x = random.gauss(x, self.team.posnoise)
@@ -366,7 +369,7 @@ class Handler(asynchat.async_chat):
             self.invalid_args(args)
             return
 
-        if self.map.occgrid is None:
+        if self.game.occgrid is None:
             raise Exception('occgrid not currently compatible with rotated '
                             'obstacles')
         if tank.status == constants.TANKDEAD:
@@ -390,7 +393,7 @@ class Handler(asynchat.async_chat):
         epos[1] = min(self.config.world.height, epos[1])
         width = epos[0]-spos[0]
         height = epos[1]-spos[1]
-        true_grid = self.map.occgrid[spos[0]:epos[0],
+        true_grid = self.game.occgrid[spos[0]:epos[0],
                                           spos[1]:epos[1]]
 
         true_positive = self.config['%s_true_positive' % self.team.color]
@@ -438,7 +441,7 @@ class Handler(asynchat.async_chat):
         self.ack(command)
 
         response = ['begin\n']
-        for color,base in self.map.bases.items():
+        for color,base in self.game.bases.items():
             response.append('base %s' % color)
             for point in base.shape:
                 response.append(' %s %s' % tuple(point))
@@ -467,7 +470,7 @@ class Handler(asynchat.async_chat):
         self.ack(command)
 
         response = ['begin\n']
-        for color,team in self.map.teams.items():
+        for color,team in self.game.teams.items():
             possess = "none"
             flag = team.flag
             if flag.tank is not None:
@@ -497,7 +500,7 @@ class Handler(asynchat.async_chat):
         self.ack(command)
 
         response = ['begin\n']
-        for shot in self.map.shots():
+        for shot in self.game.shots():
             x, y = shot.pos
             vx, vy = shot.vel
             response.append('shot %s %s %s %s\n' % (x, y, vx, vy))
@@ -572,7 +575,7 @@ class Handler(asynchat.async_chat):
         response = ['begin\n']
         entry_template = ('othertank %(callsign)s %(color)s %(status)s'
                           ' %(flag)s %(x)s %(y)s %(angle)s\n')
-        for color,team in self.map.teams.items():
+        for color,team in self.game.teams.items():
             if team == self.team:
                 continue
             for tank in team.tanks:
@@ -665,11 +668,11 @@ class Handler(asynchat.async_chat):
             return
         self.ack(command)
         response = ['begin\n']
-        for team1 in self.map.teams:
-            for team2 in self.map.teams:
+        for team1 in self.game.teams:
+            for team2 in self.game.teams:
                 if team1 != team2:
-                    t1_score = self.map.teams[team1].score.total() 
-                    t2_score = self.map.teams[team2].score.total()
+                    t1_score = self.game.teams[team1].score.total() 
+                    t2_score = self.game.teams[team2].score.total()
                     score = round(t1_score - t2_score, 2)
                     response.append('score %s %s %s' % (team1, team2, score))
                     response.append('\n')
@@ -693,8 +696,8 @@ class Handler(asynchat.async_chat):
             self.invalid_args(args)
             return
         self.ack(command)
-        timespent = self.map.timespent
-        timelimit = self.map.timelimit
+        timespent = self.game.timespent
+        timelimit = self.game.timelimit
         self.push('timer %s %s\n' % (timespent, timelimit))
 
     def bzrc_quit(self, args):

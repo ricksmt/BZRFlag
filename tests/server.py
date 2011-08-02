@@ -44,26 +44,135 @@ class HandlerTest(unittest.TestCase):
         self.sock = MockSocket(CONN_SOCK_1_FILENO)
 
         self.config = {'telnet_console': False}
-        team = MockTeam()
-        self.map = None
+        self.team = MockTeam()
+        self.game = MockGame()
         self.handle_closed_handler = MockHandleClosedHandler()
-        self.handler = server.Handler(self.sock, team, map,
+        self.handler = server.Handler(self.sock, self.team, self.game,
                 self.handle_closed_handler, self.config, {})
 
     def tearDown(self):
         del self.sock
         del self.config
-        del self.map
+        del self.game
         del self.handle_closed_handler
         del self.handler
+    
+    def testAngvel(self):
+        self.handshake()
+        self.clientWrite('angvel 1 1\n')
+        self.serverRead()
+        self.assertIn("ok", self.clientRead())
+        
+    def testBases(self):
+        self.handshake()
+        self.clientWrite('bases\n')
+        self.serverRead()
+        self.assertIn("begin", self.clientRead())
+        
+    def testConstants(self):
+        self.handshake()
+        #self.clientWrite('constants\n')
+        #self.serverRead()
+        #self.assertIn("begin", self.clientRead())
+        
+    def testFlags(self):
+        self.handshake()
+        self.clientWrite('flags\n')
+        self.serverRead()
+        self.assertIn("begin", self.clientRead())
+    
+    def testHelp(self):
+        self.handshake()
+        self.clientWrite('help\n')
+        self.serverRead()
+        self.assertIn(":help [command]", self.clientRead())
+        
+        self.clientWrite('help help\n')
+        self.serverRead()
+        self.assertIn("help for a command.", self.clientRead())
+        
+    def testMytanks(self):
+        self.handshake()
+        self.clientWrite('mytanks\n')
+        self.serverRead()
+        self.assertIn("begin", self.clientRead())
 
-    def testHandshake(self):
-        # Trigger the handler to write its handshake.
-        asyncore.write(self.handler)
-        self.assertEquals(self.sock.remote_read(), 'bzrobots 1\n')
-
-        #asyncore.read(self.sock)
-        #self.sock.remote_send('
+    
+    def testObstacles(self):
+        self.handshake()
+        #self.clientWrite('obstacles\n')
+        #self.serverRead()
+        #self.assertIn("begin", self.clientRead())   
+        
+    def testOccgrid(self):
+        self.handshake()
+        #self.clientWrite('obstacles\n')
+        #self.serverRead()
+        #self.assertIn("begin", self.clientRead())
+    
+    def testOthertanks(self):
+        self.handshake()
+        self.clientWrite('othertanks\n')
+        self.serverRead()
+        self.assertIn("begin", self.clientRead())
+        
+    def testQuit(self):
+        self.handshake()
+        self.clientWrite('quit\n')
+        self.serverRead()
+        self.assertIn("ok", self.clientRead())
+    
+    def testScores(self):
+        self.handshake()
+        self.clientWrite('scores\n')
+        self.serverRead()
+        self.assertIn("begin", self.clientRead())
+        
+    def testShoot(self):
+        self.handshake()
+        self.clientWrite('shoot 1\n')
+        self.serverRead()
+        self.assertIn("ok", self.clientRead())
+    
+    def testShots(self):
+        self.handshake()
+        self.clientWrite('shots\n')
+        self.serverRead()
+        self.assertIn("begin", self.clientRead())
+        
+    def testSpeed(self):
+        self.handshake()
+        self.clientWrite('speed 1 1\n')
+        self.serverRead()
+        self.assertIn("ok", self.clientRead())
+    
+    def testTeams(self):
+        self.handshake()
+        self.clientWrite('teams\n')
+        self.serverRead()
+        self.assertIn("begin", self.clientRead())
+        
+    def testTimer(self):
+        self.handshake()
+        self.clientWrite('timer\n')
+        self.serverRead()
+        self.assertIn("timer 0 0", self.clientRead())               
+    
+    def handshake(self):
+        self.assertEquals(self.clientRead(), 'bzrobots 1\n')
+        self.clientWrite('agent 1\n')
+        self.serverRead()
+        self.assertEquals(self.handler.established, True)
+            
+    def serverRead(self):
+        self.assertFalse(self.handle_closed_handler.closed)
+        asyncore.read(self.handler)
+        
+    def clientRead(self):
+        return self.sock.remote_read()
+        
+    def clientWrite(self, msg):
+        self.sock.remote_send(msg)
 
 
 class ServerTest(unittest.TestCase):
@@ -76,9 +185,9 @@ class ServerTest(unittest.TestCase):
         self.config = {'telnet_console': False}
         address = None
         team = MockTeam()
-        map = None
+        game = None
         self.asyncore_map = {}
-        self.srv = server.Server(address, team, map, self.config,
+        self.srv = server.Server(address, team, game, self.config,
                 listen_sock, self.asyncore_map)
 
     def tearDown(self):
@@ -108,11 +217,42 @@ class ServerTest(unittest.TestCase):
         # Trigger the handler to write its handshake.
         asyncore.write(handler)
         self.assertEquals(self.conn_sock_1.remote_read(), 'bzrobots 1\n')
+        
 
+class MockGame(object):
+    
+    def __init__(self):
+        self.timespent = 0
+        self.timelimit = 0
+        self.num_shots = []
+        self.tanks = []
+        self.bases = {}
+        self.teams = {}
+        self.obstacles = []
+        
+    def write_msg(self, message):
+        pass
+
+    def shots(self):
+        for shot in self.num_shots:
+            yield shot 
+                
 
 class MockTeam(object):
-    color = 'polkadot'
 
+    def __init__(self):
+        self.color = 'blue'
+        self.tanks = []
+    
+    def angvel(self, tankid, value):
+        pass
+        
+    def speed(self, tankid, value):
+        pass
+        
+    def shoot(self, tankid):
+        return True
+        
 
 class MockListenSocket(object):
     def __init__(self, fileno, socks):
@@ -178,7 +318,7 @@ class MockHandleClosedHandler(object):
     def __init__(self):
         self.closed = False
 
-    def close(self):
+    def __call__(self):
         self.closed = True
 
 # vim: et sw=4 sts=4

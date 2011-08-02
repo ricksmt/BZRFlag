@@ -258,6 +258,8 @@ class Game(object):
             return True
         return False
 
+    def write_msg(self, message):
+        self.game_loop.display.console.write(message)
 
 class Team(object):
     """Team object:
