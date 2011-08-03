@@ -38,7 +38,6 @@ import socket
 import time
 import random
 import logging
-import numpy
 
 import constants
 
@@ -162,6 +161,8 @@ class Handler(asynchat.async_chat):
                               (args, e.__class__.__name__, e))
                     self.game.write_msg(message)
                     self.push('fail %s\n' % e)
+                    import traceback
+                    traceback.print_exc(file=sys.stdout)
                     return
             elif args == ['agent', '1']:
                 self.established = True
@@ -393,9 +394,11 @@ class Handler(asynchat.async_chat):
         epos[1] = min(self.config.world.height, epos[1])
         width = epos[0]-spos[0]
         height = epos[1]-spos[1]
-        true_grid = self.game.occgrid[spos[0]:epos[0],
-                                          spos[1]:epos[1]]
 
+        true_grid = self.game.occgrid[spos[0]:epos[0]]
+        for i in range(len(true_grid)):
+            true_grid[i] = true_grid[i][spos[1]:epos[1]]
+            
         true_positive = self.config['%s_true_positive' % self.team.color]
         if true_positive is None:
             true_positive = self.config['default_true_positive']
@@ -403,16 +406,17 @@ class Handler(asynchat.async_chat):
         if true_negative is None:
             true_negative = self.config['default_true_negative']
 
-        randomized_grid = numpy.zeros((width, height))
-        r_array = numpy.random.uniform(low=0, high=1, size=(width, height))
+        randomized_grid = [[0 for i in range(height)] for j in range(width)]
+        r_array = [[random.uniform(0,1) for i in range(height)] 
+                                        for j in range(width)]
         for x in xrange(width):
             for y in xrange(height):
-                occ = true_grid[x, y]
-                r = r_array[x, y]
+                occ = true_grid[x][y]
+                r = r_array[x][y]
                 if int(occ):
-                    randomized_grid[x, y] = int(r < true_positive)
+                    randomized_grid[x][y] = int(r < true_positive)
                 else:
-                    randomized_grid[x, y] = int(r > true_negative)
+                    randomized_grid[x][y] = int(r > true_negative)
 
         response = ['begin\n']
         response.append('at %d,%d\n' % tuple(world_spos))

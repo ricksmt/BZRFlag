@@ -19,7 +19,6 @@ import math
 import sys
 import socket
 import time
-import numpy
 
 
 class BZRC:
@@ -167,12 +166,12 @@ class BZRC:
             return None
         pos = tuple(int(a) for a in self.expect('at')[0].split(','))
         size = tuple(int(a) for a in self.expect('size')[0].split('x'))
-        grid = numpy.zeros(size)
+        grid = [[0 for i in range(size[1])] for j in range(size[0])]
         for x in range(size[0]):
             line = self.read_arr()[0]
             for y in range(size[1]):
                 if line[y] == '1':
-                    grid[x, y] = 1
+                    grid[x][y] = 1
         self.expect('end', True)
         return pos, grid
 

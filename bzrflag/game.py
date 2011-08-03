@@ -32,7 +32,6 @@ __license__ = "GNU GPL"
 import math
 import random
 import datetime
-import numpy
 import logging
 import asyncore
 
@@ -179,16 +178,15 @@ class Game(object):
 
         Note: Occupancy grids with rotated obstalces not implemnted.
         """
-        self.occgrid = numpy.zeros((self.config.world.width,
-                                    self.config.world.height))
+        self.occgrid = [[0 for i in range(self.config.world.width)] 
+                           for j in range(self.config.world.height)]
         offset_x = self.config.world.width/2
         offset_y = self.config.world.height/2
-        for obstacle in self.obstacles:
-            if obstacle.rot == 0:
-                lx = (obstacle.pos[0] - obstacle.size[0]/2,
-                        obstacle.pos[1] - obstacle.size[1]/2)
-                for x in xrange(obstacle.size[0]):
-                    for y in xrange(obstacle.size[1]):
+        for o in self.obstacles:
+            if o.rot == 0:
+                lx = (o.pos[0] - o.size[0]/2, o.pos[1] - o.size[1]/2)
+                for x in xrange(o.size[0]):
+                    for y in xrange(o.size[1]):
                         self.occgrid[x+lx[0]+offset_x][y+lx[1]+offset_y] = 1
             else:
                 # We didn't have enough time to implement occupancy grids with
