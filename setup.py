@@ -9,6 +9,7 @@ setup(name='BZRFlag',
       author_email='kseppi@byu.edu',
       url='http://code.google.com/p/bzrflag/',
       packages=['bzrflag'],
+      include_package_data = True
       package_data = {'': ['*.png', '*.txt', '*.ttf']},
       test_suite = "tests",
       classifiers=['Development Status :: 4 - Beta',
