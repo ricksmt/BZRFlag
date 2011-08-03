@@ -56,121 +56,121 @@ class HandlerTest(unittest.TestCase):
         del self.game
         del self.handle_closed_handler
         del self.handler
-    
+
     def testAngvel(self):
         self.handshake()
         self.clientWrite('angvel 1 1\n')
         self.serverRead()
         self.assertIn("ok", self.clientRead())
-        
+
     def testBases(self):
         self.handshake()
         self.clientWrite('bases\n')
         self.serverRead()
         self.assertIn("begin", self.clientRead())
-        
+
     def testConstants(self):
         self.handshake()
         #self.clientWrite('constants\n')
         #self.serverRead()
         #self.assertIn("begin", self.clientRead())
-        
+
     def testFlags(self):
         self.handshake()
         self.clientWrite('flags\n')
         self.serverRead()
         self.assertIn("begin", self.clientRead())
-    
+
     def testHelp(self):
         self.handshake()
         self.clientWrite('help\n')
         self.serverRead()
         self.assertIn(":help [command]", self.clientRead())
-        
+
         self.clientWrite('help help\n')
         self.serverRead()
         self.assertIn("help for a command.", self.clientRead())
-        
+
     def testMytanks(self):
         self.handshake()
         self.clientWrite('mytanks\n')
         self.serverRead()
         self.assertIn("begin", self.clientRead())
 
-    
+
     def testObstacles(self):
         self.handshake()
         #self.clientWrite('obstacles\n')
         #self.serverRead()
-        #self.assertIn("begin", self.clientRead())   
-        
+        #self.assertIn("begin", self.clientRead())
+
     def testOccgrid(self):
         self.handshake()
         #self.clientWrite('obstacles\n')
         #self.serverRead()
         #self.assertIn("begin", self.clientRead())
-    
+
     def testOthertanks(self):
         self.handshake()
         self.clientWrite('othertanks\n')
         self.serverRead()
         self.assertIn("begin", self.clientRead())
-        
+
     def testQuit(self):
         self.handshake()
         self.clientWrite('quit\n')
         self.serverRead()
         self.assertIn("ok", self.clientRead())
-    
+
     def testScores(self):
         self.handshake()
         self.clientWrite('scores\n')
         self.serverRead()
         self.assertIn("begin", self.clientRead())
-        
+
     def testShoot(self):
         self.handshake()
         self.clientWrite('shoot 1\n')
         self.serverRead()
         self.assertIn("ok", self.clientRead())
-    
+
     def testShots(self):
         self.handshake()
         self.clientWrite('shots\n')
         self.serverRead()
         self.assertIn("begin", self.clientRead())
-        
+
     def testSpeed(self):
         self.handshake()
         self.clientWrite('speed 1 1\n')
         self.serverRead()
         self.assertIn("ok", self.clientRead())
-    
+
     def testTeams(self):
         self.handshake()
         self.clientWrite('teams\n')
         self.serverRead()
         self.assertIn("begin", self.clientRead())
-        
+
     def testTimer(self):
         self.handshake()
         self.clientWrite('timer\n')
         self.serverRead()
-        self.assertIn("timer 0 0", self.clientRead())               
-    
+        self.assertIn("timer 0 0", self.clientRead())
+
     def handshake(self):
         self.assertEquals(self.clientRead(), 'bzrobots 1\n')
         self.clientWrite('agent 1\n')
         self.serverRead()
         self.assertEquals(self.handler.established, True)
-            
+
     def serverRead(self):
         self.assertFalse(self.handle_closed_handler.closed)
         asyncore.read(self.handler)
-        
+
     def clientRead(self):
         return self.sock.remote_read()
-        
+
     def clientWrite(self, msg):
         self.sock.remote_send(msg)
 
@@ -217,10 +217,10 @@ class ServerTest(unittest.TestCase):
         # Trigger the handler to write its handshake.
         asyncore.write(handler)
         self.assertEquals(self.conn_sock_1.remote_read(), 'bzrobots 1\n')
-        
+
 
 class MockGame(object):
-    
+
     def __init__(self):
         self.timespent = 0
         self.timelimit = 0
@@ -229,30 +229,30 @@ class MockGame(object):
         self.bases = {}
         self.teams = {}
         self.obstacles = []
-        
+
     def write_msg(self, message):
         pass
 
     def shots(self):
         for shot in self.num_shots:
-            yield shot 
-                
+            yield shot
+
 
 class MockTeam(object):
 
     def __init__(self):
         self.color = 'blue'
         self.tanks = []
-    
+
     def angvel(self, tankid, value):
         pass
-        
+
     def speed(self, tankid, value):
         pass
-        
+
     def shoot(self, tankid):
         return True
-        
+
 
 class MockListenSocket(object):
     def __init__(self, fileno, socks):
