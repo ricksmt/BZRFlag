@@ -20,7 +20,7 @@
 # Licensing Office, Brigham Young University, 3760 HBLL, Provo, UT 84602,
 # (801) 422-9339 or 422-3821, e-mail copyright@byu.edu.
 
-"""BZRFlag: BZFlag with Robots!
+"""BZRFlag: BZFlag with Robotic Tanks!
 
 """
 __author__ = "BYU AML Lab <kseppi@byu.edu>"
